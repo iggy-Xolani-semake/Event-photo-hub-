@@ -36,6 +36,9 @@ export default function HomePage() {
                 className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3.5 font-semibold text-ink-950 shadow-lg shadow-accent/20 transition hover:-translate-y-0.5 hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-ink-950"
               >
                 Sign in to manage events
+                <span aria-hidden="true" className="ml-2">
+                  →
+                </span>
               </Link>
               <Link
                 href="/privacy"
