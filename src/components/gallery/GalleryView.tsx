@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PhotoLightbox } from "./PhotoLightbox";
 import { GalleryToolbar } from "./GalleryToolbar";
 import type { Photo } from "@/types/database";
@@ -15,12 +16,32 @@ interface Props {
   eventName: string;
   photos: GalleryPhoto[];
   totalCount: number;
+  processingCount?: number;
+  failedCount?: number;
 }
 
 type Tab = "all" | "favourites";
 
-export function GalleryView({ eventCode, eventName, photos: initialPhotos, totalCount }: Props) {
+export function GalleryView({
+  eventCode,
+  eventName,
+  photos: initialPhotos,
+  totalCount,
+  processingCount = 0,
+  failedCount = 0,
+}: Props) {
+  const router = useRouter();
   const [photos, setPhotos] = useState(initialPhotos);
+
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
+
+  useEffect(() => {
+    if (processingCount === 0) return;
+    const interval = window.setInterval(() => router.refresh(), 5000);
+    return () => window.clearInterval(interval);
+  }, [processingCount, router]);
   const [tab, setTab] = useState<Tab>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -38,8 +59,6 @@ export function GalleryView({ eventCode, eventName, photos: initialPhotos, total
     if (!target) return;
     const nextValue = !target.is_favourite;
 
-    // Optimistic update — favouriting should feel instant while flipping
-    // through a large wedding gallery.
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, is_favourite: nextValue } : p)));
 
     const res = await fetch(`/api/photos/${photoId}/favourite`, {
@@ -49,7 +68,6 @@ export function GalleryView({ eventCode, eventName, photos: initialPhotos, total
     });
 
     if (!res.ok) {
-      // Revert on failure rather than leaving the UI lying about state.
       setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, is_favourite: !nextValue } : p)));
     }
   }
@@ -81,9 +99,21 @@ export function GalleryView({ eventCode, eventName, photos: initialPhotos, total
         selectedIds={Array.from(selectedIds)}
       />
 
+      {(processingCount > 0 || failedCount > 0) && (
+        <div className="mx-2 mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          {processingCount > 0 && (
+            <span>{processingCount} photo{processingCount === 1 ? " is" : "s are"} still being processed. This gallery refreshes automatically.</span>
+          )}
+          {processingCount > 0 && failedCount > 0 && <span> </span>}
+          {failedCount > 0 && (
+            <span>{failedCount} photo{failedCount === 1 ? " could not" : "s could not"} be processed.</span>
+          )}
+        </div>
+      )}
+
       {visiblePhotos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center px-6">
-          <div className="text-4xl mb-3">{tab === "favourites" ? "🤍" : "📷"}</div>
+          <div className="text-4xl mb-3">📷</div>
           <p className="text-white/50">
             {tab === "favourites" ? "No favourites yet." : "No photos yet — be the first to share one!"}
           </p>
