@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ready, setReady] = useState(false);
@@ -20,6 +18,7 @@ export default function ResetPasswordPage() {
     let active = true;
 
     async function establishRecoverySession() {
+      const searchParams = new URLSearchParams(window.location.search);
       const code = searchParams.get("code");
       const tokenHash = searchParams.get("token_hash");
 
@@ -54,7 +53,7 @@ export default function ResetPasswordPage() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [searchParams]);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
