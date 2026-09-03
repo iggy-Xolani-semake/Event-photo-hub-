@@ -38,11 +38,6 @@ export default async function GalleryPage({ params }: PageProps) {
     return <EventNotFoundNotice />;
   }
 
-  // Access check: public/shared events are open to anyone with the link.
-  // Private events require the requester to be the owning client or an
-  // admin — checked against the SESSION-BOUND server client (not admin),
-  // so RLS/auth actually gates this rather than us hand-rolling the
-  // check against data fetched with elevated privileges.
   if (event.visibility === "private") {
     const sessionClient = await createSupabaseServerClient();
     const { data: userEvent } = await sessionClient
@@ -64,16 +59,25 @@ export default async function GalleryPage({ params }: PageProps) {
     }
   }
 
-  const { data: photos } = await admin
+  const { data: allPhotos } = await admin
     .from("photos")
     .select("*")
     .eq("event_id", event.id)
-    .eq("status", "ready")
-    .eq("is_hidden", false)
+    .neq("status", "deleted")
     .order("uploaded_at", { ascending: false })
     .returns<Photo[]>();
 
-  const galleryPhotos = (photos ?? []).map((p) => ({
+  const photos = (allPhotos ?? []).filter(
+    (photo) => photo.status === "ready" && !photo.is_hidden
+  );
+  const processingCount = (allPhotos ?? []).filter(
+    (photo) => photo.status === "processing"
+  ).length;
+  const failedCount = (allPhotos ?? []).filter(
+    (photo) => photo.status === "failed"
+  ).length;
+
+  const galleryPhotos = photos.map((p) => ({
     ...p,
     thumbnailUrl: publicImageUrl(p.thumbnail_path),
     galleryUrl: publicImageUrl(p.gallery_path),
@@ -85,6 +89,8 @@ export default async function GalleryPage({ params }: PageProps) {
       eventName={event.event_name}
       photos={galleryPhotos}
       totalCount={event.photo_count}
+      processingCount={processingCount}
+      failedCount={failedCount}
     />
   );
 }
