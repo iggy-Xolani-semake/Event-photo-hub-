@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     setLoading(false);
 
     if (resetError) {
-      setError("We could not send the recovery email. Please check the address and try again.");
+      setError(`We could not send the recovery email: ${resetError.message}`);
       return;
     }
 
