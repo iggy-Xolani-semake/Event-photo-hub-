@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ready, setReady] = useState(false);
@@ -15,11 +17,29 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
+    let active = true;
 
-    void supabase.auth.getSession().then(({ data }) => {
-      setReady(true);
-      setSessionMissing(!data.session);
-    });
+    async function establishRecoverySession() {
+      const code = searchParams.get("code");
+      const tokenHash = searchParams.get("token_hash");
+
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+      } else if (tokenHash) {
+        await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery",
+        });
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (active) {
+        setReady(true);
+        setSessionMissing(!data.session);
+      }
+    }
+
+    void establishRecoverySession();
 
     const {
       data: { subscription },
@@ -30,8 +50,11 @@ export default function ResetPasswordPage() {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [searchParams]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
