@@ -1,6 +1,21 @@
+# Netlify build configuration for Event Photo Hub.
+#
+# Without this file, Netlify's framework auto-detection can correctly
+# identify "this is a Next.js project" (see package.json) while still
+# leaving the build command unset in some project setups — resulting in
+# "No build steps found, continuing to publishing", which skips `next
+# build` entirely and publishes nothing useful. Setting this explicitly
+# removes the dependency on dashboard auto-detection working correctly.
+
 [build]
-  command = "npm run build"
+  command = "next build"
   publish = ".next"
 
+# The official Next.js Runtime plugin translates Next's dynamic routes,
+# API routes, and middleware into Netlify Functions/Edge Functions. This
+# project relies on all three (see src/app/api/**, src/middleware.ts),
+# so this plugin is required, not optional — without it, only static
+# pages would work and every /api/* route (including guest upload) would
+# 404 in production even after the build itself succeeds.
 [[plugins]]
   package = "@netlify/plugin-nextjs"

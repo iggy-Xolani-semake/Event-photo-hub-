@@ -124,8 +124,12 @@ export function GuestUploadExperience({
         {formattedDate && <p className="text-white/50 text-sm mb-8">{formattedDate}</p>}
 
         <h1 className="font-display text-4xl mb-3 leading-tight">Share Your Moment</h1>
-        <p className="text-white/60 mb-10 leading-relaxed">
+        <p className="text-white/60 mb-3 leading-relaxed">
           Take a photo or choose one from your phone and add it to the event gallery.
+        </p>
+        <p className="text-white/40 text-sm mb-10 leading-relaxed">
+          Up to {maxFilesPerUpload} photos. Your photos will be shared with the event host.
+          Please only upload photos you&apos;re comfortable sharing.
         </p>
 
         {validationError && (
@@ -150,9 +154,7 @@ export function GuestUploadExperience({
           </button>
         </div>
 
-        <p className="text-white/30 text-xs mt-10">
-          Up to {maxFilesPerUpload} photos at a time · No account needed
-        </p>
+        <p className="text-white/30 text-xs mt-10">No account needed</p>
         <p className="text-white/25 text-xs mt-2">
           By uploading, you agree to our{" "}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline">

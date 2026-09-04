@@ -16,12 +16,22 @@ export interface Client {
   created_at: string;
 }
 
+export interface Collaborator {
+  id: string;
+  auth_user_id: string | null;
+  name: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+}
+
 export interface Event {
   id: string;
   event_code: string;
   event_name: string;
   event_date: string | null;
   client_id: string | null;
+  collaborator_id: string | null;
   status: EventStatus;
   visibility: EventVisibility;
   upload_limit: number;

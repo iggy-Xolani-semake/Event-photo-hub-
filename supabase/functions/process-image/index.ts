@@ -49,9 +49,10 @@ interface WebhookPayload {
 }
 
 Deno.serve(async (req) => {
+  let photo: PhotoRow | undefined;
   try {
     const payload = (await req.json()) as WebhookPayload;
-    const photo = payload.record;
+    photo = payload.record;
 
     if (!photo?.storage_path) {
       return new Response(JSON.stringify({ error: "No storage_path in payload" }), { status: 400 });
@@ -94,12 +95,29 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, photoId: photo.id }), { status: 200 });
   } catch (err) {
     console.error("process-image failed:", err);
+
+    // Mark the row as failed so it's no longer indistinguishable from
+    // "still processing" in the admin/gallery UI. Best-effort: if this
+    // itself fails (e.g. payload was malformed enough that photo.id
+    // never existed), there's nothing more useful to do than log it —
+    // we still return 200 either way (see note below).
+    if (photo?.id) {
+      try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        await supabase.rpc("mark_photo_failed", {
+          p_photo_id: photo.id,
+          p_error_message: String(err).slice(0, 500),
+        });
+      } catch (markErr) {
+        console.error("Additionally failed to mark photo as failed:", markErr);
+      }
+    }
+
     // Deliberately return 200 here after logging: Supabase webhooks retry
     // on non-2xx, and a permanently-malformed image (corrupt upload) would
-    // otherwise retry forever. The photo row stays in 'processing' status,
-    // which the gallery UI treats as "still uploading" rather than
-    // crashing — an admin can spot stuck photos via the dashboard and
-    // investigate. See src/components/admin for the stuck-photo view.
+    // otherwise retry forever. The photo row is now marked 'failed' above,
+    // which the gallery/admin UI surfaces distinctly from "still
+    // processing" — see the failedCount notice on the admin event page.
     return new Response(JSON.stringify({ error: String(err) }), { status: 200 });
   }
 });

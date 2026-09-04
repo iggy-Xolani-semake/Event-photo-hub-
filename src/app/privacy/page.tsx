@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
       </Link>
 
       <h1 className="font-display text-3xl text-white mt-4 mb-2">Privacy Policy</h1>
-      <p className="text-white/40 text-sm mb-10">Last updated: [DATE — fill in before publishing]</p>
+      <p className="text-white/40 text-sm mb-10">Last updated: 1 September 2026</p>
 
       <Section title="Who this policy covers">
         <p>
@@ -111,7 +111,7 @@ export default function PrivacyPolicyPage() {
         <p>
           Questions about this policy or a request regarding your information can be sent to:
         </p>
-        <p className="mt-2 text-white">[NSX Inc contact email — fill in before publishing]</p>
+        <p className="mt-2 text-white">nsxincorporated@gmail.com</p>
       </Section>
 
       <p className="text-white/40 text-xs mt-12 border-t border-white/10 pt-6">
