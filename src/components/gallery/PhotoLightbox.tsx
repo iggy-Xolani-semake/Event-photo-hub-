@@ -8,10 +8,20 @@ interface Props {
   initialIndex: number;
   onClose: () => void;
   onToggleFavourite: (photoId: string) => void;
+  canManage: boolean;
+  onDelete: (photoId: string) => Promise<boolean>;
 }
 
-export function PhotoLightbox({ photos, initialIndex, onClose, onToggleFavourite }: Props) {
+export function PhotoLightbox({
+  photos,
+  initialIndex,
+  onClose,
+  onToggleFavourite,
+  canManage,
+  onDelete,
+}: Props) {
   const [index, setIndex] = useState(initialIndex);
+  const [deleting, setDeleting] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   const photo = photos[index];
@@ -52,6 +62,17 @@ export function PhotoLightbox({ photos, initialIndex, onClose, onToggleFavourite
     a.click();
   }
 
+  async function handleDelete() {
+    if (!photo) return;
+    if (!confirm("Delete this photo? This can't be undone.")) return;
+    setDeleting(true);
+    const success = await onDelete(photo.id);
+    setDeleting(false);
+    if (!success) {
+      alert("Could not delete this photo. Please try again.");
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black flex flex-col animate-fade-in"
@@ -80,13 +101,22 @@ export function PhotoLightbox({ photos, initialIndex, onClose, onToggleFavourite
         )}
       </div>
 
-      <div className="px-4 py-4 flex justify-center">
+      <div className="px-4 py-4 flex justify-center gap-3">
         <button
           onClick={handleDownloadOriginal}
           className="tap-target bg-white/10 border border-white/20 text-white rounded-full px-6 py-3 text-sm font-medium"
         >
           Download Original
         </button>
+        {canManage && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="tap-target bg-red-500/15 border border-red-500/30 text-red-200 rounded-full px-6 py-3 text-sm font-medium disabled:opacity-60"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -15,11 +15,12 @@ interface Props {
   eventName: string;
   photos: GalleryPhoto[];
   totalCount: number;
+  canManage: boolean;
 }
 
 type Tab = "all" | "favourites";
 
-export function GalleryView({ eventCode, eventName, photos: initialPhotos, totalCount }: Props) {
+export function GalleryView({ eventCode, eventName, photos: initialPhotos, totalCount, canManage }: Props) {
   const [photos, setPhotos] = useState(initialPhotos);
   const [tab, setTab] = useState<Tab>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -61,6 +62,13 @@ export function GalleryView({ eventCode, eventName, photos: initialPhotos, total
       else next.add(photoId);
       return next;
     });
+  }
+
+  async function deletePhoto(photoId: string): Promise<boolean> {
+    const res = await fetch(`/api/photos/${photoId}/delete`, { method: "DELETE" });
+    if (!res.ok) return false;
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    return true;
   }
 
   return (
@@ -133,6 +141,12 @@ export function GalleryView({ eventCode, eventName, photos: initialPhotos, total
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onToggleFavourite={toggleFavourite}
+          canManage={canManage}
+          onDelete={async (photoId) => {
+            const success = await deletePhoto(photoId);
+            if (success) setLightboxIndex(null);
+            return success;
+          }}
         />
       )}
     </main>

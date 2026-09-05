@@ -1,5 +1,5 @@
 import "server-only";
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
 /**
  * Cloudflare R2 is S3-compatible, so we use the AWS SDK pointed at R2's
@@ -27,3 +27,20 @@ export function createR2Client() {
 }
 
 export const R2_BUCKET = process.env.R2_BUCKET_NAME ?? "event-photo-hub";
+
+/**
+ * Deletes up to 1000 objects in one request (S3/R2 batch-delete limit).
+ * Used when an admin deletes a photo — removes original, gallery, and
+ * thumbnail together so deleting the database row doesn't leave orphaned
+ * files silently accumulating storage cost in R2.
+ */
+export async function deleteFromR2(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  const client = createR2Client();
+  await client.send(
+    new DeleteObjectsCommand({
+      Bucket: R2_BUCKET,
+      Delete: { Objects: keys.map((Key) => ({ Key })) },
+    })
+  );
+}
