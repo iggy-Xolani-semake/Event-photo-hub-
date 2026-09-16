@@ -44,14 +44,20 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAdminArea = path.startsWith("/admin");
   const isClientArea = path.startsWith("/dashboard");
+  // /client is the older collaborator area that came in from main. It signs
+  // in through /admin/login, so it is grouped with the staff console here.
+  const isCollaboratorArea = path.startsWith("/client");
   const isAdminLogin = path === "/admin/login";
 
   // Two doors, one rule: /admin is the internal console, /dashboard is the
   // client's own area. Both need a session; which events each can see is
   // decided by RLS, not by which door they used.
-  if ((isAdminArea && !isAdminLogin) || isClientArea) {
+  if ((isAdminArea && !isAdminLogin) || isClientArea || isCollaboratorArea) {
     if (!user) {
-      const loginUrl = new URL(isAdminArea ? "/admin/login" : "/login", request.url);
+      const loginUrl = new URL(
+        isAdminArea || isCollaboratorArea ? "/admin/login" : "/login",
+        request.url
+      );
       loginUrl.searchParams.set("redirectTo", path);
       return NextResponse.redirect(loginUrl);
     }
@@ -70,5 +76,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/login", "/signup"],
+  matcher: ["/admin/:path*", "/client/:path*", "/dashboard/:path*", "/login", "/signup"],
 };

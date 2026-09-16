@@ -13,9 +13,18 @@ interface Props {
    * ownership RLS instead of requireAdmin().
    */
   endpoint?: string;
+  /** Currently assigned photographer, if any. Admin-only field. */
+  collaboratorEmail?: string | null;
+  /** Only the staff console may reassign a collaborator. */
+  isAdmin?: boolean;
 }
 
-export function EventSettingsForm({ event, endpoint }: Props) {
+export function EventSettingsForm({
+  event,
+  endpoint,
+  collaboratorEmail = null,
+  isAdmin = false,
+}: Props) {
   const router = useRouter();
   const [eventName, setEventName] = useState(event.event_name);
   const [eventDate, setEventDate] = useState(event.event_date ?? "");
@@ -23,6 +32,7 @@ export function EventSettingsForm({ event, endpoint }: Props) {
   const [maxFileSizeMb, setMaxFileSizeMb] = useState(Math.round(event.max_file_size_bytes / (1024 * 1024)));
   const [maxFilesPerUpload, setMaxFilesPerUpload] = useState(event.max_files_per_upload);
   const [visibility, setVisibility] = useState(event.visibility);
+  const [collaboratorInput, setCollaboratorInput] = useState(collaboratorEmail ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +52,9 @@ export function EventSettingsForm({ event, endpoint }: Props) {
         maxFileSizeMb,
         maxFilesPerUpload,
         visibility,
+        // Only sent from the staff console. Sending an empty value from a
+        // collaborator's own edit would silently unassign them.
+        ...(isAdmin ? { collaboratorEmail: collaboratorInput.trim() || null } : {}),
       }),
     });
     setSaving(false);
@@ -136,6 +149,24 @@ export function EventSettingsForm({ event, endpoint }: Props) {
           <option value="public">Public — gallery may be indexed/shared publicly</option>
         </select>
       </label>
+
+      {isAdmin && (
+        <label className="block">
+          <span className="block text-sm text-white/60 mb-1.5">
+            Collaborator (photographer) email
+          </span>
+          <input
+            type="email"
+            value={collaboratorInput}
+            onChange={(e) => setCollaboratorInput(e.target.value)}
+            placeholder="Leave blank for no collaborator"
+            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+          />
+          <span className="block text-xs text-white/30 mt-1.5">
+            Gives this person edit access to this one event&apos;s settings.
+          </span>
+        </label>
+      )}
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3">

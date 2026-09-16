@@ -39,25 +39,34 @@ export default async function GalleryPage({ params }: PageProps) {
     return <EventNotFoundNotice />;
   }
 
-  if (event.visibility === "private") {
-    const sessionClient = await createSupabaseServerClient();
-    const { data: userEvent } = await sessionClient
-      .from("events")
-      .select("id")
-      .eq("id", event.id)
-      .maybeSingle();
+  // Single ownership check, used for two purposes:
+  //   1. Private events require the requester to BE the owning client,
+  //      collaborator, or admin — gated below.
+  //   2. canManage (shown to GalleryView) controls whether delete
+  //      actions render at all, regardless of visibility — a shared/
+  //      public event is viewable by anyone with the link but should
+  //      only be manageable by someone with a real relationship to it.
+  // Checked against the SESSION-BOUND server client (not admin), so
+  // RLS/auth actually gates this rather than us hand-rolling the check
+  // against data fetched with elevated privileges.
+  const sessionClient = await createSupabaseServerClient();
+  const { data: ownedEvent } = await sessionClient
+    .from("events")
+    .select("id")
+    .eq("id", event.id)
+    .maybeSingle();
+  const canManage = Boolean(ownedEvent);
 
-    if (!userEvent) {
-      return (
-        <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-          <div className="text-5xl mb-4">🔒</div>
-          <h1 className="text-2xl font-semibold mb-2">Private gallery</h1>
-          <p className="text-white/60 max-w-sm">
-            This gallery is private. Please sign in as the event owner to view it.
-          </p>
-        </main>
-      );
-    }
+  if (event.visibility === "private" && !canManage) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+        <div className="text-5xl mb-4">🔒</div>
+        <h1 className="text-2xl font-semibold mb-2">Private gallery</h1>
+        <p className="text-white/60 max-w-sm">
+          This gallery is private. Please sign in as the event owner to view it.
+        </p>
+      </main>
+    );
   }
 
   const { data: allPhotos } = await admin
@@ -97,6 +106,7 @@ export default async function GalleryPage({ params }: PageProps) {
       eventDate={event.event_date}
       photos={galleryPhotos}
       totalCount={event.photo_count}
+      canManage={canManage}
       processingCount={processingCount}
       failedCount={failedCount}
       canAddPhotos={canAddPhotos}

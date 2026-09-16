@@ -28,8 +28,23 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const redirectTo = searchParams.get("redirectTo") ?? "/admin";
-    router.push(redirectTo);
+    const explicitRedirect = searchParams.get("redirectTo");
+    if (explicitRedirect) {
+      router.push(explicitRedirect);
+      router.refresh();
+      return;
+    }
+
+    // No explicit destination requested (e.g. a bookmarked admin link) —
+    // send the user to the view that fits their role. app_metadata.role
+    // is the same claim is_admin() checks in RLS (0002_rls.sql), so this
+    // is purely a UX routing choice; it grants no access on its own.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role;
+
+    router.push(role === "admin" ? "/admin" : "/client");
     router.refresh();
   }
 
@@ -37,7 +52,7 @@ export default function AdminLoginPage() {
     <main className="min-h-screen flex items-center justify-center px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
         <h1 className="font-display text-2xl mb-1 text-center">Event Photo Hub</h1>
-        <p className="text-white/50 text-sm text-center mb-8">Admin sign in</p>
+        <p className="text-white/50 text-sm text-center mb-8">Sign in</p>
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3 mb-4">
@@ -70,12 +85,12 @@ export default function AdminLoginPage() {
         >
           {loading ? "Signing in…" : "Sign In"}
         </button>
-        <Link
-          href="/forgot-password"
-          className="mt-4 block text-center text-sm text-white/60 underline decoration-white/20 underline-offset-4 hover:text-white"
-        >
-          Forgot password?
-        </Link>
+
+        <div className="mt-4 text-center">
+          <Link href="/forgot-password" className="text-sm text-white/60 underline decoration-white/20 underline-offset-4 hover:text-white">
+            Forgot password?
+          </Link>
+        </div>
       </form>
     </main>
   );

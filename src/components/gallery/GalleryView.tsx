@@ -24,6 +24,8 @@ interface Props {
   canAddPhotos?: boolean;
   /** False for guests and for a host who hasn't paid — originals are gated. */
   canDownload?: boolean;
+  /** True for the event owner, a collaborator or an admin — enables delete. */
+  canManage?: boolean;
 }
 
 type Tab = "all" | "favourites";
@@ -38,6 +40,7 @@ export function GalleryView({
   failedCount = 0,
   canAddPhotos = false,
   canDownload = false,
+  canManage = false,
 }: Props) {
   const router = useRouter();
   const [photos, setPhotos] = useState(initialPhotos);
@@ -88,6 +91,13 @@ export function GalleryView({
       else next.add(photoId);
       return next;
     });
+  }
+
+  async function deletePhoto(photoId: string): Promise<boolean> {
+    const res = await fetch(`/api/photos/${photoId}/delete`, { method: "DELETE" });
+    if (!res.ok) return false;
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    return true;
   }
 
   return (
@@ -174,6 +184,12 @@ export function GalleryView({
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onToggleFavourite={toggleFavourite}
+          canManage={canManage}
+          onDelete={async (photoId) => {
+            const success = await deletePhoto(photoId);
+            if (success) setLightboxIndex(null);
+            return success;
+          }}
         />
       )}
 

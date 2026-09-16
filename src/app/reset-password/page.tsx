@@ -22,19 +22,34 @@ export default function ResetPasswordPage() {
       const code = searchParams.get("code");
       const tokenHash = searchParams.get("token_hash");
 
-      if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
-      } else if (tokenHash) {
-        await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: "recovery",
-        });
-      }
+      try {
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            throw exchangeError;
+          }
+        } else if (tokenHash) {
+          const { error: otpError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: "recovery",
+          });
 
-      const { data } = await supabase.auth.getSession();
-      if (active) {
-        setReady(true);
-        setSessionMissing(!data.session);
+          if (otpError) {
+            throw otpError;
+          }
+        }
+
+        const { data } = await supabase.auth.getSession();
+
+        if (active) {
+          setReady(true);
+          setSessionMissing(!data.session);
+        }
+      } catch {
+        if (active) {
+          setReady(true);
+          setSessionMissing(true);
+        }
       }
     }
 

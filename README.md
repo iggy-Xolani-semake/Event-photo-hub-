@@ -103,6 +103,13 @@ holding a shared event link could download every original.
 - Guests no longer see download buttons, and the routes return 403 (or 402 for
   an unpaid host) if called directly.
 
+This branch also carries two migrations that arrived from `main`:
+`0009_mark_photo_failed.sql` (service-role-only, so a failed upload stops
+looking like one that is still processing) and `0010_collaborators.sql` (a
+photographer assigned to one event may edit that event's settings). Neither
+touches the package or payment model, and the paywall trigger applies to a
+collaborator exactly as it does to the owner — verified, see below.
+
 Run `supabase/migrations/0006_packages_payments.sql`. It is safe to run more
 than once — every statement is guarded — so if the SQL editor reported
 `relation "packages" already exists`, run `docs/MIGRATION_0006_STATE_CHECK.sql`
@@ -261,7 +268,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all six migrations in order; if one reported an object already
+- [ ] Ran all eight migrations in order (0001–0006, 0009, 0010); if one reported an object already
       existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
       (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
@@ -303,6 +310,8 @@ Before taking this live with real events and real guest data:
       buttons
 - [ ] Tested: an owner cannot set `download_unlocked_at` on their own event
       (`DOWNLOAD_UNLOCK_NOT_ALLOWED`) or raise a limit past their package
+- [ ] Tested: a collaborator on an event cannot unlock its downloads, swap
+      its package or raise its limits, but can still rename it
 - [ ] Set real prices on the tiers in `packages` — a NULL price blocks
       checkout by design, it does not mean free
 - [ ] Decided on a payment provider and implemented its webhook with
@@ -349,7 +358,7 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0006, run in order
+  migrations/               0001-0006 + 0009-0010, run in order
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list
