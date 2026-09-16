@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_EVENT_LIMITS, EVENT_LIMIT_CAPS, limitHint } from "@/lib/limits";
+import { formatPrice } from "@/lib/packages";
+import type { Package } from "@/types/database";
 
 /**
  * A client creating their own event.
@@ -24,8 +26,35 @@ export function CreateEventForm() {
     DEFAULT_EVENT_LIMITS.maxFilesPerUpload
   );
   const [visibility, setVisibility] = useState("shared");
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [packageCode, setPackageCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/packages")
+      .then((res) => (res.ok ? res.json() : { packages: [] }))
+      .then((body) => {
+        if (cancelled) return;
+        setPackages(body.packages ?? []);
+      })
+      .catch(() => setPackages([]));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Picking a tier adopts its numbers as the starting point; the client may
+  // still lower them, but not raise them past the package (the API and the
+  // database both refuse).
+  const selectedPackage = packages.find((pkg) => pkg.code === packageCode) ?? null;
+  useEffect(() => {
+    if (!selectedPackage) return;
+    setUploadLimit(selectedPackage.photo_limit);
+    setMaxFileSizeMb(Math.round(selectedPackage.max_file_size_bytes / (1024 * 1024)));
+    setMaxFilesPerUpload(selectedPackage.max_files_per_upload);
+  }, [selectedPackage]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -39,6 +68,7 @@ export function CreateEventForm() {
         eventName,
         eventDate: eventDate || undefined,
         visibility,
+        packageCode: packageCode || undefined,
         uploadLimit: uploadLimit === "" ? undefined : uploadLimit,
         maxFileSizeMb: maxFileSizeMb === "" ? undefined : maxFileSizeMb,
         maxFilesPerUpload: maxFilesPerUpload === "" ? undefined : maxFilesPerUpload,
@@ -95,6 +125,32 @@ export function CreateEventForm() {
           />
         </label>
       </div>
+
+      {packages.length > 0 && (
+        <label className="block">
+          <span className="block text-sm text-white/60 mb-1.5">Package</span>
+          <select
+            value={packageCode}
+            onChange={(e) => setPackageCode(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">No package — configure limits yourself</option>
+            {packages.map((pkg) => (
+              <option key={pkg.code} value={pkg.code}>
+                {pkg.name} · up to {pkg.photo_limit} photos
+                {formatPrice(pkg.price_cents, pkg.currency)
+                  ? ` · ${formatPrice(pkg.price_cents, pkg.currency)}`
+                  : " · price to be confirmed"}
+              </option>
+            ))}
+          </select>
+          <span className="block text-xs text-white/35 mt-1.5">
+            {selectedPackage
+              ? `The package is the ceiling for the limits below. Downloads unlock once it is paid for.`
+              : `Without a package, limits are capped by the app maximums (${limitHint("uploadLimit")} photos).`}
+          </span>
+        </label>
+      )}
 
       <div className="grid sm:grid-cols-3 gap-4">
         <LimitField

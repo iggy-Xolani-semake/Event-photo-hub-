@@ -3,7 +3,8 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { findManagedEvent } from "@/lib/auth/eventAccess";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeEventLimits } from "@/lib/limits";
-import type { EventStatus, EventVisibility } from "@/types/database";
+import { packageCeilingError } from "@/lib/packages";
+import type { EventStatus, EventVisibility, Package } from "@/types/database";
 
 const VALID_VISIBILITY: EventVisibility[] = ["private", "shared", "public"];
 /** What an owner may do to their own event. Archiving is a staff action. */
@@ -94,6 +95,25 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     body.uploadLimit !== undefined ||
     body.maxFileSizeMb !== undefined ||
     body.maxFilesPerUpload !== undefined;
+
+  if (limitsProvided && event.package_id) {
+    // The database rejects this too (protect_event_commercial_fields); doing
+    // it here as well means the client gets a sentence about their package
+    // instead of a raw Postgres exception.
+    const supabaseForPackage = await createSupabaseServerClient();
+    const { data: pkg } = await supabaseForPackage
+      .from("packages")
+      .select("*")
+      .eq("id", event.package_id)
+      .maybeSingle<Package>();
+
+    if (pkg) {
+      const ceilingError = packageCeilingError(pkg, values);
+      if (ceilingError) {
+        return NextResponse.json({ error: ceilingError }, { status: 400 });
+      }
+    }
+  }
 
   if (limitsProvided) {
     updates.upload_limit = values.uploadLimit;

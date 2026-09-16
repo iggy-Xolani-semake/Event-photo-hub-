@@ -15,6 +15,8 @@ interface Props {
   onToggleSelectMode: () => void;
   selectedCount: number;
   selectedIds: string[];
+  /** Only the host of a paid event (or staff) may take files out. */
+  canDownload: boolean;
 }
 
 export function GalleryToolbar({
@@ -29,6 +31,7 @@ export function GalleryToolbar({
   onToggleSelectMode,
   selectedCount,
   selectedIds,
+  canDownload,
 }: Props) {
   const [downloading, setDownloading] = useState(false);
   const formattedDate = formatEventDate(eventDate);
@@ -91,7 +94,9 @@ export function GalleryToolbar({
         </button>
       </div>
 
-      {selectMode && selectedCount > 0 ? (
+      {/* Download controls only render for a caller who is actually entitled
+          — the API re-checks, so hiding them is courtesy, not security. */}
+      {canDownload && selectMode && selectedCount > 0 && (
         <button
           onClick={() => handleDownload("selected")}
           disabled={downloading}
@@ -99,22 +104,16 @@ export function GalleryToolbar({
         >
           {downloading ? "Preparing…" : `Download ${selectedCount} Selected`}
         </button>
-      ) : (
-        !selectMode && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
-              disabled={downloading}
-              className="flex-1 bg-white/10 border border-white/20 text-sm rounded-xl px-3 py-2 disabled:opacity-60"
-            >
-              {downloading
-                ? "Preparing…"
-                : tab === "favourites"
-                  ? "Download Favourites"
-                  : "Download All"}
-            </button>
-          </div>
-        )
+      )}
+
+      {canDownload && !selectMode && (
+        <button
+          onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
+          disabled={downloading}
+          className="w-full bg-white/10 border border-white/20 text-sm rounded-xl px-3 py-2 disabled:opacity-60"
+        >
+          {downloading ? "Preparing…" : tab === "favourites" ? "Download Favourites" : "Download All"}
+        </button>
       )}
     </div>
   );

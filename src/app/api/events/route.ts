@@ -4,7 +4,8 @@ import { ensureOwnClientProfile } from "@/lib/auth/eventAccess";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateEventCode } from "@/lib/eventCode";
 import { DEFAULT_EVENT_LIMITS, normalizeEventLimits } from "@/lib/limits";
-import type { Event, EventVisibility } from "@/types/database";
+import { packageCeilingError } from "@/lib/packages";
+import type { Event, EventVisibility, Package } from "@/types/database";
 
 const VALID_VISIBILITY: EventVisibility[] = ["private", "shared", "public"];
 
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
     eventName?: string;
     eventDate?: string;
     visibility?: string;
+    packageCode?: string;
     uploadLimit?: number;
     maxFileSizeMb?: number;
     maxFilesPerUpload?: number;
@@ -75,9 +77,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid visibility." }, { status: 400 });
   }
 
-  const { values, errors } = normalizeEventLimits(body, DEFAULT_EVENT_LIMITS);
+  const supabaseForPackage = await createSupabaseServerClient();
+
+  // A package is optional: events created without one keep the app-wide caps
+  // from src/lib/limits.ts. With one, the package becomes the ceiling and its
+  // numbers become the defaults, so a client who just picks "250 Photos" gets
+  // a correctly configured event without touching three fields.
+  let selectedPackage: Package | null = null;
+  if (body.packageCode) {
+    const { data: pkg } = await supabaseForPackage
+      .from("packages")
+      .select("*")
+      .eq("code", body.packageCode)
+      .eq("is_active", true)
+      .maybeSingle<Package>();
+
+    if (!pkg) {
+      return NextResponse.json({ error: "That package isn't available." }, { status: 400 });
+    }
+    selectedPackage = pkg;
+  }
+
+  const packageDefaults = selectedPackage
+    ? {
+        uploadLimit: selectedPackage.photo_limit,
+        maxFileSizeMb: Math.round(selectedPackage.max_file_size_bytes / (1024 * 1024)),
+        maxFilesPerUpload: selectedPackage.max_files_per_upload,
+      }
+    : DEFAULT_EVENT_LIMITS;
+
+  const { values, errors } = normalizeEventLimits(body, packageDefaults);
   if (errors.length > 0) {
     return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
+  }
+
+  if (selectedPackage) {
+    const ceilingError = packageCeilingError(selectedPackage, values);
+    if (ceilingError) {
+      return NextResponse.json({ error: ceilingError }, { status: 400 });
+    }
   }
 
   const clientId = await ensureOwnClientProfile();
@@ -104,6 +142,7 @@ export async function POST(request: NextRequest) {
         event_name: eventName,
         event_date: body.eventDate || null,
         client_id: clientId,
+        package_id: selectedPackage?.id ?? null,
         visibility: (body.visibility as EventVisibility) ?? "shared",
         upload_limit: values.uploadLimit,
         max_file_size_bytes: values.maxFileSizeMb * 1024 * 1024,

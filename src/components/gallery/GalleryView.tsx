@@ -22,6 +22,8 @@ interface Props {
   failedCount?: number;
   /** False once the host closes the event or its photo limit is reached. */
   canAddPhotos?: boolean;
+  /** False for guests and for a host who hasn't paid — originals are gated. */
+  canDownload?: boolean;
 }
 
 type Tab = "all" | "favourites";
@@ -35,6 +37,7 @@ export function GalleryView({
   processingCount = 0,
   failedCount = 0,
   canAddPhotos = false,
+  canDownload = false,
 }: Props) {
   const router = useRouter();
   const [photos, setPhotos] = useState(initialPhotos);
@@ -104,6 +107,7 @@ export function GalleryView({
         }}
         selectedCount={selectedIds.size}
         selectedIds={Array.from(selectedIds)}
+        canDownload={canDownload}
       />
 
       {(processingCount > 0 || failedCount > 0) && (

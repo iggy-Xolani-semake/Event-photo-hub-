@@ -67,10 +67,50 @@ this. It also drops the `events_select_public_anon` policy, which let anyone
 holding the public anon key read every event row and which no code path used
 — guests resolve events through `get_event_for_upload()`.
 
+### V2 Sprint 3 — packages, payment, download entitlement
+
+Two things that used to be one are now separate:
+
+| | question | decided by |
+| --- | --- | --- |
+| Gallery access | who may **look** | `events.visibility` |
+| Download entitlement | who may **take** the originals | `events.download_unlocked_at` |
+
+Before this, both download routes gated on visibility alone — so any guest
+holding a shared event link could download every original.
+
+- **`packages` table** with five tiers (50/100/250/500/1000). Only the 50-photo
+  tier carries the R50 that has actually been stated; the rest are
+  `price_cents = null`, which the app reads as "not for sale yet" and refuses
+  to charge for. Repricing is a data change, not a code change.
+- **`payments` table** and `mark_event_paid()` — the only function that can set
+  `download_unlocked_at`. Service role only, idempotent, so a repeated webhook
+  can't double-count revenue.
+- **`protect_event_commercial_fields` trigger**: an owner may edit their event
+  freely *except* the commercial fields. They cannot unlock their own
+  downloads, swap to a bigger package, or raise a limit above what their
+  package allows. Without this, one PATCH request body would bypass the
+  paywall.
+- **`decideDownloadEntitlement()`** in `src/lib/auth/downloadEntitlement.ts` is
+  the single place that answers "may this caller take files": admins always,
+  owners once paid, guests never. Both download routes and the gallery toolbar
+  read it.
+- **`/api/events/{code}/checkout`** creates a pending payment;
+  **`/api/admin/events/{code}/mark-paid`** lets staff confirm an EFT. No
+  gateway is wired up — provider choice and webhook signature verification are
+  deliberately not guessed at, so EFT-plus-staff-confirmation is the working
+  revenue path until one is.
+- Guests no longer see download buttons, and the routes return 403 (or 402 for
+  an unpaid host) if called directly.
+
+Run `supabase/migrations/0006_packages_payments.sql`. Note the behaviour
+change: **guests lose bulk download**, which is the point — the gallery is the
+free product, the originals are the paid one.
+
 Not yet built (see spec sections 5, 21, 26–31 for the intended shape):
-live gallery mode, AI features, video support, billing/package
-enforcement (the caps in `src/lib/limits.ts` are the app-wide ceilings,
-not priced tiers), white-label branding UI (the `brand_*` columns exist
+live gallery mode, AI features, video support, a payment gateway
+(packages and entitlement exist; provider webhooks do not), white-label
+branding UI (the `brand_*` columns exist
 on `events` and are read by the guest page, but there's no admin UI to
 set them yet), the per-guest upload quota and optional nickname (both
 need a migration adding to `photos`).
@@ -217,7 +257,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all five migrations in order; verified RLS is enabled on
+- [ ] Ran all six migrations in order; verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
       "Row Security: Enabled")
 - [ ] Created at least one admin user with the `role: admin` app_metadata
@@ -252,6 +292,15 @@ Before taking this live with real events and real guest data:
       (404, not 403) and cannot PATCH it
 - [ ] Tested: creating an event with `uploadLimit` above the cap in
       `src/lib/limits.ts` returns a readable 400 rather than storing it
+- [ ] Tested: a guest on a shared event cannot hit `/api/download/zip` or
+      `/api/photos/{id}/download` (403), and the gallery shows no download
+      buttons
+- [ ] Tested: an owner cannot set `download_unlocked_at` on their own event
+      (`DOWNLOAD_UNLOCK_NOT_ALLOWED`) or raise a limit past their package
+- [ ] Set real prices on the tiers in `packages` — a NULL price blocks
+      checkout by design, it does not mean free
+- [ ] Decided on a payment provider and implemented its webhook with
+      signature verification, calling `mark_event_paid()` only after it passes
 - [ ] Rate limiting is in place on `/api/upload/request-url` — note the
       documented limitation in `src/lib/rateLimit.ts`: it's in-memory and
       per-instance, which is fine for a single-instance deploy but should
@@ -294,7 +343,7 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0005, run in order
+  migrations/               0001-0006, run in order
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list

@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findManagedEvent } from "@/lib/auth/eventAccess";
+import { requireUser } from "@/lib/auth/requireUser";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { formatPrice } from "@/lib/packages";
+import { UnlockDownloadsPanel } from "@/components/dashboard/UnlockDownloadsPanel";
 import { formatEventDate, formatStorageSize } from "@/lib/format";
 import { EventQrCode } from "@/components/admin/EventQrCode";
 import { PrintablePoster } from "@/components/admin/PrintablePoster";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import { EventStatusControls } from "@/components/admin/EventStatusControls";
 import { EventSettingsForm } from "@/components/admin/EventSettingsForm";
+import type { Package } from "@/types/database";
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -37,6 +42,13 @@ export default async function ClientEventPage({ params }: PageProps) {
   if (!event) {
     notFound();
   }
+
+  const user = await requireUser();
+
+  const admin = createSupabaseAdminClient();
+  const { data: pkg } = event.package_id
+    ? await admin.from("packages").select("*").eq("id", event.package_id).maybeSingle<Package>()
+    : { data: null };
 
   const baseUrl = resolveBaseUrl();
   const guestUrl = `${baseUrl}/e/${event.event_code}`;
@@ -96,6 +108,15 @@ export default async function ClientEventPage({ params }: PageProps) {
               </Link>
             </div>
           </section>
+
+          <UnlockDownloadsPanel
+            eventCode={event.event_code}
+            unlockedAt={event.download_unlocked_at}
+            packageName={pkg?.name ?? null}
+            priceLabel={formatPrice(pkg?.price_cents ?? null, pkg?.currency ?? "ZAR")}
+            hasPackage={Boolean(pkg)}
+            isAdmin={user?.isAdmin ?? false}
+          />
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <h2 className="mb-4 font-medium">Event settings</h2>
