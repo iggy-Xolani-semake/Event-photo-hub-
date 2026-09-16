@@ -103,9 +103,13 @@ holding a shared event link could download every original.
 - Guests no longer see download buttons, and the routes return 403 (or 402 for
   an unpaid host) if called directly.
 
-Run `supabase/migrations/0006_packages_payments.sql`. Note the behaviour
-change: **guests lose bulk download**, which is the point — the gallery is the
-free product, the originals are the paid one.
+Run `supabase/migrations/0006_packages_payments.sql`. It is safe to run more
+than once — every statement is guarded — so if the SQL editor reported
+`relation "packages" already exists`, run `docs/MIGRATION_0006_STATE_CHECK.sql`
+(QUERY 1 only) to see what is actually there, then re-run 0006.
+
+Note the behaviour change: **guests lose bulk download**, which is the point —
+the gallery is the free product, the originals are the paid one.
 
 Not yet built (see spec sections 5, 21, 26–31 for the intended shape):
 live gallery mode, AI features, video support, a payment gateway
@@ -257,7 +261,9 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all six migrations in order; verified RLS is enabled on
+- [ ] Ran all six migrations in order; if one reported an object already
+      existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
+      (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
       "Row Security: Enabled")
 - [ ] Created at least one admin user with the `role: admin` app_metadata

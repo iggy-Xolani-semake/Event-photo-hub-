@@ -25,7 +25,7 @@
 -- ----------------------------------------------------------------------------
 -- 1. Packages
 -- ----------------------------------------------------------------------------
-create table public.packages (
+create table if not exists public.packages (
   id uuid primary key default gen_random_uuid(),
   code text not null,
   name text not null,
@@ -48,7 +48,7 @@ create table public.packages (
   constraint packages_price_not_negative check (price_cents is null or price_cents >= 0)
 );
 
-create unique index packages_code_key on public.packages (code);
+create unique index if not exists packages_code_key on public.packages (code);
 
 comment on table public.packages is
   'Sellable tiers. An event references one; its limits are the ceiling the client may configure within.';
@@ -57,6 +57,8 @@ alter table public.packages enable row level security;
 
 -- Packages are marketing information, not client data: anyone may read the
 -- active ones. Inactive ones stay visible to staff for editing old events.
+drop policy if exists "packages_select_active" on public.packages;
+
 create policy "packages_select_active"
   on public.packages for select
   to anon, authenticated
@@ -98,9 +100,19 @@ comment on column public.events.download_unlocked_at is
 -- ----------------------------------------------------------------------------
 -- 3. Payments
 -- ----------------------------------------------------------------------------
-create type public.payment_status as enum ('pending', 'paid', 'failed', 'refunded');
+do $$
+begin
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'payment_status'
+  ) then
+    create type public.payment_status as enum ('pending', 'paid', 'failed', 'refunded');
+  end if;
+end
+$$;
 
-create table public.payments (
+create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events (id) on delete cascade,
   package_id uuid references public.packages (id) on delete set null,
@@ -119,12 +131,12 @@ create table public.payments (
 
 -- A gateway may deliver the same webhook twice; this is what makes
 -- "mark as paid" idempotent instead of double-counting revenue.
-create unique index payments_provider_reference_key
+create unique index if not exists payments_provider_reference_key
   on public.payments (provider, provider_reference)
   where provider_reference is not null;
 
-create index payments_event_id_idx on public.payments (event_id);
-create index payments_status_idx on public.payments (status);
+create index if not exists payments_event_id_idx on public.payments (event_id);
+create index if not exists payments_status_idx on public.payments (status);
 
 alter table public.payments enable row level security;
 
@@ -132,6 +144,8 @@ alter table public.payments enable row level security;
 -- "paid" in their dashboard). They get no insert or update policy: money
 -- records are written by the server with the service role, never by a
 -- client, or "I paid" becomes a request body.
+drop policy if exists "payments_select_owner" on public.payments;
+
 create policy "payments_select_owner"
   on public.payments for select
   to authenticated
