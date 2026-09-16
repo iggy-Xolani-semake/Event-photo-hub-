@@ -5,7 +5,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * Two jobs:
  *   1. Refresh the Supabase auth cookie on every request (required by
  *      @supabase/ssr so Server Components see a valid session).
- *   2. Gate /admin/* — redirect to /admin/login if there's no session,
+ *   2. Gate /admin/* (staff console) and /dashboard/* (client area) —
+ *      redirect to the matching login page if there's no session,
  *      and separately redirect away from /admin/login if there IS one.
  *      This is a UX convenience, NOT the security boundary: the real
  *      enforcement is RLS (is_admin() checks in 0002_rls.sql) and the
@@ -40,22 +41,34 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
-  const isLoginRoute = request.nextUrl.pathname === "/admin/login";
+  const path = request.nextUrl.pathname;
+  const isAdminArea = path.startsWith("/admin");
+  const isClientArea = path.startsWith("/dashboard");
+  const isAdminLogin = path === "/admin/login";
 
-  if (isAdminRoute && !isLoginRoute && !user) {
-    const loginUrl = new URL("/admin/login", request.url);
-    loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+  // Two doors, one rule: /admin is the internal console, /dashboard is the
+  // client's own area. Both need a session; which events each can see is
+  // decided by RLS, not by which door they used.
+  if ((isAdminArea && !isAdminLogin) || isClientArea) {
+    if (!user) {
+      const loginUrl = new URL(isAdminArea ? "/admin/login" : "/login", request.url);
+      loginUrl.searchParams.set("redirectTo", path);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  if (isLoginRoute && user) {
+  if (isAdminLogin && user) {
     return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
+  // A signed-in visitor has no business on a sign-in or sign-up form.
+  if ((path === "/login" || path === "/signup") && user) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/login", "/signup"],
 };

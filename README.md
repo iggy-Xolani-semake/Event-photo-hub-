@@ -36,13 +36,44 @@ loop. Guests still never create an account and never see a payment wall.
 Screen-by-screen copy, states and the deferred list are in
 `docs/GUEST_UX_SPEC.md`.
 
+### V2 Sprint 2 — client self-service
+
+Clients now sign up and run their own events; site-host admins still see
+everything.
+
+- **`/signup` and `/login`** — a client creates an account. Their `clients`
+  row is created by `create_own_client_profile()` (migration `0005`), a
+  `SECURITY DEFINER` function that takes identity from `auth.uid()` and
+  `auth.jwt()->>'email'`, never from the request body. It is idempotent and
+  also called lazily by `/dashboard`, so signup works whether or not the
+  project has email confirmation turned on.
+- **`/dashboard`** — the client's own events, plus a create-event form.
+  `/dashboard/events/{code}` has the QR code, guest/gallery links, printable
+  poster, close/reopen and settings.
+- **`/api/events` and `/api/events/{code}`** — owner-scoped CRUD, separate
+  from the admin-only `/api/admin/**`. Authorization is not implemented in
+  the routes: they query through the session-bound client, so
+  `events_select_authenticated` and `events_update_owner` decide, and
+  "not found" and "not yours" both return 404.
+- **Caps, in two layers.** `src/lib/limits.ts` holds the customer-facing
+  ceilings (1000 photos, 25 MB, 20 per upload) and both the API and the forms
+  read it, so what the form promises and what the server accepts cannot
+  drift. Underneath, the `events_assert_limits` trigger rejects absurd values
+  in Postgres itself, for any write path that bypasses the API. Out-of-range
+  input is rejected with a message, never clamped silently.
+
+Run `supabase/migrations/0005_client_self_service.sql` before using any of
+this. It also drops the `events_select_public_anon` policy, which let anyone
+holding the public anon key read every event row and which no code path used
+— guests resolve events through `get_event_for_upload()`.
+
 Not yet built (see spec sections 5, 21, 26–31 for the intended shape):
-client-facing login/dashboard as a *separate* experience from admin
-(currently client accounts share the admin UI, gated by RLS to their own
-events — functionally correct but not yet visually distinct), live
-gallery mode, AI features, video support, billing/package enforcement,
-white-label branding UI (the `brand_*` columns exist on `events` and are
-read by the guest page, but there's no admin UI to set them yet).
+live gallery mode, AI features, video support, billing/package
+enforcement (the caps in `src/lib/limits.ts` are the app-wide ceilings,
+not priced tiers), white-label branding UI (the `brand_*` columns exist
+on `events` and are read by the guest page, but there's no admin UI to
+set them yet), the per-guest upload quota and optional nickname (both
+need a migration adding to `photos`).
 
 ## Local development
 
@@ -186,7 +217,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all four migrations in order; verified RLS is enabled on
+- [ ] Ran all five migrations in order; verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
       "Row Security: Enabled")
 - [ ] Created at least one admin user with the `role: admin` app_metadata
@@ -214,6 +245,13 @@ Before taking this live with real events and real guest data:
       guest link, while the gallery remains viewable
 - [ ] Removed or clearly labeled the `DEMO482` demo event before
       onboarding real customers (see the comment in `0004_seed_demo.sql`)
+- [ ] Confirmed `events_select_public_anon` is gone (`select * from
+      pg_policies where tablename = 'events'` shows no policy with
+      `roles = {anon}` and `cmd = SELECT`) — see `0005`
+- [ ] Tested: client A signs in, cannot open `/dashboard/events/{client-B-code}`
+      (404, not 403) and cannot PATCH it
+- [ ] Tested: creating an event with `uploadLimit` above the cap in
+      `src/lib/limits.ts` returns a readable 400 rather than storing it
 - [ ] Rate limiting is in place on `/api/upload/request-url` — note the
       documented limitation in `src/lib/rateLimit.ts`: it's in-memory and
       per-instance, which is fine for a single-instance deploy but should
@@ -232,12 +270,16 @@ src/
   app/
     e/[code]/              guest upload page (public)
     gallery/[code]/        event gallery (public/shared) or gated (private)
-    admin/                 admin dashboard (auth required)
+    admin/                 site-host console (admin required)
+    dashboard/             client self-service area (owner-scoped)
+    signup/, login/        client account pages
     api/
       upload/               guest upload handshake (request-url, confirm)
       photos/[id]/          favourite toggle, single download
       download/zip/         bulk ZIP download
       admin/events/         event CRUD (admin only)
+      events/               event CRUD for the owner (or an admin)
+      account/              creates the caller's own client profile
   components/
     guest/                  guest upload UI + state machine
     gallery/                masonry grid, lightbox, toolbar
@@ -246,12 +288,13 @@ src/
     supabase/               browser / server / admin client factories
     storage/                R2 client, path helpers, presigned URLs
     validation/             shared file validation (client + server)
-    auth/                   requireAdmin() guard for admin API routes
+    auth/                   requireAdmin(), requireUser(), eventAccess()
+    limits.ts               app-wide ceilings for client-configurable limits
     eventCode.ts            non-sequential event code generator
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0004, run in order
+  migrations/               0001-0005, run in order
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list
