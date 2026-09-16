@@ -68,16 +68,25 @@ export default async function GalleryPage({ params }: PageProps) {
     );
   }
 
-  const { data: photos } = await admin
+  const { data: allPhotos } = await admin
     .from("photos")
     .select("*")
     .eq("event_id", event.id)
-    .eq("status", "ready")
-    .eq("is_hidden", false)
+    .neq("status", "deleted")
     .order("uploaded_at", { ascending: false })
     .returns<Photo[]>();
 
-  const galleryPhotos = (photos ?? []).map((p) => ({
+  const photos = (allPhotos ?? []).filter(
+    (photo) => photo.status === "ready" && !photo.is_hidden
+  );
+  const processingCount = (allPhotos ?? []).filter(
+    (photo) => photo.status === "processing"
+  ).length;
+  const failedCount = (allPhotos ?? []).filter(
+    (photo) => photo.status === "failed"
+  ).length;
+
+  const galleryPhotos = photos.map((p) => ({
     ...p,
     thumbnailUrl: publicImageUrl(p.thumbnail_path),
     galleryUrl: publicImageUrl(p.gallery_path),
@@ -90,6 +99,8 @@ export default async function GalleryPage({ params }: PageProps) {
       photos={galleryPhotos}
       totalCount={event.photo_count}
       canManage={canManage}
+      processingCount={processingCount}
+      failedCount={failedCount}
     />
   );
 }
