@@ -10,6 +10,12 @@ import {
   ViewMemoriesIcon,
 } from "@/components/marketing/StepIcons";
 
+const eventImages = [
+  "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
+];
+
 export default function HomePage() {
   const router = useRouter();
   const [eventCode, setEventCode] = useState("");
@@ -29,308 +35,344 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0d] text-white overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.18),_transparent_35%)]" aria-hidden="true" />
-
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0b0d]/75 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="font-display text-2xl tracking-tight text-[#f5d98b]">
-            Event Photo Hub
+    <main className="min-h-screen bg-[#f5f1ee] text-[#1c1b1d]">
+      <header className="sticky top-0 z-50 border-b border-[#2a221d]/10 bg-[#f5f1ee]/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f27a3a] text-xs font-bold text-white shadow-sm">
+              EP
+            </span>
+            <span className="text-[1.1rem] font-black tracking-[-0.04em] text-[#1d1d20]">
+              Event Photo Hub
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
-            <Link href="#features" className="transition hover:text-white">
-              Features
+          <nav className="hidden items-center gap-8 text-sm font-medium text-[#1d1d20]/75 md:flex">
+            <Link href="/" className="border-b-2 border-[#f27a3a] pb-1 text-[#1d1d20]">
+              Home
             </Link>
-            <Link href="#how-it-works" className="transition hover:text-white">
-              How it works
+            <Link href="#features" className="transition hover:text-[#1d1d20]">
+              Events
             </Link>
-            <Link href="#pricing" className="transition hover:text-white">
+            <Link href="#pricing" className="transition hover:text-[#1d1d20]">
               Pricing
             </Link>
-            <Link href="#about" className="transition hover:text-white">
+            <Link href="#about" className="transition hover:text-[#1d1d20]">
               About
             </Link>
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link href="/admin/login" className="hidden rounded-full border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:border-white/30 hover:text-white sm:inline-flex">
+            <button type="button" aria-label="Theme toggle" className="hidden rounded-full border border-[#1d1d20]/10 bg-white/60 p-2 text-[#1d1d20] md:inline-flex">
+              ☼
+            </button>
+            <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
               Sign in
-            </Link>
-            <Link href="/admin/login" className="rounded-full bg-[#d4af37] px-4 py-2 text-sm font-semibold text-[#111111] transition hover:bg-[#e2c55a]">
-              Get started
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="relative mx-auto max-w-6xl px-6 pb-20 pt-20 md:pt-28">
-        <div className="grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr]">
+      <section className="mx-auto max-w-[1200px] px-6 pb-16 pt-12 md:pb-20 md:pt-16">
+        <div className="grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr]">
           <div>
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-              <span className="h-2 w-2 rounded-full bg-[#d4af37]" />
-              Built for events
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f27a3a]/25 bg-[#fef1e6] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+              Capture • Share • Relive
             </div>
 
-            <h1 className="max-w-xl font-display text-5xl leading-none tracking-[-0.04em] text-white md:text-6xl">
-              Never lose a moment from your event.
+            <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-[#1d1d20] md:text-[5.1rem]">
+              Your Event <span className="text-[#f27a3a]">Photos, All in One</span>
             </h1>
 
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-white/70">
-              Guests upload instantly with one link. You keep the gallery organised, private,
-              and ready to share in seconds.
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#3a3632]">
+              Event Photo Hub makes it easy to capture, share and access all the photos from your
+              special moments. Simply enter your event code and relive the memories.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/admin/login"
-                className="inline-flex items-center justify-center rounded-full bg-[#d4af37] px-6 py-3.5 text-sm font-semibold text-[#111111] transition hover:bg-[#e2c55a]"
-              >
-                Start hosting
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3.5 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
-              >
-                See how it works
-              </Link>
-            </div>
-
-            <form onSubmit={handleEventLookup} className="mt-8 max-w-md">
-              <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
-                Have an event code?
-              </label>
-              <div className="flex gap-2">
+            <form onSubmit={handleEventLookup} className="mt-8 max-w-[440px]">
+              <div className="flex items-center gap-2 rounded-full border border-[#1d1d20]/15 bg-white/80 p-2 shadow-sm shadow-[#1d1d20]/5">
+                <span className="ml-2 text-lg text-[#1d1d20]/65">⌕</span>
                 <input
                   value={eventCode}
                   onChange={(e) => {
                     setEventCode(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="Enter event code"
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none ring-0 placeholder:text-white/30 focus:border-[#d4af37]"
+                  placeholder="Enter event code..."
+                  className="w-full border-none bg-transparent px-2 py-2 text-base text-[#1d1d20] outline-none placeholder:text-[#1d1d20]/45"
                 />
                 <button
                   type="submit"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:border-white/25 hover:text-white"
+                  className="rounded-full bg-[#f27a3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86f30]"
                 >
-                  Open
+                  →
                 </button>
               </div>
-              {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+              {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
             </form>
+
+            <div className="mt-8 grid max-w-[420px] gap-3 sm:grid-cols-4">
+              <FeaturePill icon="⚡" label="Instant Access" />
+              <FeaturePill icon="🔒" label="Secure & Private" />
+              <FeaturePill icon="📷" label="Share with Everyone" />
+              <FeaturePill icon="✨" label="Simple" />
+            </div>
           </div>
 
-          <div className="relative">
-            <div className="rounded-[2rem] border border-white/10 bg-[#121215] p-4 shadow-2xl shadow-black/40">
-              <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#1a1a1f]">
-                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs text-white/60">
-                  <span>Live event</span>
-                  <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-emerald-300">128 photos</span>
+          <div className="relative flex justify-center">
+            <div className="absolute -right-6 top-4 h-20 w-20 rotate-12 rounded-full border border-[#f27a3a]/30 bg-[#f8e0d1]" aria-hidden="true" />
+            <div className="relative flex items-end gap-4">
+              <div className="relative ml-8 h-[420px] w-[220px] rounded-[32px] border-[12px] border-[#1e1d1f] bg-[#f7f0ea] p-3 shadow-[0_24px_46px_rgba(17,17,17,0.18)]">
+                <div className="flex h-full flex-col overflow-hidden rounded-[20px] bg-[#f7f0ea]">
+                  <div className="flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-[#1d1d20]/60">
+                    <span>9:41</span>
+                    <span>◉</span>
+                  </div>
+                  <div className="px-3 pb-3">
+                    <div className="mb-3 flex items-center justify-between rounded-full border border-[#1d1d20]/10 bg-white px-2 py-1.5 text-[9px] font-medium text-[#1d1d20]/75">
+                      <span>Event Photos</span>
+                      <span className="rounded-full bg-[#f27a3a] px-1.5 py-0.5 text-white">Live</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {eventImages.map((src, index) => (
+                        <div
+                          key={src}
+                          className="h-20 overflow-hidden rounded-xl border border-[#1d1d20]/10 bg-cover bg-center"
+                          style={{ backgroundImage: `url(${src})`, opacity: index === 2 ? 0.85 : 1 }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <div className="grid gap-3 p-4 sm:grid-cols-2">
-                  <div className="overflow-hidden rounded-2xl bg-[#272730] p-3">
-                    <div className="mb-2 h-32 rounded-xl bg-[radial-gradient(circle_at_top,_#f5d98b,_#8c6a1a_60%,_#1e1b14)]" />
-                    <div className="space-y-2">
-                      <div className="h-2.5 w-20 rounded-full bg-white/10" />
-                      <div className="h-2.5 w-14 rounded-full bg-white/10" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="rounded-2xl bg-[#272730] p-3">
-                      <div className="mb-2 h-20 rounded-xl bg-[linear-gradient(135deg,_rgba(212,175,55,0.35),_rgba(27,26,31,0.8))]" />
-                    </div>
-                    <div className="rounded-2xl bg-[#272730] p-3">
-                      <div className="mb-2 flex gap-2">
-                        <div className="h-12 w-12 rounded-xl bg-[#3a3a42]" />
-                        <div className="h-12 w-12 rounded-xl bg-[#3a3a42]" />
-                        <div className="h-12 w-12 rounded-xl bg-[#3a3a42]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="relative bottom-0 h-[220px] w-[160px] overflow-hidden rounded-[24px] border border-[#1d1d20]/10 bg-[#f7f0ea] shadow-[0_16px_35px_rgba(17,17,17,0.14)]">
+                <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80)" }} />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="features" className="border-t border-white/10 bg-[#0f0f12] py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-12 text-center">
-            <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-              Why event hosts choose us
+      <section id="features" className="mx-auto max-w-[1200px] px-6 py-8 md:py-12">
+        <div className="grid gap-6 md:grid-cols-4">
+          <FeatureCard icon={<CreateEventIcon />} title="Easy to Use" detail="Just enter your event code and start uploading photos." />
+          <FeatureCard icon={<ShareQrIcon />} title="Share the Moments" detail="View, download and share with friends and family." />
+          <FeatureCard icon={<UploadPhotoIcon />} title="Safe & Secure" detail="Your photos are protected and always private." />
+          <FeatureCard icon={<ViewMemoriesIcon />} title="Instant Access" detail="Get your event photos right away without hassle." />
+        </div>
+      </section>
+
+      <section id="events" className="mx-auto max-w-[1200px] px-6 py-16">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+              Featured Events
             </p>
-            <h2 className="mt-4 font-display text-4xl text-white">
-              One link. A full event gallery.
+            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+              Explore Our Events
             </h2>
           </div>
+          <Link href="#" className="rounded-full border border-[#1d1d20]/10 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7]">
+            View All Events →
+          </Link>
+        </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            <FeatureCard
-              icon={<CreateEventIcon />}
-              title="Create an event"
-              detail="Set up a name, date, and permissions in under a minute."
-            />
-            <FeatureCard
-              icon={<ShareQrIcon />}
-              title="Share the QR code"
-              detail="Print it, send it, or display it at the venue with zero friction."
-            />
-            <FeatureCard
-              icon={<UploadPhotoIcon />}
-              title="Guests upload"
-              detail="No sign-up, no app, no password. Photos land in one shared gallery."
-            />
-            <FeatureCard
-              icon={<ViewMemoriesIcon />}
-              title="Everyone views the memories"
-              detail="Open the gallery later and download the best shots in seconds."
-            />
+        <div className="grid gap-6 md:grid-cols-3">
+          <EventCard
+            date="24 Aug 2025"
+            title="Thabo & Lerato's Wedding"
+            subtitle="Beautiful moments, forever."
+            image="https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80"
+          />
+          <EventCard
+            date="16 Aug 2025"
+            title="Zinhle's 25th Birthday"
+            subtitle="Good vibes, great people."
+            image="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80"
+          />
+          <EventCard
+            date="02 Aug 2025"
+            title="NSX Inc. Corporate Event"
+            subtitle="Networking, growth, success."
+            image="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80"
+          />
+        </div>
+      </section>
+
+      <section id="pricing" className="bg-[#f1e8e2] py-16">
+        <div className="mx-auto max-w-[1200px] px-6">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+                Pricing
+              </p>
+              <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+                Simple &amp; Flexible Pricing
+              </h2>
+              <p className="mt-3 max-w-md text-base leading-relaxed text-[#3a3632]">
+                Choose the plan that fits your event needs. No hidden fees.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
+              <PricingCard title="Basic" price="R99" suffix="/event" list={["Access to photos", "Download up to 50", "7 day access"]} />
+              <PricingCard title="Standard" price="R199" suffix="/event" list={["Access to photos", "Download up to 200", "30 day access"]} highlight />
+              <PricingCard title="Premium" price="R399" suffix="/event" list={["Access to photos", "Download unlimited", "Lifetime access"]} />
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="mx-auto max-w-6xl px-6 py-20">
-        <div className="mb-12 text-center">
-          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-            Simple flow
-          </p>
-          <h2 className="mt-4 font-display text-4xl text-white">From QR scan to shared gallery</h2>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <StepCard step="01" title="Create" detail="Set up your event and generate a dedicated QR code or guest link." />
-          <StepCard step="02" title="Share" detail="Put it on a table, add it to your event poster, or send it directly." />
-          <StepCard step="03" title="Collect" detail="Guests upload their photos instantly and the shared gallery updates live." />
-        </div>
-      </section>
-
-      <section id="pricing" className="border-y border-white/10 bg-[#0f0f12] py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-            Pricing
-          </p>
-          <h2 className="mt-4 font-display text-4xl text-white">Built to keep events simple</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-white/65">
-            Use the platform for your event, keep the memories organised, and give guests an
-            easy way to contribute without friction.
-          </p>
-
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <PricingCard title="Starter" price="Free" details="For personal events and simple guest collections." />
-            <PricingCard title="Event" price="From $19" details="A practical plan for hosted celebrations and small gatherings." highlight />
-            <PricingCard title="Pro" price="Custom" details="For larger events, extra uploads, and premium organisation features." />
-          </div>
-        </div>
-      </section>
-
-      <section id="about" className="mx-auto max-w-6xl px-6 py-20">
-        <div className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
+      <section id="about" className="mx-auto max-w-[1200px] px-6 py-16">
+        <div className="grid gap-10 md:grid-cols-[1fr_0.9fr] md:items-center">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-              About Event Photo Hub
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+              About Us
             </p>
-            <h2 className="mt-4 font-display text-4xl text-white">The easiest way to collect event memories.</h2>
-            <p className="mt-5 max-w-xl text-white/65 leading-relaxed">
-              We built a no-fuss photo-sharing flow for weddings, birthdays, brand events, and
-              other gatherings where the best moments come from guests, not the host.
+            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+              We&apos;re Event Photo Hub
+            </h2>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-[#3a3632]">
+              We believe every moment matters. Event Photo Hub was created to help event organizers,
+              guests and families easily capture and share the best moments from their special occasions.
             </p>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2">
-              <Stat value="1 link" label="to share" />
-              <Stat value="100%" label="guest-friendly" />
-              <Stat value="No app" label="required" />
-              <Stat value="All in one" label="gallery" />
+
+            <div className="mt-8 grid gap-5 sm:grid-cols-3">
+              <StatValue value="100+" label="Events Hosted" />
+              <StatValue value="50K+" label="Photos Shared" />
+              <StatValue value="100%" label="Happy Clients" />
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-[#101014] p-4">
-            <div className="overflow-hidden rounded-[1.5rem] bg-[linear-gradient(135deg,_#1b1b20,_#111216)] p-6">
-              <div className="mb-4 h-48 rounded-[1.25rem] bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.38),_rgba(18,18,20,0.8)_58%)]" />
-              <div className="space-y-3">
-                <div className="h-3 w-24 rounded-full bg-white/10" />
-                <div className="h-3 w-32 rounded-full bg-white/10" />
-                <div className="h-3 w-full rounded-full bg-white/10" />
+          <div className="relative flex min-h-[260px] items-center justify-center">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80)" }} />
+              <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80)" }} />
+              <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80)" }} />
+              <div className="relative flex h-44 w-32 items-center justify-center overflow-hidden rounded-[20px] bg-[#f9e8d8] shadow-[0_16px_30px_rgba(17,17,17,0.12)]">
+                <span className="font-display text-[2.6rem] leading-none tracking-[-0.07em] text-[#f27a3a]">
+                  Good<br />Vibes<br /><span className="text-[#1d1d20]">Only</span>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="rounded-[2rem] border border-[#d4af37]/20 bg-[#d4af37]/10 p-8 text-center md:p-12">
-          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">
-            Ready to go
-          </p>
-          <h2 className="mt-4 font-display text-4xl text-white">Start your next event collection.</h2>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/admin/login" className="inline-flex items-center justify-center rounded-full bg-[#d4af37] px-6 py-3.5 text-sm font-semibold text-[#111111]">
-              Create event
-            </Link>
-            <Link href="/privacy" className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3.5 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:text-white">
-              Privacy &amp; trust
-            </Link>
+      <footer className="bg-[#1d1b1d] text-white">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-8">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f27a3a] text-[10px] font-bold text-white">
+              EP
+            </span>
+            <div>
+              <div className="text-base font-bold tracking-[-0.04em]">Event Photo Hub</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-white/65">
+                Capture • Share • Relive
+              </div>
+            </div>
           </div>
+
+          <nav className="hidden items-center gap-6 text-sm text-white/75 md:flex">
+            <Link href="/">Home</Link>
+            <Link href="#events">Events</Link>
+            <Link href="#pricing">Pricing</Link>
+            <Link href="#about">About</Link>
+          </nav>
+
+          <div className="text-xs text-white/65">© 2025 Event Photo Hub. All rights reserved.</div>
         </div>
-      </section>
+      </footer>
     </main>
+  );
+}
+
+function FeaturePill({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-[#1d1d20]/10 bg-white/60 px-3 py-2 text-[11px] font-semibold text-[#1d1d20]">
+      <span>{icon}</span>
+      <span>{label}</span>
+    </div>
   );
 }
 
 function FeatureCard({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-[#121215] p-6">
-      <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d4af37]/10 text-[#f0dca3]">
+    <div className="rounded-[1.5rem] border border-[#1d1d20]/10 bg-[#f7f3f0] p-6 text-center shadow-sm">
+      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#f8e7d9] text-[#f27a3a]">
         {icon}
       </div>
-      <h3 className="mb-3 text-xl font-semibold text-white">{title}</h3>
-      <p className="text-sm leading-relaxed text-white/60">{detail}</p>
+      <h3 className="mb-3 text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
+      <p className="text-sm leading-relaxed text-[#3a3632]">{detail}</p>
     </div>
   );
 }
 
-function StepCard({ step, title, detail }: { step: string; title: string; detail: string }) {
+function EventCard({ date, title, subtitle, image }: { date: string; title: string; subtitle: string; image: string }) {
   return (
-    <div className="rounded-[1.8rem] border border-white/10 bg-[#121215] p-6">
-      <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#f0dca3]">{step}</p>
-      <h3 className="mt-4 text-2xl font-semibold text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-white/60">{detail}</p>
-    </div>
+    <article className="overflow-hidden rounded-[1.25rem] border border-[#1d1d20]/10 bg-white shadow-[0_18px_30px_rgba(17,17,17,0.05)]">
+      <div className="h-[230px] w-full bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
+      <div className="p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm text-[#1d1d20]/65">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#f8e7d9] text-[10px] text-[#f27a3a]">◷</span>
+          {date}
+        </div>
+        <h3 className="text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
+        <p className="mt-2 text-sm text-[#3a3632]">{subtitle}</p>
+        <button type="button" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#f27a3a]">
+          View Photos <span>→</span>
+        </button>
+      </div>
+    </article>
   );
 }
 
 function PricingCard({
   title,
   price,
-  details,
+  suffix,
+  list,
   highlight = false,
 }: {
   title: string;
   price: string;
-  details: string;
+  suffix: string;
+  list: string[];
   highlight?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-[1.5rem] border p-6 ${
-        highlight
-          ? "border-[#d4af37]/40 bg-[#d4af37]/10"
-          : "border-white/10 bg-[#121215]"
-      }`}
-    >
-      <p className="text-sm uppercase tracking-[0.2em] text-white/50">{title}</p>
-      <p className="mt-5 font-display text-4xl text-white">{price}</p>
-      <p className="mt-4 text-sm leading-relaxed text-white/65">{details}</p>
+    <div className={`rounded-[1.5rem] border p-6 shadow-sm ${highlight ? "border-[#f27a3a]/30 bg-[#fffaf7] shadow-[#f27a3a]/10" : "border-[#1d1d20]/10 bg-white"}`}>
+      {highlight && (
+        <div className="mb-3 inline-flex rounded-full bg-[#f27a3a] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
+          Popular
+        </div>
+      )}
+      <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#1d1d20]/60">{title}</div>
+      <div className="mt-5 flex items-end gap-1 font-display text-4xl tracking-[-0.06em] text-[#1d1d20]">
+        <span>{price}</span>
+        <span className="pb-1 text-base tracking-normal text-[#1d1d20]/60">{suffix}</span>
+      </div>
+      <ul className="mt-5 space-y-2 text-sm text-[#3a3632]">
+        {list.map((item) => (
+          <li key={item} className="flex items-center gap-2">
+            <span className="text-[#0db56a]">✓</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <button type="button" className={`mt-6 w-full rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
+        Get Started
+      </button>
     </div>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function StatValue({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#121215] p-4">
-      <div className="font-display text-3xl text-[#f0dca3]">{value}</div>
-      <div className="mt-2 text-xs uppercase tracking-[0.2em] text-white/45">{label}</div>
+    <div>
+      <div className="font-display text-[2.2rem] leading-none tracking-[-0.06em] text-[#1d1d20]">{value}</div>
+      <div className="mt-2 text-xs uppercase tracking-[0.18em] text-[#1d1d20]/60">{label}</div>
     </div>
   );
 }
