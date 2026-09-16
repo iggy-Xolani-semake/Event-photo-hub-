@@ -66,8 +66,11 @@ export default function HomePage() {
             <button type="button" aria-label="Theme toggle" className="hidden rounded-full border border-[#1d1d20]/10 bg-white/60 p-2 text-[#1d1d20] md:inline-flex">
               ☼
             </button>
-            <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
+            <Link href="/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
               Sign in
+            </Link>
+            <Link href="/signup" className="rounded-full bg-[#f27a3a] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#e86f30]">
+              Create your event
             </Link>
           </div>
         </div>
@@ -173,7 +176,7 @@ export default function HomePage() {
               Explore Our Events
             </h2>
           </div>
-          <Link href="#" className="rounded-full border border-[#1d1d20]/10 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7]">
+          <Link href="#events" className="rounded-full border border-[#1d1d20]/10 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7]">
             View All Events →
           </Link>
         </div>
@@ -279,6 +282,8 @@ export default function HomePage() {
             <Link href="#events">Events</Link>
             <Link href="#pricing">Pricing</Link>
             <Link href="#about">About</Link>
+            <Link href="/login">Client sign in</Link>
+            <Link href="/admin/login">Staff sign in</Link>
           </nav>
 
           <div className="text-xs text-white/65">© 2025 Event Photo Hub. All rights reserved.</div>
@@ -361,9 +366,12 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <button type="button" className={`mt-6 w-full rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
+      <Link
+        href="/signup"
+        className={`mt-6 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}
+      >
         Get Started
-      </button>
+      </Link>
     </div>
   );
 }
