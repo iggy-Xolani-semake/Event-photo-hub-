@@ -83,14 +83,18 @@ export default async function GalleryPage({ params }: PageProps) {
     galleryUrl: publicImageUrl(p.gallery_path),
   }));
 
+  const canAddPhotos = event.status === "active" && event.photo_count < event.upload_limit;
+
   return (
     <GalleryView
       eventCode={eventCode}
       eventName={event.event_name}
+      eventDate={event.event_date}
       photos={galleryPhotos}
       totalCount={event.photo_count}
       processingCount={processingCount}
       failedCount={failedCount}
+      canAddPhotos={canAddPhotos}
     />
   );
 }

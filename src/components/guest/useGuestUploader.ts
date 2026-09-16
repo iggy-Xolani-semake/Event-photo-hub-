@@ -83,7 +83,7 @@ export function useGuestUploader(eventCode: string) {
   }, []);
 
   const uploadOne = useCallback(
-    async (item: UploadItem) => {
+    async (item: UploadItem): Promise<boolean> => {
       try {
         updateItem(item.id, { status: "compressing", progress: 5 });
 
@@ -158,18 +158,22 @@ export function useGuestUploader(eventCode: string) {
         }
 
         updateItem(item.id, { status: "success", progress: 100 });
+        return true;
       } catch (err) {
         updateItem(item.id, {
           status: "error",
           errorMessage: err instanceof Error ? err.message : "Upload interrupted. Please try again.",
         });
+        return false;
       }
     },
     [eventCode, updateItem]
   );
 
   const uploadAll = useCallback(
-    async (targetItems?: UploadItem[]) => {
+    async (
+      targetItems?: UploadItem[]
+    ): Promise<{ successCount: number; failedCount: number }> => {
       const toUpload = targetItems ?? items.filter((it) => it.status === "queued" || it.status === "error");
       // Concurrency cap: don't fire 10 simultaneous PUTs from one phone on
       // possibly-poor venue wifi — that starves each request of bandwidth
@@ -177,21 +181,30 @@ export function useGuestUploader(eventCode: string) {
       // responsive and completes faster in practice on congested networks.
       const CONCURRENCY = 3;
       const queue = [...toUpload];
+      let successCount = 0;
+      let failedCount = 0;
       const workers = Array.from({ length: CONCURRENCY }, async () => {
         while (queue.length > 0) {
           const next = queue.shift();
-          if (next) await uploadOne(next);
+          if (next) {
+            // Safe to increment from concurrent workers: JS is single-threaded,
+            // so these only interleave at await points, never mid-increment.
+            if (await uploadOne(next)) successCount += 1;
+            else failedCount += 1;
+          }
         }
       });
       await Promise.all(workers);
+      return { successCount, failedCount };
     },
     [items, uploadOne]
   );
 
   const retryItem = useCallback(
-    (id: string) => {
+    async (id: string): Promise<boolean> => {
       const item = items.find((it) => it.id === id);
-      if (item) uploadOne({ ...item, status: "queued", progress: 0 });
+      if (!item) return false;
+      return uploadOne({ ...item, status: "queued", progress: 0 });
     },
     [items, uploadOne]
   );

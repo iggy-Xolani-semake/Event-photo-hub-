@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhotoLightbox } from "./PhotoLightbox";
@@ -14,10 +15,13 @@ export interface GalleryPhoto extends Photo {
 interface Props {
   eventCode: string;
   eventName: string;
+  eventDate?: string | null;
   photos: GalleryPhoto[];
   totalCount: number;
   processingCount?: number;
   failedCount?: number;
+  /** False once the host closes the event or its photo limit is reached. */
+  canAddPhotos?: boolean;
 }
 
 type Tab = "all" | "favourites";
@@ -25,10 +29,12 @@ type Tab = "all" | "favourites";
 export function GalleryView({
   eventCode,
   eventName,
+  eventDate = null,
   photos: initialPhotos,
   totalCount,
   processingCount = 0,
   failedCount = 0,
+  canAddPhotos = false,
 }: Props) {
   const router = useRouter();
   const [photos, setPhotos] = useState(initialPhotos);
@@ -85,6 +91,7 @@ export function GalleryView({
     <main className="min-h-screen pb-24">
       <GalleryToolbar
         eventName={eventName}
+        eventDate={eventDate}
         eventCode={eventCode}
         tab={tab}
         onTabChange={setTab}
@@ -164,6 +171,23 @@ export function GalleryView({
           onClose={() => setLightboxIndex(null)}
           onToggleFavourite={toggleFavourite}
         />
+      )}
+
+      {/* The loop-closing button: a guest browsing other people's photos is
+          the most motivated they will ever be to add their own, so the way
+          back into the upload flow stays one tap away at all times. */}
+      {canAddPhotos && (
+        <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-5 pt-8">
+          <Link
+            href={`/e/${eventCode}?add=1`}
+            className="tap-target mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
+          >
+            <span aria-hidden="true" className="text-xl">
+              ＋
+            </span>
+            Add my photos
+          </Link>
+        </div>
       )}
     </main>
   );

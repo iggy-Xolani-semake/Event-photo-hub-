@@ -44,7 +44,7 @@ export function validateBatchSize(fileCount: number, maxFiles: number): FileVali
   if (fileCount > maxFiles) {
     return {
       valid: false,
-      message: `You can upload up to ${maxFiles} photos at a time. Please select fewer photos.`,
+      message: `You can share up to ${maxFiles} photos at a time — we kept your first ${maxFiles}.`,
     };
   }
   return { valid: true };

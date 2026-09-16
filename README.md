@@ -22,6 +22,20 @@ lightbox + favourites + ZIP downloads, full admin dashboard (create
 event, QR code + printable poster, close/reopen, settings, per-event
 stats).
 
+### V2 Sprint 1 — guest journey redesign
+
+The guest flow has been rebuilt around one goal: a stranger scans the QR
+code, sees other people's photos first, and is pulled into uploading their
+own. Scanning now lands on an **event landing screen** (event name, date,
+"N photos shared so far", a 6-photo teaser strip, and two buttons — *See
+the photos* / *Add my photos*) instead of dropping the guest straight into
+an upload form. From there: a one-tap "Before you share" notice, a
+`6 / 10 photos` picker, and a success screen that hands the guest to the
+gallery, which now carries a sticky **＋ Add my photos** button to close the
+loop. Guests still never create an account and never see a payment wall.
+Screen-by-screen copy, states and the deferred list are in
+`docs/GUEST_UX_SPEC.md`.
+
 Not yet built (see spec sections 5, 21, 26–31 for the intended shape):
 client-facing login/dashboard as a *separate* experience from admin
 (currently client accounts share the admin UI, gated by RLS to their own
@@ -240,6 +254,8 @@ supabase/
   migrations/               0001-0004, run in order
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
+  GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list
   SUPABASE_SETUP.md
   R2_SETUP.md
+  LEGAL_REVIEW_NEEDED.md
 ```
