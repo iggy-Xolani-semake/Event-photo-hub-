@@ -63,14 +63,11 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Theme toggle" className="hidden rounded-full border border-[#1d1d20]/10 bg-white/60 p-2 text-[#1d1d20] md:inline-flex">
-              ☼
-            </button>
             <div className="flex items-center gap-2">
-              <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
+              <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/20 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-[#f5f1ee]">
                 Sign in
               </Link>
-              <Link href="/signup" className="rounded-full bg-[#1d1d20] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#343033]">
+              <Link href="/signup" className="rounded-full bg-[#1d1d20] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#343033] focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-[#f5f1ee]">
                 Create event
               </Link>
             </div>
@@ -81,12 +78,12 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1200px] px-6 pb-16 pt-12 md:pb-20 md:pt-16">
         <div className="grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr]">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f27a3a]/25 bg-[#fef1e6] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f27a3a]/25 bg-[#fef1e6] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               Capture • Share • Relive
             </div>
 
             <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-[#1d1d20] md:text-[5.1rem]">
-              Your Event <span className="text-[#f27a3a]">Photos, All in One</span>
+              Your Event <span className="text-[#c94c16]">Photos, All in One</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#3a3632]">
@@ -108,7 +105,8 @@ export default function HomePage() {
                 />
                 <button
                   type="submit"
-                  className="rounded-full bg-[#f27a3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86f30]"
+                  aria-label="Open event"
+                  className="rounded-full bg-[#e85f1f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#c94c16] focus:outline-none focus:ring-2 focus:ring-[#1d1d20] focus:ring-offset-2"
                 >
                   →
                 </button>
@@ -178,8 +176,8 @@ export default function HomePage() {
               Explore Our Events
             </h2>
           </div>
-          <Link href="#" className="rounded-full border border-[#1d1d20]/10 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7]">
-            View All Events →
+          <Link href="#features" className="rounded-full border border-[#1d1d20]/20 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7] focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
+            See how it works →
           </Link>
         </div>
 
@@ -189,18 +187,21 @@ export default function HomePage() {
             title="Thabo & Lerato's Wedding"
             subtitle="Beautiful moments, forever."
             image="https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80"
+            href="/e/DEMO482"
           />
           <EventCard
             date="16 Aug 2025"
             title="Zinhle's 25th Birthday"
             subtitle="Good vibes, great people."
             image="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80"
+            href="#pricing"
           />
           <EventCard
             date="02 Aug 2025"
             title="NSX Inc. Corporate Event"
             subtitle="Networking, growth, success."
             image="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80"
+            href="#pricing"
           />
         </div>
       </section>
@@ -209,7 +210,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1200px] px-6">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
                 Pricing
               </p>
               <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
@@ -232,7 +233,7 @@ export default function HomePage() {
       <section id="about" className="mx-auto max-w-[1200px] px-6 py-16">
         <div className="grid gap-10 md:grid-cols-[1fr_0.9fr] md:items-center">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               About Us
             </p>
             <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
@@ -256,7 +257,7 @@ export default function HomePage() {
               <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80)" }} />
               <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80)" }} />
               <div className="relative flex h-44 w-32 items-center justify-center overflow-hidden rounded-[20px] bg-[#f9e8d8] shadow-[0_16px_30px_rgba(17,17,17,0.12)]">
-                <span className="font-display text-[2.6rem] leading-none tracking-[-0.07em] text-[#f27a3a]">
+                <span className="font-display text-[2.6rem] leading-none tracking-[-0.07em] text-[#c94c16]">
                   Good<br />Vibes<br /><span className="text-[#1d1d20]">Only</span>
                 </span>
               </div>
@@ -305,7 +306,7 @@ function FeaturePill({ icon, label }: { icon: string; label: string }) {
 function FeatureCard({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
   return (
     <div className="rounded-[1.5rem] border border-[#1d1d20]/10 bg-[#f7f3f0] p-6 text-center shadow-sm">
-      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#f8e7d9] text-[#f27a3a]">
+      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#f8e7d9] text-[#c94c16]">
         {icon}
       </div>
       <h3 className="mb-3 text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
@@ -314,20 +315,20 @@ function FeatureCard({ icon, title, detail }: { icon: React.ReactNode; title: st
   );
 }
 
-function EventCard({ date, title, subtitle, image }: { date: string; title: string; subtitle: string; image: string }) {
+function EventCard({ date, title, subtitle, image, href }: { date: string; title: string; subtitle: string; image: string; href: string }) {
   return (
     <article className="overflow-hidden rounded-[1.25rem] border border-[#1d1d20]/10 bg-white shadow-[0_18px_30px_rgba(17,17,17,0.05)]">
       <div className="h-[230px] w-full bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
       <div className="p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-[#1d1d20]/65">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#f8e7d9] text-[10px] text-[#f27a3a]">◷</span>
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#f8e7d9] text-[10px] text-[#c94c16]">◷</span>
           {date}
         </div>
         <h3 className="text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
         <p className="mt-2 text-sm text-[#3a3632]">{subtitle}</p>
-        <button type="button" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#f27a3a]">
-          View Photos <span>→</span>
-        </button>
+        <Link href={href} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#d94f16] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
+          {href === "/e/DEMO482" ? "View demo event" : "Choose a plan"} <span>→</span>
+        </Link>
       </div>
     </article>
   );
