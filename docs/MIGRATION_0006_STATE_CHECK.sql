@@ -98,11 +98,24 @@ with checks(object, present, detail) as (
            where n.nspname = 'public' and p.proname = 'mark_event_paid'
            limit 1)
   union all
-  select '14 mark_event_paid() execute rights',
-         exists (select 1 from pg_proc p
-                   join pg_namespace n on n.oid = p.pronamespace
-                  where n.nspname = 'public' and p.proname = 'mark_event_paid'
-                    and p.proacl is not null),
+  -- "execute rights" is the row that matters most and the one easiest to
+  -- misread. It is MISSING unless anon AND authenticated are both unable to
+  -- call the function. has_function_privilege() is the only trustworthy test:
+  -- proacl can look clean while the role still has the privilege. The CASE
+  -- ordering is deliberate — has_function_privilege() raises on a function
+  -- that does not exist, and this statement must never fail.
+  select '14 mark_event_paid() locked to service role',
+         -- to_regprocedure() returns NULL for a missing function; a
+         -- '...'::regprocedure cast would be constant-folded and raise
+         -- before the CASE ever got to decide.
+         case
+           when has_function_privilege('anon',
+                  to_regprocedure('public.mark_event_paid(uuid, text, text)'), 'EXECUTE') then false
+           when has_function_privilege('authenticated',
+                  to_regprocedure('public.mark_event_paid(uuid, text, text)'), 'EXECUTE') then false
+           when to_regprocedure('public.mark_event_paid(uuid, text, text)') is null then false
+           else true
+         end,
          (select coalesce(p.proacl::text, 'DEFAULT GRANTS - migration not finished')
             from pg_proc p
               join pg_namespace n on n.oid = p.pronamespace
