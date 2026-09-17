@@ -274,7 +274,7 @@ which is correct.
 | `docs/HANDOVER.md` | This document |
 
 Documents outside the repository — shared drives, design files, contracts — are
-listed in §18.
+listed in §17.
 
 ### 3.5 Deliberately Not Recorded Here
 
@@ -527,52 +527,84 @@ of regulatory compliance.*
 
 ---
 
-## 13. Known Issues and Risks
+## 13. Outstanding Tasks, Deadlines, and Known Risks
 
-### 13.1 Open Defects
+*Every claim in this section carries the file and line that proves it. Nothing
+here is inferred from memory.*
 
-| ID | Description | Severity | Workaround | Impact if unresolved |
-| --- | --- | --- | --- | --- |
-| {{}} | {{}} | {{Critical / High / Medium / Low}} | {{}} | {{}} |
+### 13.1 Blocking — before anything else
 
-### 13.2 Risks Inherited
+| Task | Why it blocks | Evidence |
+| --- | --- | --- |
+| Merge pull request #1 and deploy | Migrations `0011` and `0012` are applied to the live database; the matching application code is not on `main`. `0012` changed `insert_guest_photo()`'s signature, so guest uploads fail closed until this ships | `git log HEAD..origin/main` is empty — the branch is a clean fast-forward |
+| Confirm the production breakage | The site was reported with no working buttons. Suspected cause is missing `NEXT_PUBLIC_*` build variables. **Unconfirmed** — no console output was obtained | `docs/DEPLOY_BREAKAGE.md` |
+| Integrate a payment gateway | No provider is integrated. Checkout refuses unpriced tiers, so no package can currently be sold | No payment dependency in `package.json` |
 
-| Risk | Likelihood | Impact | Mitigation in place | Residual owner |
-| --- | --- | --- | --- | --- |
-| {{}} | {{}} | {{}} | {{}} | {{}} |
+### 13.2 Outstanding Work, Prioritised
 
-### 13.3 Technical Debt
+| # | Task | Priority | Evidence |
+| --- | --- | --- | --- |
+| 1 | Rate limiting that survives more than one instance | **High** | `src/lib/rateLimit.ts:23` — `const buckets = new Map<string, Bucket>()`. Module-level and in-process, so it is per worker and resets on every deploy. Above a single instance it is not a control at all |
+| 2 | Async download jobs for the 500- and 1000-photo packages | **High** | `MAX_ZIP_PHOTOS = 150` (`src/app/api/download/zip/route.ts:23`) hard-refuses larger batches. Two of the five paid tiers cannot be fulfilled as built |
+| 3 | Server-side image validation and EXIF stripping | **High** | No image library is installed — no `sharp`, `jimp`, or `exif` package in `package.json`. Uploads are never checked for magic bytes, decodability, or dimensions, and GPS data is not stripped from derivatives |
+| 4 | Let hosts set the per-guest upload limit | Medium | `guest_photo_limit` is read by `src/app/api/guest/session/route.ts` and typed in `src/types/database.ts`, but appears in no settings form and no events API. Every event is pinned to the database default of 10 |
+| 5 | Photo reporting and moderation | Medium | No reporting UI or endpoint exists. Removal requests arrive out-of-band with no record |
+| 6 | Guest nickname attribution | Medium | `nickname` appears **nowhere** in `src/`. The specified "Uploaded by …" / "Guest photo" attribution is unbuilt |
+| 7 | Expiry and cleanup | Medium | No cron or scheduled job exists anywhere in the repository. `docs/R2_SETUP.md` §5 documents lifecycle rules as optional; they are not configured. R2 storage grows without bound |
+| 8 | Monitoring and alerting | Medium | No monitoring or error-reporting dependency is installed. Incidents are found by users |
+| 9 | Narrow the public events policy | Medium | `supabase/migrations/0002_rls.sql` — `events_select_public_anon ... using (true)`. Anonymous callers can read every event row. Should be a `SECURITY DEFINER` lookup by event code |
+| 10 | Duplicate detection | Low | No `content_hash`, `sha256`, or `etag` anywhere in the schema or `src/lib` |
+| 11 | Security headers | Low | `next.config` contains no `headers()` block |
+| 12 | Legal review of the privacy policy | — | `docs/LEGAL_REVIEW_NEEDED.md` states the policy covers the right POPIA topics but is not legal advice and has not been reviewed by a lawyer |
+| 13 | PWA / offline support | Low | Not started |
 
-*What was consciously traded away for speed, what it will cost to repay, and
-what breaks first if it is never repaid.*
+### 13.3 Known Risks
+
+| # | Risk | Severity | Evidence | Current mitigation | Watch for |
+| --- | --- | --- | --- | --- | --- |
+| R1 | A collaborator writes to commercial fields | **High** | `supabase/migrations/0010_collaborators.sql` — `events_update_collaborator` restricts *which row* (`collaborator_id in (...)`) but not *which columns* | The `0006` paywall trigger blocks commercial-field writes | If that trigger is ever dropped or edited, a hired photographer can set `download_unlocked_at` and take the originals for free. Verify the trigger after any migration |
+| R2 | Anonymous reads every event row | Medium | `events_select_public_anon ... using (true)` | Event codes are hard to guess | Any new column on `events` becomes publicly readable by default |
+| R3 | Presigned PUT accepts more bytes than declared | Medium | `maxSizeBytes` is passed at `src/app/api/upload/request-url/route.ts:109`, but `src/lib/storage/r2Client.ts` sets no `ContentLength` constraint | The declared size is checked before presigning | A client can upload an object larger than the size it announced. Verify actual object size before marking a photo legitimate |
+| R4 | Orphaned photo rows | Medium | `src/app/api/photos/[id]/delete/route.ts` deletes R2 objects first, then the database row | If the row delete fails the user is told and gets a 500 | No reconciliation job exists, so a failed second step leaves a gallery entry pointing at objects that no longer exist |
+| R5 | Rate limiting evaporates on scale-out | **High** | See 13.2 #1 | None beyond the per-process map | The moment a second instance runs, the quota on abuse disappears silently |
+| R6 | Incidents are invisible | **High** | No monitoring installed | None | A stuck `process-image` function leaves photos in `processing` forever, and nothing reports it |
+| R7 | Migration history has drifted | Medium | `supabase/migrations/` runs `0006` → `0009`; `0007` and `0008` do not exist | The scripts are re-runnable and self-verifying | Do not treat the migrations folder as a complete record of the live schema. Diff against the live database before trusting it |
+| R8 | A deploy can ship a silently broken bundle | **High** | `npm run build` succeeds with `NEXT_PUBLIC_SUPABASE_URL` unset; the client then throws on first use | Documented in `docs/DEPLOY_BREAKAGE.md` | Any change to a `NEXT_PUBLIC_*` value needs a fresh build, not a cached redeploy |
+| R9 | Unpriced packages cannot be sold | Medium | `packages.price_cents` is nullable; checkout refuses null | Refusing is the safe behaviour | Four of five tiers were recorded as unpriced in the live-database audit — confirm current state |
+| R10 | Privacy exposure is unreviewed | Medium | `docs/LEGAL_REVIEW_NEEDED.md` | The policy exists and covers the right topics | It has not been reviewed by a lawyer, and there is no reporting or takedown workflow behind it |
+
+### 13.4 What Breaks First
+
+In the order it will happen as the product gets used:
+
+1. **Traffic exceeds one instance** → rate limiting stops working, silently.
+2. **A 500- or 1000-photo package is sold** → the download refuses at 150.
+3. **A guest uploads a file larger than declared** → it is accepted.
+4. **`process-image` fails** → photos sit in `processing` and nobody is told.
+5. **Storage grows** → no cleanup job exists, so the bill only rises.
+
+### 13.5 Deadlines
+
+*To be supplied by the outgoing owner. Only one deadline is known from the
+repository, and it is immediate: pull request #1 must be deployed for guest
+uploads to work against the live database.*
+
+| Commitment | Due | Consequence of missing it | Owner |
+| --- | --- | --- | --- |
+| Deploy PR #1 | Immediate | Guest uploads fail closed in production | |
+| | | | |
+
+### 13.6 Needed to Complete This Section
+
+- Any date already promised to a customer, and what was promised.
+- Which of the risks in §13.3 the business consciously accepts, and which it does not.
+- Budget and appetite for the paid engineering work in §13.2 — items 1, 2 and 3 are not small.
+- Whether a payment provider has been chosen commercially, even if not integrated.
+- Whether the privacy policy has been sent for legal review.
 
 ---
 
-## 14. Outstanding Work and Roadmap
-
-### 14.1 Immediate Priorities (first 30 days)
-
-*Ordered, with the reason each is first.*
-
-### 14.2 Backlog
-
-| Item | Description | Priority | Estimate | Dependencies |
-| --- | --- | --- | --- | --- |
-| {{}} | {{}} | {{}} | {{}} | {{}} |
-
-### 14.3 Proposed Direction
-
-*Recommendations that were formed but not acted on, and the reasoning behind
-them.*
-
-### 14.4 Deliberately Not Recommended
-
-*Ideas considered and rejected, so they are not re-litigated by someone without
-the context.*
-
----
-
-## 15. Costs and Contracts
+## 14. Costs and Contracts
 
 | Item | Provider | Cost | Billing cycle | Renewal / expiry | Owner |
 | --- | --- | --- | --- | --- | --- |
@@ -582,36 +614,36 @@ the context.*
 
 ---
 
-## 16. Stakeholders and Contacts
+## 15. Stakeholders and Contacts
 
 | Name | Role | Responsibility | Contact | Availability |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 16.1 Post-Handover Support
+### 15.1 Post-Handover Support
 
 *How long the outgoing team remains reachable, on what terms, and what is
 explicitly not covered.*
 
 ---
 
-## 17. Knowledge Transfer
+## 16. Knowledge Transfer
 
-### 17.1 Sessions Delivered
+### 16.1 Sessions Delivered
 
 | Topic | Date | Attendees | Recording / notes |
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 17.2 Scheduled Sessions
+### 16.2 Scheduled Sessions
 
-### 17.3 Recommended Reading Order
+### 16.3 Recommended Reading Order
 
 *The order in which someone should read the documentation, and why.*
 
 ---
 
-## 18. Documentation Index
+## 17. Documentation Index
 
 | Document | Location | Owner | Last updated |
 | --- | --- | --- | --- |
@@ -619,20 +651,20 @@ explicitly not covered.*
 
 ---
 
-## 19. Handover Acceptance
+## 18. Handover Acceptance
 
 *The receiving party confirms they have received, reviewed, and understood the
 above, and accept ownership from the effective date. Outstanding items in
-Section 14 remain the responsibility of the receiving party unless stated
+Section 13 remain the responsibility of the receiving party unless stated
 otherwise.*
 
-### 19.1 Outstanding Items Accepted
+### 18.1 Outstanding Items Accepted
 
 | Item | Accepted by receiving party? | Notes |
 | --- | --- | --- |
 | {{}} | {{Yes / No / Deferred}} | {{}} |
 
-### 19.2 Sign-off
+### 18.2 Sign-off
 
 | Role | Name | Signature | Date |
 | --- | --- | --- | --- |
