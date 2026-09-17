@@ -67,6 +67,25 @@ this. It also drops the `events_select_public_anon` policy, which let anyone
 holding the public anon key read every event row and which no code path used
 — guests resolve events through `get_event_for_upload()`.
 
+### 0011 — function privileges (do not skip this one)
+
+`0006` locked `mark_event_paid()` with `revoke execute ... from public`. On a
+real Supabase project that is **not enough**: anon and authenticated keep
+EXECUTE through grants made to them by name, so any signed-in client could
+call the function themselves — create a pending payment, read its id back
+through their own `payments` select policy, mark it paid, and download every
+original without paying.
+
+`0011_lock_service_functions.sql` revokes per role name, re-grants to
+`service_role`, then **verifies with `has_function_privilege()`** and raises
+`FUNCTION_PRIVILEGES_NOT_LOCKED` if the lock did not take. `npm run verify:db`
+reproduces the exploit against the unpatched schema and then proves the fix
+closes it.
+
+Trigger functions are deliberately *not* revoked: Postgres requires the role
+that fires a trigger to hold EXECUTE on its function, so revoking from
+anon/authenticated would break guest uploads and client event edits.
+
 ### V2 Sprint 3 — packages, payment, download entitlement
 
 Two things that used to be one are now separate:
@@ -268,7 +287,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all eight migrations in order (0001–0006, 0009, 0010); if one reported an object already
+- [ ] Ran all nine migrations in order (0001–0006, 0009–0011); if one reported an object already
       existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
       (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
@@ -310,6 +329,8 @@ Before taking this live with real events and real guest data:
       buttons
 - [ ] Tested: an owner cannot set `download_unlocked_at` on their own event
       (`DOWNLOAD_UNLOCK_NOT_ALLOWED`) or raise a limit past their package
+- [ ] Ran `npm run verify:db` — it reproduces the function-privilege bypass
+      and then proves 0011 closes it
 - [ ] Tested: a collaborator on an event cannot unlock its downloads, swap
       its package or raise its limits, but can still rename it
 - [ ] Set real prices on the tiers in `packages` — a NULL price blocks
@@ -358,7 +379,7 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0006 + 0009-0010, run in order
+  migrations/               0001-0006 + 0009-0011, run in order
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list
