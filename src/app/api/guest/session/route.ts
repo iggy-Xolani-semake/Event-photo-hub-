@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 
 /**
  * Issues the anonymous guest session that the per-guest upload quota is
@@ -23,16 +23,19 @@ import { isValidEventCodeFormat } from "@/lib/eventCode";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode, token } = body as { eventCode?: string; token?: string | null };
+    const { eventCode: rawEventCode } = body as { eventCode?: string };
 
-    if (!eventCode || !isValidEventCodeFormat(eventCode)) {
+    if (!rawEventCode || !isValidEventCodeFormat(rawEventCode.toUpperCase())) {
       return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
     }
+
+    const eventCode = rawEventCode.toUpperCase();
+    const existingToken = request.cookies.get(guestSessionCookieName(eventCode))?.value ?? null;
 
     const admin = createSupabaseAdminClient();
     const { data, error } = await admin.rpc("register_guest_session", {
       p_event_code: eventCode,
-      p_existing_token: token ?? null,
+      p_existing_token: existingToken,
     });
 
     if (error) {
@@ -62,12 +65,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      sessionToken: row.session_token,
+    const response = NextResponse.json({
       uploadCount: row.upload_count,
       guestPhotoLimit: row.guest_photo_limit,
       remaining: Math.max(0, row.guest_photo_limit - row.upload_count),
     });
+    response.cookies.set(guestSessionCookieName(eventCode), row.session_token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+    return response;
   } catch (err) {
     console.error("guest session error:", err);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });

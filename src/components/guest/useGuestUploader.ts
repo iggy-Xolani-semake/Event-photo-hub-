@@ -34,28 +34,23 @@ function safeRandomId(): string {
 }
 
 /**
- * The guest's session token, issued by the server (migration 0012) and cached
- * per event in localStorage so a returning guest keeps the SAME quota rather
- * than being handed a fresh one.
+ * The guest's session token is issued by the server and stored in an
+ * event-scoped HttpOnly cookie. JavaScript never reads or submits it.
  *
  * This replaces the old `eph_uploader_id`: that was a browser-made string the
- * server stored but never counted, so the 10-photo limit was a cleared
- * localStorage entry away from not existing. The counter now lives in
+ * server stored but never counted. The counter now lives in
  * guest_sessions and is incremented inside the same transaction that inserts
  * the photo, under a row lock.
  *
  * The promise is memoised per event so a batch of ten photos asks once.
  */
-const guestSessionPromises = new Map<string, Promise<string>>();
+const guestSessionPromises = new Map<string, Promise<void>>();
 
-async function startGuestSession(eventCode: string): Promise<string> {
-  const key = `eph_guest_session:${eventCode}`;
-  const existing = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-
+async function startGuestSession(eventCode: string): Promise<void> {
   const res = await fetch("/api/guest/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ eventCode, token: existing }),
+    body: JSON.stringify({ eventCode }),
   });
 
   if (!res.ok) {
@@ -63,12 +58,10 @@ async function startGuestSession(eventCode: string): Promise<string> {
     throw new Error(body.error ?? "We couldn't start your upload session. Please try again.");
   }
 
-  const { sessionToken } = (await res.json()) as { sessionToken: string };
-  if (typeof window !== "undefined") localStorage.setItem(key, sessionToken);
-  return sessionToken;
+  await res.json();
 }
 
-function ensureGuestSession(eventCode: string): Promise<string> {
+function ensureGuestSession(eventCode: string): Promise<void> {
   let pending = guestSessionPromises.get(eventCode);
   if (!pending) {
     pending = startGuestSession(eventCode).catch((err) => {
@@ -139,7 +132,7 @@ export function useGuestUploader(eventCode: string) {
 
         // The server-issued session token is what the per-guest quota is
         // counted against, so it is resolved before any bytes move.
-        const sessionToken = await ensureGuestSession(eventCode);
+        await ensureGuestSession(eventCode);
 
         // STEP 1: ask our server for a presigned URL scoped to this event.
         const requestRes = await fetch("/api/upload/request-url", {
@@ -179,7 +172,6 @@ export function useGuestUploader(eventCode: string) {
             originalFilename: item.file.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || item.file.type,
-            guestSessionToken: sessionToken,
             width: dimensions?.width,
             height: dimensions?.height,
           }),

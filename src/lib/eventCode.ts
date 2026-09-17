@@ -15,3 +15,7 @@ export function generateEventCode(): string {
 export function isValidEventCodeFormat(code: string): boolean {
   return /^[A-Z0-9]{6,12}$/.test(code);
 }
+
+export function guestSessionCookieName(eventCode: string): string {
+  return `eph_guest_session_${eventCode.toUpperCase()}`;
+}

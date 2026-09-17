@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 
 /**
@@ -25,26 +25,27 @@ import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode, storagePath, originalFilename, fileSize, mimeType, guestSessionToken, width, height } =
+    const { eventCode: rawEventCode, storagePath, originalFilename, fileSize, mimeType, width, height } =
       body as {
         eventCode?: string;
         storagePath?: string;
         originalFilename?: string;
         fileSize?: number;
         mimeType?: string;
-        guestSessionToken?: string;
         width?: number;
         height?: number;
       };
 
-    if (!eventCode || !isValidEventCodeFormat(eventCode)) {
+    if (!rawEventCode || !isValidEventCodeFormat(rawEventCode.toUpperCase())) {
       return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
     }
+    const eventCode = rawEventCode.toUpperCase();
     if (!storagePath || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
     }
-    // Not optional: the token IS the quota. Without it insert_guest_photo
-    // raises GUEST_SESSION_NOT_FOUND, so refusing here just says it sooner.
+    // The session token is HttpOnly and event-scoped. Never accept it from the
+    // request body, where a browser could replace it with a fresh identity.
+    const guestSessionToken = request.cookies.get(guestSessionCookieName(eventCode))?.value;
     if (!guestSessionToken) {
       return NextResponse.json({ error: "Your upload session expired. Please reload and try again." }, { status: 400 });
     }
