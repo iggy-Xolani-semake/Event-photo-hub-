@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
     } = await supabase.auth.getUser();
     const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role;
 
-    router.push(role === "admin" || role === "organizer" ? "/admin" : "/client");
+    router.push(role === "admin" || role === "curator" ? "/admin" : "/client");
     router.refresh();
   }
 

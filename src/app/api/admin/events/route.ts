@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         max_file_size_bytes: (maxFileSizeMb ?? 15) * 1024 * 1024,
         max_files_per_upload: maxFilesPerUpload ?? 10,
         created_by: admin.userId,
+        curator_id: admin.curatorId,
       })
       .select("*")
       .single();
