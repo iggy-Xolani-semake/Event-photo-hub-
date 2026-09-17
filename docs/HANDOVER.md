@@ -192,6 +192,8 @@ These need doing and no role above covers them:
 
 ## 3. Project Overview
 
+*Expands on §1.1–1.2.*
+
 ### 3.1 Purpose and Business Objectives
 
 *Why the project exists. The business problem, in the language of the people who
@@ -238,6 +240,8 @@ receiving team's responsibility.*
 ---
 
 ## 5. Current Status
+
+*Expands on §1.3.*
 
 ### 5.1 Status Summary
 
