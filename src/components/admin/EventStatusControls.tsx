@@ -4,7 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EventStatus } from "@/types/database";
 
-export function EventStatusControls({ eventCode, status }: { eventCode: string; status: EventStatus }) {
+interface Props {
+  eventCode: string;
+  status: EventStatus;
+  /** Defaults to the admin route; the client dashboard passes /api/events/{code}. */
+  endpoint?: string;
+}
+
+export function EventStatusControls({ eventCode, status, endpoint }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -13,7 +20,7 @@ export function EventStatusControls({ eventCode, status }: { eventCode: string; 
       return;
     }
     setLoading(true);
-    const res = await fetch(`/api/admin/events/${eventCode}`, {
+    const res = await fetch(endpoint ?? `/api/admin/events/${eventCode}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveDownloadEntitlement } from "@/lib/auth/downloadEntitlement";
 import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
 import type { Event, Photo } from "@/types/database";
@@ -50,18 +50,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Event not found." }, { status: 404 });
     }
 
-    // Same visibility gate as the gallery page and single-photo download —
-    // kept consistent across all three read paths rather than re-derived.
-    if (event.visibility === "private") {
-      const sessionClient = await createSupabaseServerClient();
-      const { data: authorized } = await sessionClient
-        .from("events")
-        .select("id")
-        .eq("id", event.id)
-        .maybeSingle();
-      if (!authorized) {
-        return NextResponse.json({ error: "Not authorized." }, { status: 403 });
-      }
+    // Entitlement gate, identical to the single-photo route: the gallery is
+    // free to look at, bulk downloads belong to the host once they have paid.
+    const entitlement = await resolveDownloadEntitlement(event.id);
+    if (!entitlement.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            entitlement.reason === "unpaid_owner"
+              ? "Downloads unlock once this event's package has been paid for."
+              : "Not authorized.",
+        },
+        { status: entitlement.reason === "unpaid_owner" ? 402 : 403 }
+      );
     }
 
     let query = admin

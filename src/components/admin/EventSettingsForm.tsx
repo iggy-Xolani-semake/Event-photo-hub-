@@ -2,15 +2,29 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { EVENT_LIMIT_CAPS, limitHint } from "@/lib/limits";
 import type { Event } from "@/types/database";
 
 interface Props {
   event: Event;
-  collaboratorEmail: string | null;
-  isAdmin: boolean;
+  /**
+   * Where the save goes. Defaults to the admin-only settings route; the
+   * client dashboard passes /api/events/{code}, which authorises through
+   * ownership RLS instead of requireAdmin().
+   */
+  endpoint?: string;
+  /** Currently assigned photographer, if any. Admin-only field. */
+  collaboratorEmail?: string | null;
+  /** Only the staff console may reassign a collaborator. */
+  isAdmin?: boolean;
 }
 
-export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) {
+export function EventSettingsForm({
+  event,
+  endpoint,
+  collaboratorEmail = null,
+  isAdmin = false,
+}: Props) {
   const router = useRouter();
   const [eventName, setEventName] = useState(event.event_name);
   const [eventDate, setEventDate] = useState(event.event_date ?? "");
@@ -21,30 +35,27 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
   const [collaboratorInput, setCollaboratorInput] = useState(collaboratorEmail ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const saveUrl = endpoint ?? `/api/admin/events/${event.event_code}/settings`;
 
   async function handleSave() {
     setSaving(true);
     setSaved(false);
-    const payload: Record<string, unknown> = {
-      eventName,
-      eventDate: eventDate || null,
-      uploadLimit,
-      maxFileSizeMb,
-      maxFilesPerUpload,
-      visibility,
-    };
-    // Only send collaboratorEmail if this form actually shows that field
-    // (admin-only) — sending it as an empty string for a non-admin
-    // collaborator editing their own event would otherwise unassign
-    // them by accident.
-    if (isAdmin) {
-      payload.collaboratorEmail = collaboratorInput.trim() || null;
-    }
-
-    const res = await fetch(`/api/admin/events/${event.event_code}/settings`, {
+    setError(null);
+    const res = await fetch(saveUrl, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        eventName,
+        eventDate: eventDate || null,
+        uploadLimit,
+        maxFileSizeMb,
+        maxFilesPerUpload,
+        visibility,
+        // Only sent from the staff console. Sending an empty value from a
+        // collaborator's own edit would silently unassign them.
+        ...(isAdmin ? { collaboratorEmail: collaboratorInput.trim() || null } : {}),
+      }),
     });
     setSaving(false);
     if (res.ok) {
@@ -52,8 +63,10 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
       router.refresh();
       setTimeout(() => setSaved(false), 2000);
     } else {
+      // The server validates against the same caps these fields advertise, so
+      // its message is the useful one — show it instead of a generic alert.
       const body = await res.json().catch(() => ({}));
-      alert(body.error ?? "Could not save settings.");
+      setError(body.error ?? "Could not save settings.");
     }
   }
 
@@ -81,32 +94,42 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
 
       <div className="grid sm:grid-cols-3 gap-4">
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Photo limit</span>
+          <span className="block text-sm text-white/60 mb-1.5">
+            {EVENT_LIMIT_CAPS.uploadLimit.label}
+            <span className="block text-xs text-white/35">{limitHint("uploadLimit")}</span>
+          </span>
           <input
             type="number"
-            min={1}
+            min={EVENT_LIMIT_CAPS.uploadLimit.min}
+            max={EVENT_LIMIT_CAPS.uploadLimit.max}
             value={uploadLimit}
             onChange={(e) => setUploadLimit(Number(e.target.value))}
             className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Max file size (MB)</span>
+          <span className="block text-sm text-white/60 mb-1.5">
+            {EVENT_LIMIT_CAPS.maxFileSizeMb.label}
+            <span className="block text-xs text-white/35">{limitHint("maxFileSizeMb")}</span>
+          </span>
           <input
             type="number"
-            min={1}
-            max={50}
+            min={EVENT_LIMIT_CAPS.maxFileSizeMb.min}
+            max={EVENT_LIMIT_CAPS.maxFileSizeMb.max}
             value={maxFileSizeMb}
             onChange={(e) => setMaxFileSizeMb(Number(e.target.value))}
             className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Max photos per upload</span>
+          <span className="block text-sm text-white/60 mb-1.5">
+            {EVENT_LIMIT_CAPS.maxFilesPerUpload.label}
+            <span className="block text-xs text-white/35">{limitHint("maxFilesPerUpload")}</span>
+          </span>
           <input
             type="number"
-            min={1}
-            max={20}
+            min={EVENT_LIMIT_CAPS.maxFilesPerUpload.min}
+            max={EVENT_LIMIT_CAPS.maxFilesPerUpload.max}
             value={maxFilesPerUpload}
             onChange={(e) => setMaxFilesPerUpload(Number(e.target.value))}
             className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
@@ -143,6 +166,12 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
             Gives this person edit access to this one event&apos;s settings.
           </span>
         </label>
+      )}
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
       )}
 
       <button

@@ -34,20 +34,43 @@ function safeRandomId(): string {
 }
 
 /**
- * Guests get a stable anonymous identifier stored in localStorage — NOT
- * an account, NOT PII, just enough to let the UI say "your uploads" in
- * the current session. This is never used for access control (see
- * insert_guest_photo RPC, which trusts event_code + server-side
- * validation only, never this value).
+ * The guest's session token is issued by the server and stored in an
+ * event-scoped HttpOnly cookie. JavaScript never reads or submits it.
+ *
+ * This replaces the old `eph_uploader_id`: that was a browser-made string the
+ * server stored but never counted. The counter now lives in
+ * guest_sessions and is incremented inside the same transaction that inserts
+ * the photo, under a row lock.
+ *
+ * The promise is memoised per event so a batch of ten photos asks once.
  */
-function getUploaderIdentifier(): string {
-  const key = "eph_uploader_id";
-  let id = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-  if (!id) {
-    id = safeRandomId();
-    if (typeof window !== "undefined") localStorage.setItem(key, id);
+const guestSessionPromises = new Map<string, Promise<void>>();
+
+async function startGuestSession(eventCode: string): Promise<void> {
+  const res = await fetch("/api/guest/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventCode }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "We couldn't start your upload session. Please try again.");
   }
-  return id;
+
+  await res.json();
+}
+
+function ensureGuestSession(eventCode: string): Promise<void> {
+  let pending = guestSessionPromises.get(eventCode);
+  if (!pending) {
+    pending = startGuestSession(eventCode).catch((err) => {
+      guestSessionPromises.delete(eventCode); // a retry must be allowed to try again
+      throw err;
+    });
+    guestSessionPromises.set(eventCode, pending);
+  }
+  return pending;
 }
 
 async function getImageDimensions(file: File): Promise<{ width: number; height: number } | null> {
@@ -83,7 +106,7 @@ export function useGuestUploader(eventCode: string) {
   }, []);
 
   const uploadOne = useCallback(
-    async (item: UploadItem) => {
+    async (item: UploadItem): Promise<boolean> => {
       try {
         updateItem(item.id, { status: "compressing", progress: 5 });
 
@@ -107,6 +130,10 @@ export function useGuestUploader(eventCode: string) {
 
         updateItem(item.id, { status: "uploading", progress: 15 });
 
+        // The server-issued session token is what the per-guest quota is
+        // counted against, so it is resolved before any bytes move.
+        await ensureGuestSession(eventCode);
+
         // STEP 1: ask our server for a presigned URL scoped to this event.
         const requestRes = await fetch("/api/upload/request-url", {
           method: "POST",
@@ -116,7 +143,6 @@ export function useGuestUploader(eventCode: string) {
             fileName: item.file.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || item.file.type,
-            uploaderIdentifier: getUploaderIdentifier(),
           }),
         });
 
@@ -146,7 +172,6 @@ export function useGuestUploader(eventCode: string) {
             originalFilename: item.file.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || item.file.type,
-            uploaderIdentifier: getUploaderIdentifier(),
             width: dimensions?.width,
             height: dimensions?.height,
           }),
@@ -158,18 +183,22 @@ export function useGuestUploader(eventCode: string) {
         }
 
         updateItem(item.id, { status: "success", progress: 100 });
+        return true;
       } catch (err) {
         updateItem(item.id, {
           status: "error",
           errorMessage: err instanceof Error ? err.message : "Upload interrupted. Please try again.",
         });
+        return false;
       }
     },
     [eventCode, updateItem]
   );
 
   const uploadAll = useCallback(
-    async (targetItems?: UploadItem[]) => {
+    async (
+      targetItems?: UploadItem[]
+    ): Promise<{ successCount: number; failedCount: number }> => {
       const toUpload = targetItems ?? items.filter((it) => it.status === "queued" || it.status === "error");
       // Concurrency cap: don't fire 10 simultaneous PUTs from one phone on
       // possibly-poor venue wifi — that starves each request of bandwidth
@@ -177,21 +206,30 @@ export function useGuestUploader(eventCode: string) {
       // responsive and completes faster in practice on congested networks.
       const CONCURRENCY = 3;
       const queue = [...toUpload];
+      let successCount = 0;
+      let failedCount = 0;
       const workers = Array.from({ length: CONCURRENCY }, async () => {
         while (queue.length > 0) {
           const next = queue.shift();
-          if (next) await uploadOne(next);
+          if (next) {
+            // Safe to increment from concurrent workers: JS is single-threaded,
+            // so these only interleave at await points, never mid-increment.
+            if (await uploadOne(next)) successCount += 1;
+            else failedCount += 1;
+          }
         }
       });
       await Promise.all(workers);
+      return { successCount, failedCount };
     },
     [items, uploadOne]
   );
 
   const retryItem = useCallback(
-    (id: string) => {
+    async (id: string): Promise<boolean> => {
       const item = items.find((it) => it.id === id);
-      if (item) uploadOne({ ...item, status: "queued", progress: 0 });
+      if (!item) return false;
+      return uploadOne({ ...item, status: "queued", progress: 0 });
     },
     [items, uploadOne]
   );

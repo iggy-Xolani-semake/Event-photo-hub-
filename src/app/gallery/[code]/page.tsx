@@ -5,6 +5,7 @@ import { isValidEventCodeFormat } from "@/lib/eventCode";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
 import { GalleryView } from "@/components/gallery/GalleryView";
 import { publicImageUrl } from "@/lib/storage/publicUrl";
+import { resolveDownloadEntitlement } from "@/lib/auth/downloadEntitlement";
 import type { Event, Photo } from "@/types/database";
 import type { Metadata } from "next";
 
@@ -99,15 +100,24 @@ export default async function GalleryPage({ params }: PageProps) {
     galleryUrl: publicImageUrl(p.gallery_path),
   }));
 
+  const canAddPhotos = event.status === "active" && event.photo_count < event.upload_limit;
+
+  // Looking is free; taking is not. Guests keep the gallery and lose the
+  // download buttons, which is the whole point of Sprint 3.
+  const entitlement = await resolveDownloadEntitlement(event.id);
+
   return (
     <GalleryView
       eventCode={eventCode}
       eventName={event.event_name}
+      eventDate={event.event_date}
       photos={galleryPhotos}
       totalCount={event.photo_count}
       canManage={canManage}
       processingCount={processingCount}
       failedCount={failedCount}
+      canAddPhotos={canAddPhotos}
+      canDownload={entitlement.allowed}
     />
   );
 }

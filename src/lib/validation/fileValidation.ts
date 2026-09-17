@@ -44,7 +44,7 @@ export function validateBatchSize(fileCount: number, maxFiles: number): FileVali
   if (fileCount > maxFiles) {
     return {
       valid: false,
-      message: `You can upload up to ${maxFiles} photos at a time. Please select fewer photos.`,
+      message: `You can share up to ${maxFiles} photos at a time — we kept your first ${maxFiles}.`,
     };
   }
   return { valid: true };
@@ -59,6 +59,10 @@ export function errorCodeToMessage(code: string): string {
       return "This event is no longer accepting photographs.";
     case "EVENT_UPLOAD_LIMIT_REACHED":
       return "This event has reached its photo limit.";
+    case "GUEST_UPLOAD_LIMIT_REACHED":
+      return "You've shared all the photos you can for this event. Thank you!";
+    case "GUEST_SESSION_NOT_FOUND":
+      return "Your upload session expired. Please reload the page and try again.";
     case "FILE_TOO_LARGE":
       return "This photo is too large to upload.";
     case "UNSUPPORTED_FILE_TYPE":

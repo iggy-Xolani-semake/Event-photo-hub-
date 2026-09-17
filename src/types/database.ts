@@ -6,6 +6,7 @@
 export type EventStatus = "active" | "closed" | "archived";
 export type EventVisibility = "private" | "shared" | "public";
 export type PhotoStatus = "processing" | "ready" | "failed" | "deleted";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 
 export interface Client {
   id: string;
@@ -14,6 +15,15 @@ export interface Client {
   email: string;
   phone: string | null;
   created_at: string;
+}
+
+export interface GuestSession {
+  id: string;
+  session_token: string;
+  event_id: string;
+  upload_count: number;
+  created_at: string;
+  last_seen_at: string;
 }
 
 export interface Collaborator {
@@ -37,6 +47,8 @@ export interface Event {
   upload_limit: number;
   max_file_size_bytes: number;
   max_files_per_upload: number;
+  /** Per-guest ceiling, enforced in Postgres by insert_guest_photo(). */
+  guest_photo_limit: number;
   photo_count: number;
   storage_used_bytes: number;
   brand_logo_url: string | null;
@@ -45,6 +57,40 @@ export interface Event {
   created_by: string | null;
   created_at: string;
   closed_at: string | null;
+  /** Package purchased. Null for events created before packages existed. */
+  package_id: string | null;
+  /** When the host paid. Null = originals are not downloadable by anyone. */
+  download_unlocked_at: string | null;
+}
+
+/** A sellable tier. Limits here are the ceiling an event may configure. */
+export interface Package {
+  id: string;
+  code: string;
+  name: string;
+  photo_limit: number;
+  max_file_size_bytes: number;
+  max_files_per_upload: number;
+  /** Null means "not for sale yet" — never treat it as free. */
+  price_cents: number | null;
+  currency: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface Payment {
+  id: string;
+  event_id: string;
+  package_id: string | null;
+  amount_cents: number;
+  currency: string;
+  provider: string | null;
+  provider_reference: string | null;
+  status: PaymentStatus;
+  created_at: string;
+  paid_at: string | null;
+  metadata: Record<string, unknown>;
 }
 
 export interface Photo {

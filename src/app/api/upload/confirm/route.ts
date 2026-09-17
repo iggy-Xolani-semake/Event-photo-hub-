@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 
 /**
@@ -25,23 +25,29 @@ import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode, storagePath, originalFilename, fileSize, mimeType, uploaderIdentifier, width, height } =
+    const { eventCode: rawEventCode, storagePath, originalFilename, fileSize, mimeType, width, height } =
       body as {
         eventCode?: string;
         storagePath?: string;
         originalFilename?: string;
         fileSize?: number;
         mimeType?: string;
-        uploaderIdentifier?: string;
         width?: number;
         height?: number;
       };
 
-    if (!eventCode || !isValidEventCodeFormat(eventCode)) {
+    if (!rawEventCode || !isValidEventCodeFormat(rawEventCode.toUpperCase())) {
       return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
     }
+    const eventCode = rawEventCode.toUpperCase();
     if (!storagePath || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
+    }
+    // The session token is HttpOnly and event-scoped. Never accept it from the
+    // request body, where a browser could replace it with a fresh identity.
+    const guestSessionToken = request.cookies.get(guestSessionCookieName(eventCode))?.value;
+    if (!guestSessionToken) {
+      return NextResponse.json({ error: "Your upload session expired. Please reload and try again." }, { status: 400 });
     }
 
     const admin = createSupabaseAdminClient();
@@ -52,7 +58,7 @@ export async function POST(request: NextRequest) {
       p_original_filename: originalFilename ?? null,
       p_file_size: fileSize,
       p_mime_type: mimeType,
-      p_uploader_identifier: uploaderIdentifier ?? null,
+      p_guest_session_token: guestSessionToken,
       p_width: width ?? null,
       p_height: height ?? null,
     });
@@ -62,7 +68,11 @@ export async function POST(request: NextRequest) {
       // as error.message — map them to guest-safe copy, never surface the
       // raw Postgres error to the browser (spec section 35).
       const code = error.message?.match(/[A-Z_]+/)?.[0] ?? "UNKNOWN";
-      return NextResponse.json({ error: errorCodeToMessage(code) }, { status: 400 });
+      // 429 rather than 400: the guest did nothing wrong, they have simply
+      // reached the limit the host set. The client shows the "you're done,
+      // go see the gallery" path instead of a generic failure.
+      const status = code === "GUEST_UPLOAD_LIMIT_REACHED" ? 429 : 400;
+      return NextResponse.json({ error: errorCodeToMessage(code), code }, { status });
     }
 
     const photoId = (data as { photo_id: string }[] | null)?.[0]?.photo_id;

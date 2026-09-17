@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { formatEventDate } from "@/lib/format";
 
 interface Props {
   eventName: string;
+  eventDate?: string | null;
   eventCode: string;
   tab: "all" | "favourites";
   onTabChange: (tab: "all" | "favourites") => void;
@@ -13,10 +15,13 @@ interface Props {
   onToggleSelectMode: () => void;
   selectedCount: number;
   selectedIds: string[];
+  /** Only the host of a paid event (or staff) may take files out. */
+  canDownload: boolean;
 }
 
 export function GalleryToolbar({
   eventName,
+  eventDate = null,
   eventCode,
   tab,
   onTabChange,
@@ -26,8 +31,10 @@ export function GalleryToolbar({
   onToggleSelectMode,
   selectedCount,
   selectedIds,
+  canDownload,
 }: Props) {
   const [downloading, setDownloading] = useState(false);
+  const formattedDate = formatEventDate(eventDate);
 
   async function handleDownload(scope: "all" | "favourites" | "selected") {
     setDownloading(true);
@@ -59,8 +66,11 @@ export function GalleryToolbar({
 
   return (
     <div className="sticky top-0 z-10 bg-ink-950/90 backdrop-blur-md border-b border-white/10 px-4 py-3 mb-3">
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="font-display text-xl truncate">{eventName}</h1>
+      <div className="flex items-start justify-between mb-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-xl truncate">{eventName}</h1>
+          {formattedDate && <p className="truncate text-xs text-white/40">{formattedDate}</p>}
+        </div>
         <button
           onClick={onToggleSelectMode}
           className="text-sm text-white/60 border border-white/20 rounded-full px-3 py-1.5 shrink-0"
@@ -84,7 +94,9 @@ export function GalleryToolbar({
         </button>
       </div>
 
-      {selectMode && selectedCount > 0 ? (
+      {/* Download controls only render for a caller who is actually entitled
+          — the API re-checks, so hiding them is courtesy, not security. */}
+      {canDownload && selectMode && selectedCount > 0 && (
         <button
           onClick={() => handleDownload("selected")}
           disabled={downloading}
@@ -92,22 +104,16 @@ export function GalleryToolbar({
         >
           {downloading ? "Preparing…" : `Download ${selectedCount} Selected`}
         </button>
-      ) : (
-        !selectMode && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
-              disabled={downloading}
-              className="flex-1 bg-white/10 border border-white/20 text-sm rounded-xl px-3 py-2 disabled:opacity-60"
-            >
-              {downloading
-                ? "Preparing…"
-                : tab === "favourites"
-                  ? "Download Favourites"
-                  : "Download All"}
-            </button>
-          </div>
-        )
+      )}
+
+      {canDownload && !selectMode && (
+        <button
+          onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
+          disabled={downloading}
+          className="w-full bg-white/10 border border-white/20 text-sm rounded-xl px-3 py-2 disabled:opacity-60"
+        >
+          {downloading ? "Preparing…" : tab === "favourites" ? "Download Favourites" : "Download All"}
+        </button>
       )}
     </div>
   );
