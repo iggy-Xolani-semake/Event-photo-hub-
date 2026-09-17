@@ -66,9 +66,14 @@ export default function HomePage() {
             <button type="button" aria-label="Theme toggle" className="hidden rounded-full border border-[#1d1d20]/10 bg-white/60 p-2 text-[#1d1d20] md:inline-flex">
               ☼
             </button>
-            <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
-              Sign in
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/10 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white">
+                Sign in
+              </Link>
+              <Link href="/signup" className="rounded-full bg-[#1d1d20] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#343033]">
+                Create event
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -216,9 +221,9 @@ export default function HomePage() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-3">
-              <PricingCard title="Basic" price="R99" suffix="/event" list={["Access to photos", "Download up to 50", "7 day access"]} />
-              <PricingCard title="Standard" price="R199" suffix="/event" list={["Access to photos", "Download up to 200", "30 day access"]} highlight />
-              <PricingCard title="Premium" price="R399" suffix="/event" list={["Access to photos", "Download unlimited", "Lifetime access"]} />
+              <PricingCard title="Basic" plan="basic" price="R99" suffix="/event" list={["Access to photos", "Download up to 50", "7 day access"]} />
+              <PricingCard title="Standard" plan="standard" price="R199" suffix="/event" list={["Access to photos", "Download up to 200", "30 day access"]} highlight />
+              <PricingCard title="Premium" plan="premium" price="R399" suffix="/event" list={["Access to photos", "Download unlimited", "Lifetime access"]} />
             </div>
           </div>
         </div>
@@ -330,12 +335,14 @@ function EventCard({ date, title, subtitle, image }: { date: string; title: stri
 
 function PricingCard({
   title,
+  plan,
   price,
   suffix,
   list,
   highlight = false,
 }: {
   title: string;
+  plan: string;
   price: string;
   suffix: string;
   list: string[];
@@ -361,9 +368,9 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <button type="button" className={`mt-6 w-full rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
+      <Link href={`/signup?plan=${plan}`} className={`mt-6 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
         Get Started
-      </button>
+      </Link>
     </div>
   );
 }

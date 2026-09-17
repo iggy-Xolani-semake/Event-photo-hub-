@@ -91,6 +91,10 @@ export default function AdminLoginPage() {
             Forgot password?
           </Link>
         </div>
+
+        <p className="mt-5 text-center text-sm text-white/60">
+          New host? <Link href={`/signup${searchParams.get("plan") ? `?plan=${searchParams.get("plan")}` : ""}`} className="underline decoration-white/20 underline-offset-4 hover:text-white">Create an account</Link>
+        </p>
       </form>
     </main>
   );

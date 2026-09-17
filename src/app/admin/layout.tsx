@@ -8,6 +8,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-white/10 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
