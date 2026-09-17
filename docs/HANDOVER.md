@@ -125,14 +125,79 @@ complete this section:
 
 ---
 
-## 2. Project Overview
+## 2. Key Responsibilities and Daily Tasks
 
-### 2.1 Purpose and Business Objectives
+> **The Owner and Contact columns are intentionally empty.** Who does what cannot
+> be derived from a repository, and a handover document containing invented names
+> is worse than one with gaps. Everything else in this section is grounded in
+> something that exists in the codebase — the evidence is in the second column.
+
+### 2.1 Roles This System Requires
+
+Each role is listed because something concrete breaks without it.
+
+| Role | Why it must exist | Owner | Contact |
+| --- | --- | --- | --- |
+| Product / commercial owner | Sets `packages.price_cents`. An unpriced tier is refused at checkout, so a package with no price is a package that cannot be sold. | | |
+| Site-host administrator | The only identity that can confirm a payment and unlock an event. Since `0011`, `mark_event_paid()` is executable by `service_role` only — not by the event owner, not by a signed-in user. | | |
+| Database / migration owner | Applies the 10 migrations in filename order. The sequence has already drifted (`0007` and `0008` are absent), so this needs a named owner rather than an assumption. | | |
+| Deploy owner | Deploys to Netlify (`netlify.toml`: `next build` → `.next`, Next.js Runtime plugin required). Must know that `NEXT_PUBLIC_*` values are inlined at **build** time — see `docs/DEPLOY_BREAKAGE.md`. | | |
+| Storage owner (Cloudflare R2) | Holds `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`. Originals are never public; every download is presigned. | | |
+| Host support | Hosts are the paying customers. They need help with checkout failures, unlocking, and guests who hit the 10-photo cap. | | |
+| Privacy / takedown responder | Handles "remove my photo" requests. **There is no reporting feature in the product**, so every such request currently arrives out-of-band and is handled by hand. | | |
+| Incident responder | No monitoring or error-reporting library is installed (verified: none in `package.json`). Incidents surface when a user reports them, not before. | | |
+
+### 2.2 Recurring Tasks
+
+| Task | Frequency | How | Owner | Last done |
+| --- | --- | --- | --- | --- |
+| Run the database verification suite | Before any schema change | `npm run verify:db` — 86 assertions across 4 harnesses; must exit 0 | | |
+| Apply migrations to production | As needed | Supabase SQL Editor, in filename order. The scripts are re-runnable; the editor shows only one statement's result at a time | | |
+| Deploy to production | Per release | Netlify. Force a fresh build (no cache) whenever any `NEXT_PUBLIC_*` value changes | | |
+| Confirm a payment and unlock an event | Per sale | Admin only, via the mark-paid control on `/admin/events/[code]` | | |
+| Check `process-image` edge function logs | Weekly | It calls `mark_photo_processed` / `mark_photo_failed` (migration `0009`). If it dies, photos are stuck in `processing` forever | | |
+| Look for photos stuck in `processing` | Weekly | A stuck photo means the edge function never called back | | |
+| Review R2 storage growth | Monthly | **No expiry or cleanup job exists** — verified: there is no cron or scheduled job anywhere in the repository. Storage only grows | | |
+| Review package pricing | Quarterly | The earlier live-database audit recorded four of the five tiers as unpriced. Confirm whether that is still the case and set prices | | |
+| Test a backup restore | Not yet scheduled | Backups are Supabase-managed. No restore has been evidenced anywhere in this repository | | |
+
+### 2.3 A Normal Day
+
+*To be written by the outgoing owner. What actually gets looked at each morning,
+what gets answered, what gets ignored until it escalates. The task table above
+describes what the system needs; this subsection should describe what the person
+actually does.*
+
+### 2.4 Responsibilities With No Current Owner
+
+These need doing and no role above covers them:
+
+- **Monitoring and alerting** — nothing is installed, so there is nothing to watch.
+- **Backup restore testing** — no evidence any restore has ever been performed.
+- **Expiry and cleanup** — no job exists; photos and R2 objects accumulate indefinitely.
+- **Photo reporting and moderation** — the feature does not exist, so reports have nowhere to go.
+- **Abuse prevention beyond the per-guest quota** — the rate limiter is a per-process `Map()` and is ineffective above a single instance.
+- **Downloads for 500- and 1000-photo packages** — the ZIP path has a hard ceiling of 150 photos (`MAX_ZIP_PHOTOS`, `src/app/api/download/zip/route.ts:23`).
+
+### 2.5 What Is Needed to Complete This Section
+
+- Who currently fills each role in §2.1, by name, with contact details.
+- Which of those roles one person holds multiple of.
+- The actual daily and weekly routine as practised (§2.3).
+- What support hours have been promised to hosts, and through which channel.
+- Who is reachable when the site is down, and how they are reached.
+- Whether any of these roles is outsourced, and to whom.
+
+---
+
+## 3. Project Overview
+
+### 3.1 Purpose and Business Objectives
 
 *Why the project exists. The business problem, in the language of the people who
 funded it, not in technical terms.*
 
-### 2.2 Success Criteria
+### 3.2 Success Criteria
 
 *What "done" meant and how it was measured. Include the original targets and the
 actual outcome against each.*
@@ -141,40 +206,40 @@ actual outcome against each.*
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 2.3 Key Decisions and Their Rationale
+### 3.3 Key Decisions and Their Rationale
 
 *The choices a newcomer would otherwise reverse by accident. For each: the
 decision, the alternatives considered, why this one, and what would make it
 worth revisiting.*
 
-### 2.4 Assumptions and Constraints
+### 3.4 Assumptions and Constraints
 
 *Budget, timeline, regulatory, technical, and commercial constraints that shaped
 the result and that the receiving team inherits.*
 
 ---
 
-## 3. Scope
+## 4. Scope
 
-### 3.1 In Scope
+### 4.1 In Scope
 
 *What was built and is being handed over.*
 
-### 3.2 Out of Scope
+### 4.2 Out of Scope
 
 *What was deliberately excluded. This section prevents more disputes than any
 other.*
 
-### 3.3 Deferred / Explicitly Not Built
+### 4.3 Deferred / Explicitly Not Built
 
 *Work that was identified, agreed to be out of this phase, and is now the
 receiving team's responsibility.*
 
 ---
 
-## 4. Current Status
+## 5. Current Status
 
-### 4.1 Status Summary
+### 5.1 Status Summary
 
 *One line per workstream: complete, partial, or not started.*
 
@@ -182,23 +247,23 @@ receiving team's responsibility.*
 | --- | --- | --- | --- |
 | {{}} | {{Complete / Partial / Not started}} | {{High / Medium / Low}} | {{}} |
 
-### 4.2 What Works Today
+### 5.2 What Works Today
 
 *What a user can actually do with the thing, end to end. Be concrete.*
 
-### 4.3 What Does Not Work Yet
+### 5.3 What Does Not Work Yet
 
 *Be blunt. Undisclosed gaps discovered later cost far more trust than gaps
 declared now.*
 
-### 4.4 Recent Changes
+### 5.4 Recent Changes
 
 *The last significant changes, what prompted them, and whether they are fully
 settled.*
 
 ---
 
-## 5. Deliverables Inventory
+## 6. Deliverables Inventory
 
 | # | Deliverable | Location / Link | Format | Status | Accepted by |
 | --- | --- | --- | --- | --- | --- |
@@ -206,32 +271,32 @@ settled.*
 
 ---
 
-## 6. Technical Architecture
+## 7. Technical Architecture
 
 *(Delete this section for a non-technical handover.)*
 
-### 6.1 System Overview
+### 7.1 System Overview
 
 *A diagram plus a paragraph. Show components, data flow, and trust boundaries —
 where does untrusted input enter, where is it validated.*
 
-### 6.2 Technology Stack
+### 7.2 Technology Stack
 
 | Layer | Technology | Version | Notes / justification |
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 6.3 Repository and Branching
+### 7.3 Repository and Branching
 
 *Repository URLs, the branch that deploys, the branch model, and any branch that
 must not be deleted.*
 
-### 6.4 Data Model
+### 7.4 Data Model
 
 *Principal entities, their relationships, and where the authoritative schema
 lives. Call out anything denormalised or cached, and what keeps it consistent.*
 
-### 6.5 Integrations
+### 7.5 Integrations
 
 | System | Purpose | Direction | Auth method | Owner | Documentation |
 | --- | --- | --- | --- | --- | --- |
@@ -239,15 +304,15 @@ lives. Call out anything denormalised or cached, and what keeps it consistent.*
 
 ---
 
-## 7. Environments and Access
+## 8. Environments and Access
 
-### 7.1 Environments
+### 8.1 Environments
 
 | Environment | URL | Purpose | Deploy source | Data | Owner |
 | --- | --- | --- | --- | --- | --- |
 | {{Production}} | {{}} | {{}} | {{branch / commit}} | {{real / synthetic}} | {{}} |
 
-### 7.2 Credentials and Secrets
+### 8.2 Credentials and Secrets
 
 *Never write a secret into this document. Record where each one lives and who
 can retrieve it.*
@@ -256,7 +321,7 @@ can retrieve it.*
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{vault / provider env}} | {{}} | {{}} |
 
-### 7.3 Access Requests
+### 8.3 Access Requests
 
 *Exactly what the receiving team must be granted, and to whom they should ask.*
 
@@ -264,46 +329,46 @@ can retrieve it.*
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{Yes / No}} |
 
-### 7.4 Local Development Setup
+### 8.4 Local Development Setup
 
 *Steps to go from a fresh machine to a running instance, plus the environment
 variables required and any step that fails silently when skipped.*
 
 ---
 
-## 8. Operations
+## 9. Operations
 
-### 8.1 Deployment Procedure
+### 9.1 Deployment Procedure
 
 *The exact steps, in order, including anything that must happen in the same
 window as something else.*
 
-### 8.2 Rollback Procedure
+### 9.2 Rollback Procedure
 
 *How to undo a bad deploy, how long it takes, and what cannot be rolled back.*
 
-### 8.3 Scheduled Jobs and Background Processes
+### 9.3 Scheduled Jobs and Background Processes
 
 | Job | Schedule | Purpose | Failure impact | Where to monitor |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 8.4 Monitoring and Alerting
+### 9.4 Monitoring and Alerting
 
 | Signal | Tool | Threshold | Alert recipient | Runbook |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 8.5 Backup and Recovery
+### 9.5 Backup and Recovery
 
 *What is backed up, how often, how retention works, the last time a restore was
 actually tested, and the measured recovery time.*
 
-### 8.6 Incident Response
+### 9.6 Incident Response
 
 *How a production problem is reported, who is on call, and the escalation path.*
 
-### 8.7 Routine Maintenance Calendar
+### 9.7 Routine Maintenance Calendar
 
 | Task | Frequency | How | Last done |
 | --- | --- | --- | --- |
@@ -311,94 +376,94 @@ actually tested, and the measured recovery time.*
 
 ---
 
-## 9. Testing and Quality
+## 10. Testing and Quality
 
-### 9.1 Test Strategy and Coverage
+### 10.1 Test Strategy and Coverage
 
 *What is automated, what is manual, and — more usefully — what is not tested at
 all.*
 
-### 9.2 How to Run the Checks
+### 10.2 How to Run the Checks
 
 | Check | Command | Expected result |
 | --- | --- | --- |
 | {{}} | {{}} | {{}} |
 
-### 9.3 Known Untested Areas
+### 10.3 Known Untested Areas
 
 ---
 
-## 10. Security, Privacy and Compliance
+## 11. Security, Privacy and Compliance
 
-### 10.1 Security Posture
+### 11.1 Security Posture
 
 *Authentication, authorisation, data protection in transit and at rest, and any
 control that is documented but not enforced.*
 
-### 10.2 Privacy and Data Handling
+### 11.2 Privacy and Data Handling
 
 *What personal data is held, on what lawful basis, retention, and how deletion
 requests are handled. Distinguish clearly between controls that exist and claims
 of regulatory compliance.*
 
-### 10.3 Compliance Obligations
+### 11.3 Compliance Obligations
 
 | Obligation | Applies? | Status | Evidence | Owner |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 10.4 Outstanding Security Work
+### 11.4 Outstanding Security Work
 
 *Ranked, with the risk of deferring each.*
 
 ---
 
-## 11. Known Issues and Risks
+## 12. Known Issues and Risks
 
-### 11.1 Open Defects
+### 12.1 Open Defects
 
 | ID | Description | Severity | Workaround | Impact if unresolved |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{Critical / High / Medium / Low}} | {{}} | {{}} |
 
-### 11.2 Risks Inherited
+### 12.2 Risks Inherited
 
 | Risk | Likelihood | Impact | Mitigation in place | Residual owner |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 11.3 Technical Debt
+### 12.3 Technical Debt
 
 *What was consciously traded away for speed, what it will cost to repay, and
 what breaks first if it is never repaid.*
 
 ---
 
-## 12. Outstanding Work and Roadmap
+## 13. Outstanding Work and Roadmap
 
-### 12.1 Immediate Priorities (first 30 days)
+### 13.1 Immediate Priorities (first 30 days)
 
 *Ordered, with the reason each is first.*
 
-### 12.2 Backlog
+### 13.2 Backlog
 
 | Item | Description | Priority | Estimate | Dependencies |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 12.3 Proposed Direction
+### 13.3 Proposed Direction
 
 *Recommendations that were formed but not acted on, and the reasoning behind
 them.*
 
-### 12.4 Deliberately Not Recommended
+### 13.4 Deliberately Not Recommended
 
 *Ideas considered and rejected, so they are not re-litigated by someone without
 the context.*
 
 ---
 
-## 13. Costs and Contracts
+## 14. Costs and Contracts
 
 | Item | Provider | Cost | Billing cycle | Renewal / expiry | Owner |
 | --- | --- | --- | --- | --- | --- |
@@ -408,36 +473,36 @@ the context.*
 
 ---
 
-## 14. Stakeholders and Contacts
+## 15. Stakeholders and Contacts
 
 | Name | Role | Responsibility | Contact | Availability |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 14.1 Post-Handover Support
+### 15.1 Post-Handover Support
 
 *How long the outgoing team remains reachable, on what terms, and what is
 explicitly not covered.*
 
 ---
 
-## 15. Knowledge Transfer
+## 16. Knowledge Transfer
 
-### 15.1 Sessions Delivered
+### 16.1 Sessions Delivered
 
 | Topic | Date | Attendees | Recording / notes |
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 15.2 Scheduled Sessions
+### 16.2 Scheduled Sessions
 
-### 15.3 Recommended Reading Order
+### 16.3 Recommended Reading Order
 
 *The order in which someone should read the documentation, and why.*
 
 ---
 
-## 16. Documentation Index
+## 17. Documentation Index
 
 | Document | Location | Owner | Last updated |
 | --- | --- | --- | --- |
@@ -445,20 +510,20 @@ explicitly not covered.*
 
 ---
 
-## 17. Handover Acceptance
+## 18. Handover Acceptance
 
 *The receiving party confirms they have received, reviewed, and understood the
 above, and accept ownership from the effective date. Outstanding items in
-Section 12 remain the responsibility of the receiving party unless stated
+Section 13 remain the responsibility of the receiving party unless stated
 otherwise.*
 
-### 17.1 Outstanding Items Accepted
+### 18.1 Outstanding Items Accepted
 
 | Item | Accepted by receiving party? | Notes |
 | --- | --- | --- |
 | {{}} | {{Yes / No / Deferred}} | {{}} |
 
-### 17.2 Sign-off
+### 18.2 Sign-off
 
 | Role | Name | Signature | Date |
 | --- | --- | --- | --- |
@@ -490,4 +555,4 @@ otherwise.*
 
 ### Appendix E — Decision Log
 
-*The full record behind Section 2.3, if it is too long to include there.*
+*The full record behind Section 3.3, if it is too long to include there.*
