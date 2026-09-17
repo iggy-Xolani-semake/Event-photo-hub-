@@ -16,6 +16,15 @@ export interface Client {
   created_at: string;
 }
 
+export interface GuestSession {
+  id: string;
+  session_token: string;
+  event_id: string;
+  upload_count: number;
+  created_at: string;
+  last_seen_at: string;
+}
+
 export interface Collaborator {
   id: string;
   auth_user_id: string | null;
@@ -37,6 +46,8 @@ export interface Event {
   upload_limit: number;
   max_file_size_bytes: number;
   max_files_per_upload: number;
+  /** Per-guest ceiling, enforced in Postgres by insert_guest_photo(). */
+  guest_photo_limit: number;
   photo_count: number;
   storage_used_bytes: number;
   brand_logo_url: string | null;
