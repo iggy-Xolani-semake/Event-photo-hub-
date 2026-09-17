@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { checkRateLimit } from "@/lib/rateLimit";
+
+const NO_STORE = { "Cache-Control": "no-store" };
 
 /**
  * Issues the anonymous guest session that the per-guest upload quota is
@@ -26,7 +29,24 @@ export async function POST(request: NextRequest) {
     const { eventCode, token } = body as { eventCode?: string; token?: string | null };
 
     if (!eventCode || !isValidEventCodeFormat(eventCode)) {
-      return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid event code." }, { status: 400, headers: NO_STORE });
+    }
+
+    if (token !== null && token !== undefined &&
+        (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token))) {
+      return NextResponse.json({ error: "Invalid upload session." }, { status: 400, headers: NO_STORE });
+    }
+
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const rateCheck = checkRateLimit(`guest-session:${eventCode}:${ip}`, {
+      windowMs: 60_000,
+      maxRequests: 20,
+    });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many session requests. Please wait a moment and try again." },
+        { status: 429, headers: { ...NO_STORE, "Retry-After": "60" } }
+      );
     }
 
     const admin = createSupabaseAdminClient();
@@ -44,7 +64,7 @@ export async function POST(request: NextRequest) {
               ? "We couldn't find this event. Please check the link or QR code."
               : "We couldn't start your upload session. Please try again.",
         },
-        { status: code === "EVENT_NOT_FOUND" ? 404 : 400 }
+        { status: code === "EVENT_NOT_FOUND" ? 404 : 400, headers: NO_STORE }
       );
     }
 
@@ -58,18 +78,24 @@ export async function POST(request: NextRequest) {
       // a guest scanning a dead QR code must not be told "try again".
       return NextResponse.json(
         { error: "We couldn't find this event. Please check the link or QR code." },
-        { status: 404 }
+        { status: 404, headers: NO_STORE }
       );
     }
 
-    return NextResponse.json({
-      sessionToken: row.session_token,
-      uploadCount: row.upload_count,
-      guestPhotoLimit: row.guest_photo_limit,
-      remaining: Math.max(0, row.guest_photo_limit - row.upload_count),
-    });
+    return NextResponse.json(
+      {
+        sessionToken: row.session_token,
+        uploadCount: row.upload_count,
+        guestPhotoLimit: row.guest_photo_limit,
+        remaining: Math.max(0, row.guest_photo_limit - row.upload_count),
+      },
+      { headers: NO_STORE }
+    );
   } catch (err) {
     console.error("guest session error:", err);
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong. Please try again." },
+      { status: 500, headers: NO_STORE }
+    );
   }
 }
