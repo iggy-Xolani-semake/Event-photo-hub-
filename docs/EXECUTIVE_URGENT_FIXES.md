@@ -23,6 +23,7 @@
 - [x] The live project was identified as **NSX Events Photo Hub**.
 - [x] The live schema was inspected before applying the curator migration.
 - [x] Curator signup and the trigger-function privilege hardening were applied to Supabase.
+- [ ] Apply and verify migration `0012_guest_sessions.sql` in the connected Supabase project; the connector was unavailable during this implementation pass.
 - [ ] Confirm the deployed application contains the matching curator-aware authorization code.
 - [ ] Record the live migration list as the authoritative baseline before the next migration.
 - [ ] Add a migration-drift check to release validation.
@@ -31,6 +32,8 @@
 
 ### 3. Run negative authorization tests for every role
 
+- [x] Guest quota no longer depends on `localStorage`; the branch now uses an opaque, event-scoped server session and atomic database counting.
+- [x] Re-registering or clearing browser storage cannot reset an existing server-side session counter.
 - [ ] Verify an anonymous guest cannot call raw photo inserts or read private event metadata.
 - [ ] Verify a curator can create and manage only curator-owned events.
 - [ ] Verify a curator cannot read, update, delete, or moderate another curator’s event.
@@ -38,7 +41,7 @@
 - [ ] Verify an admin retains platform-wide access.
 - [ ] Verify original downloads require the server-side entitlement check.
 
-**Why urgent:** Positive tests show that intended users can proceed; negative tests prove that the ownership boundary is real. This product handles private event photos, so a policy mistake is a data-exposure incident.
+**Why urgent:** Positive tests show that intended users can proceed; negative tests prove that the ownership boundary is real. This product handles private event photos, and a quota migration that is not deployed with its matching application code will break or weaken guest uploads.
 
 ### 4. Finish the payment and package entitlement path before selling access
 
@@ -70,6 +73,8 @@ npm run typecheck
 npm run build
 git diff --check
 ```
+
+The previous localStorage quota bypass is fixed in commits `d768272` and `5edee15`. The implementation adds `/api/guest/session`, removes the browser-made uploader identifier from the upload authority path, and changes `insert_guest_photo()` to require a server-issued session token. The production database migration remains a release prerequisite.
 
 The landing-page dead-CTA scan found no remaining `href="#"` or inert `Get Started`, `View Photos`, `View All Events`, or theme-toggle controls in `src/app/page.tsx`.
 
