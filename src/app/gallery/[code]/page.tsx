@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
 import { GalleryView } from "@/components/gallery/GalleryView";
@@ -48,13 +49,19 @@ export default async function GalleryPage({ params }: PageProps) {
   // Checked against the SESSION-BOUND server client (not admin), so
   // RLS/auth actually gates this rather than us hand-rolling the check
   // against data fetched with elevated privileges.
-  const sessionClient = await createSupabaseServerClient();
-  const { data: ownedEvent } = await sessionClient
-    .from("events")
-    .select("id")
-    .eq("id", event.id)
-    .maybeSingle();
-  const canManage = Boolean(ownedEvent);
+  const cookieStore = await cookies();
+  const hasAuthCookie = cookieStore.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("auth-token"));
+  let canManage = false;
+
+  if (hasAuthCookie || event.visibility === "private") {
+    const sessionClient = await createSupabaseServerClient();
+    const { data: ownedEvent } = await sessionClient
+      .from("events")
+      .select("id")
+      .eq("id", event.id)
+      .maybeSingle();
+    canManage = Boolean(ownedEvent);
+  }
 
   if (event.visibility === "private" && !canManage) {
     return (
