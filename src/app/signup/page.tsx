@@ -58,7 +58,7 @@ function SignupForm() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 py-12">
+    <main className="min-h-screen flex items-center justify-center bg-ink-950 px-6 py-12 text-white">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
         <p className="text-center text-xs uppercase tracking-[0.2em] text-accent mb-3">Event Photo Hub</p>
         <h1 className="font-display text-3xl mb-2 text-center">Create your host account</h1>

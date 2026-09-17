@@ -16,8 +16,8 @@ const config: Config = {
           700: "#2a2a31",
         },
         accent: {
-          DEFAULT: "#d4af37",
-          soft: "#f0dfa0",
+          DEFAULT: "#f27a3a",
+          soft: "#f8e0d1",
         },
       },
       fontFamily: {
