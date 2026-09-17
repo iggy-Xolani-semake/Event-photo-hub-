@@ -15,6 +15,8 @@ npm run verify:db
 | --- | --- |
 | `test_idem.mjs` | 0001–0006 apply, 0006 applies **three times** without error, and the paywall holds: an owner cannot unlock their own downloads, swap to a bigger tier, raise a limit past their package, insert a payment row, or call `mark_event_paid()`. |
 | `test_collab.mjs` | The collaborator role from `0010` can edit the event it is assigned to and nothing else — no self-unlock, no tier swap, no limit raise, no unassigning itself, no access to other events. |
+| `test_privileges.mjs` | Reproduces the exploit that let **any signed-in user unlock any event's downloads for free**, applies `0011_lock_service_functions.sql`, then proves the exploit is refused while staff and event owners keep their legitimate paths. Mirrors Supabase's own grants, because `revoke ... from public` leaves a privilege that was granted to `anon`/`authenticated` *by name* — which is exactly how the hole survived into a live project. |
+| `test_guest_sessions.mjs` | The per-guest upload quota from `0012_guest_sessions.sql`: anon gets a session with no account, the 11th upload is refused, re-arriving keeps the same counter, a token cannot cross events, a forged token is refused, the browser cannot read or reset its own counter, and the legacy `uploader_identifier` argument no longer compiles. |
 | `test0005.mjs` | Client self-service: owner-scoped RLS, anon sees no events, limit ranges enforced, ownership immutable. |
 | `test0006.mjs` | The Sprint 3 assertions on their own, without the re-run checks. |
 

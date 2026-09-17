@@ -25,14 +25,14 @@ import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode, storagePath, originalFilename, fileSize, mimeType, uploaderIdentifier, width, height } =
+    const { eventCode, storagePath, originalFilename, fileSize, mimeType, guestSessionToken, width, height } =
       body as {
         eventCode?: string;
         storagePath?: string;
         originalFilename?: string;
         fileSize?: number;
         mimeType?: string;
-        uploaderIdentifier?: string;
+        guestSessionToken?: string;
         width?: number;
         height?: number;
       };
@@ -43,6 +43,11 @@ export async function POST(request: NextRequest) {
     if (!storagePath || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
     }
+    // Not optional: the token IS the quota. Without it insert_guest_photo
+    // raises GUEST_SESSION_NOT_FOUND, so refusing here just says it sooner.
+    if (!guestSessionToken) {
+      return NextResponse.json({ error: "Your upload session expired. Please reload and try again." }, { status: 400 });
+    }
 
     const admin = createSupabaseAdminClient();
 
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest) {
       p_original_filename: originalFilename ?? null,
       p_file_size: fileSize,
       p_mime_type: mimeType,
-      p_uploader_identifier: uploaderIdentifier ?? null,
+      p_guest_session_token: guestSessionToken,
       p_width: width ?? null,
       p_height: height ?? null,
     });
@@ -62,7 +67,11 @@ export async function POST(request: NextRequest) {
       // as error.message — map them to guest-safe copy, never surface the
       // raw Postgres error to the browser (spec section 35).
       const code = error.message?.match(/[A-Z_]+/)?.[0] ?? "UNKNOWN";
-      return NextResponse.json({ error: errorCodeToMessage(code) }, { status: 400 });
+      // 429 rather than 400: the guest did nothing wrong, they have simply
+      // reached the limit the host set. The client shows the "you're done,
+      // go see the gallery" path instead of a generic failure.
+      const status = code === "GUEST_UPLOAD_LIMIT_REACHED" ? 429 : 400;
+      return NextResponse.json({ error: errorCodeToMessage(code), code }, { status });
     }
 
     const photoId = (data as { photo_id: string }[] | null)?.[0]?.photo_id;

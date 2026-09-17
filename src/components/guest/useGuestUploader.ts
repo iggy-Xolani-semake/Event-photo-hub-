@@ -34,20 +34,50 @@ function safeRandomId(): string {
 }
 
 /**
- * Guests get a stable anonymous identifier stored in localStorage — NOT
- * an account, NOT PII, just enough to let the UI say "your uploads" in
- * the current session. This is never used for access control (see
- * insert_guest_photo RPC, which trusts event_code + server-side
- * validation only, never this value).
+ * The guest's session token, issued by the server (migration 0012) and cached
+ * per event in localStorage so a returning guest keeps the SAME quota rather
+ * than being handed a fresh one.
+ *
+ * This replaces the old `eph_uploader_id`: that was a browser-made string the
+ * server stored but never counted, so the 10-photo limit was a cleared
+ * localStorage entry away from not existing. The counter now lives in
+ * guest_sessions and is incremented inside the same transaction that inserts
+ * the photo, under a row lock.
+ *
+ * The promise is memoised per event so a batch of ten photos asks once.
  */
-function getUploaderIdentifier(): string {
-  const key = "eph_uploader_id";
-  let id = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-  if (!id) {
-    id = safeRandomId();
-    if (typeof window !== "undefined") localStorage.setItem(key, id);
+const guestSessionPromises = new Map<string, Promise<string>>();
+
+async function startGuestSession(eventCode: string): Promise<string> {
+  const key = `eph_guest_session:${eventCode}`;
+  const existing = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+
+  const res = await fetch("/api/guest/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventCode, token: existing }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "We couldn't start your upload session. Please try again.");
   }
-  return id;
+
+  const { sessionToken } = (await res.json()) as { sessionToken: string };
+  if (typeof window !== "undefined") localStorage.setItem(key, sessionToken);
+  return sessionToken;
+}
+
+function ensureGuestSession(eventCode: string): Promise<string> {
+  let pending = guestSessionPromises.get(eventCode);
+  if (!pending) {
+    pending = startGuestSession(eventCode).catch((err) => {
+      guestSessionPromises.delete(eventCode); // a retry must be allowed to try again
+      throw err;
+    });
+    guestSessionPromises.set(eventCode, pending);
+  }
+  return pending;
 }
 
 async function getImageDimensions(file: File): Promise<{ width: number; height: number } | null> {
@@ -107,6 +137,10 @@ export function useGuestUploader(eventCode: string) {
 
         updateItem(item.id, { status: "uploading", progress: 15 });
 
+        // The server-issued session token is what the per-guest quota is
+        // counted against, so it is resolved before any bytes move.
+        const sessionToken = await ensureGuestSession(eventCode);
+
         // STEP 1: ask our server for a presigned URL scoped to this event.
         const requestRes = await fetch("/api/upload/request-url", {
           method: "POST",
@@ -116,7 +150,6 @@ export function useGuestUploader(eventCode: string) {
             fileName: item.file.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || item.file.type,
-            uploaderIdentifier: getUploaderIdentifier(),
           }),
         });
 
@@ -146,7 +179,7 @@ export function useGuestUploader(eventCode: string) {
             originalFilename: item.file.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || item.file.type,
-            uploaderIdentifier: getUploaderIdentifier(),
+            guestSessionToken: sessionToken,
             width: dimensions?.width,
             height: dimensions?.height,
           }),
