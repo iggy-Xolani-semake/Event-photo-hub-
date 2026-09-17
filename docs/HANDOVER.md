@@ -190,16 +190,121 @@ These need doing and no role above covers them:
 
 ---
 
-## 3. Project Overview
+## 3. Access, Tools, and Documentation Links
+
+> **No secret, key, token, or password appears in this document.** Where a
+> credential is needed, this section records where it lives and which dashboard
+> page it comes from. The authoritative variable list is `.env.example` in the
+> repository root — it is committed, contains no real values, and documents the
+> origin of each one.
+
+### 3.1 Systems and Tools
+
+| System | Purpose | Location | Admin holder | Request access from |
+| --- | --- | --- | --- | --- |
+| GitHub | Source control, review, releases | `github.com/iggy-Xolani-semake/Event-photo-hub-` | | |
+| Supabase | PostgreSQL, Auth, Row Level Security, the `process-image` Edge Function | Project Settings → API | | |
+| Cloudflare R2 | Object storage: originals, thumbnails, WebP gallery variants | Dashboard → R2 → bucket `event-photo-hub` (the default name in `.env.example`) | | |
+| Netlify | Production hosting; runs `next build` and serves the Next.js runtime | Build defined in `netlify.toml` | | |
+| Local toolchain | Node.js + npm. Six scripts: `dev`, `build`, `start`, `lint`, `typecheck`, `verify:db` | `package.json` | n/a | n/a |
+
+**There is no monitoring, analytics, or error-reporting system in use.** None is
+installed as a dependency and none is referenced in configuration, so there is
+no dashboard to be granted access to. See §2.4.
+
+### 3.2 Credentials Required
+
+Nine environment variables. `.env.example` is the authoritative list; this table
+records only where each value comes from. Production values are set in Netlify's
+environment settings, local values in `.env.local` — neither is committed.
+
+| Variable | Visibility | Obtained from |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public, build-time | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public, build-time | Supabase → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server-only** — bypasses Row Level Security entirely; treat it as a root password | Supabase → Project Settings → API |
+| `R2_ACCOUNT_ID` | Server-only | Cloudflare dashboard |
+| `R2_ACCESS_KEY_ID` | Server-only | R2 → Manage R2 API Tokens, scoped to the bucket only, Object Read & Write |
+| `R2_SECRET_ACCESS_KEY` | Server-only | R2 → Manage R2 API Tokens |
+| `R2_BUCKET_NAME` | Server-only | `event-photo-hub` by default |
+| `NEXT_PUBLIC_R2_PUBLIC_HOST` | Public, build-time | An R2.dev subdomain or a custom domain on the bucket. Serves gallery and thumbnail variants only — never originals |
+| `NEXT_PUBLIC_APP_URL` | Public, build-time | The production domain; used to build QR and copy-link URLs |
+
+Two properties of this list matter operationally:
+
+- **Server-only variables are enforced at build time, not by convention.**
+  `src/lib/supabase/admin.ts` and `src/lib/storage/r2Client.ts` both open with
+  `import "server-only"`, so any client component that reaches for them fails
+  the build.
+- **The four `NEXT_PUBLIC_*` values are inlined at build time.** Changing one
+  requires a fresh build; a cached redeploy silently keeps the old value. This
+  is the failure mode documented in `docs/DEPLOY_BREAKAGE.md`.
+
+Rotation policy and holder for each credential belong in §9.2. The Supabase
+project reference is not committed anywhere in the repository — verified by
+searching the source for `*.supabase.co`. It exists only in the environment,
+which is correct.
+
+### 3.3 Repository
+
+| Item | Value |
+| --- | --- |
+| Remote | `https://github.com/iggy-Xolani-semake/Event-photo-hub-` |
+| Default branch | `main` |
+| Branch carrying the current work | `arena/01a0a9df-event-photo-hub` |
+| Open pull request | **#1** — must be merged before guest uploads work against the live database |
+| Verification harnesses | `scripts/verify/`, run with `npm run verify:db` |
+| Migrations | `supabase/migrations/`, applied in filename order |
+
+### 3.4 Documentation in the Repository
+
+| Document | What it is for |
+| --- | --- |
+| `README.md` | Product summary and stack |
+| `.env.example` | Authoritative environment variable list, with the origin of each |
+| `docs/SUPABASE_SETUP.md` | Create the project, run the migrations, first admin user, the `process-image` Edge Function, regenerating types |
+| `docs/R2_SETUP.md` | Bucket, scoped API token, public access for gallery variants, CORS for browser uploads, optional lifecycle rules |
+| `docs/GUEST_UX_SPEC.md` | The guest experience specification |
+| `docs/DEPLOY_BREAKAGE.md` | Diagnosis of the "no button works" deploy failure |
+| `docs/LEGAL_REVIEW_NEEDED.md` | Records that the privacy policy covers the right POPIA topics but is **not legal advice and has not been reviewed by a lawyer** |
+| `docs/LIVE_DB_AUDIT.sql` | Full read-only audit of the live database |
+| `docs/LIVE_DB_AUDIT_QUICK.sql` | The same audit as one statement — the SQL Editor renders a single result grid |
+| `docs/MIGRATION_0006_STATE_CHECK.sql` | State check for the payment guard |
+| `scripts/verify/README.md` | What each harness proves, and the traps to avoid when extending them |
+| `docs/HANDOVER.md` | This document |
+
+Documents outside the repository — shared drives, design files, contracts — are
+listed in §18.
+
+### 3.5 Deliberately Not Recorded Here
+
+Any secret, key, token or password; the Supabase project reference; the R2
+account id; the production database connection string. These belong in the
+hosting provider's environment settings and the team's secret store (§3.6).
+
+### 3.6 Needed to Complete This Section
+
+- The secret store or password manager in use, and the vault or folder name.
+- Shared drive folders: design assets, contracts, brand, invoices.
+- Team communication channels, and the ticketing system if there is one.
+- The production domain and the Netlify site name.
+- The Supabase project reference — record it in the secret store, not here.
+- Any payment, email, or analytics provider account that is not visible in the
+  code. **No payment gateway is integrated yet**; checkout refuses unpriced
+  tiers, and no provider has been chosen.
+
+---
+
+## 4. Project Overview
 
 *Expands on §1.1–1.2.*
 
-### 3.1 Purpose and Business Objectives
+### 4.1 Purpose and Business Objectives
 
 *Why the project exists. The business problem, in the language of the people who
 funded it, not in technical terms.*
 
-### 3.2 Success Criteria
+### 4.2 Success Criteria
 
 *What "done" meant and how it was measured. Include the original targets and the
 actual outcome against each.*
@@ -208,42 +313,42 @@ actual outcome against each.*
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 3.3 Key Decisions and Their Rationale
+### 4.3 Key Decisions and Their Rationale
 
 *The choices a newcomer would otherwise reverse by accident. For each: the
 decision, the alternatives considered, why this one, and what would make it
 worth revisiting.*
 
-### 3.4 Assumptions and Constraints
+### 4.4 Assumptions and Constraints
 
 *Budget, timeline, regulatory, technical, and commercial constraints that shaped
 the result and that the receiving team inherits.*
 
 ---
 
-## 4. Scope
+## 5. Scope
 
-### 4.1 In Scope
+### 5.1 In Scope
 
 *What was built and is being handed over.*
 
-### 4.2 Out of Scope
+### 5.2 Out of Scope
 
 *What was deliberately excluded. This section prevents more disputes than any
 other.*
 
-### 4.3 Deferred / Explicitly Not Built
+### 5.3 Deferred / Explicitly Not Built
 
 *Work that was identified, agreed to be out of this phase, and is now the
 receiving team's responsibility.*
 
 ---
 
-## 5. Current Status
+## 6. Current Status
 
 *Expands on §1.3.*
 
-### 5.1 Status Summary
+### 6.1 Status Summary
 
 *One line per workstream: complete, partial, or not started.*
 
@@ -251,23 +356,23 @@ receiving team's responsibility.*
 | --- | --- | --- | --- |
 | {{}} | {{Complete / Partial / Not started}} | {{High / Medium / Low}} | {{}} |
 
-### 5.2 What Works Today
+### 6.2 What Works Today
 
 *What a user can actually do with the thing, end to end. Be concrete.*
 
-### 5.3 What Does Not Work Yet
+### 6.3 What Does Not Work Yet
 
 *Be blunt. Undisclosed gaps discovered later cost far more trust than gaps
 declared now.*
 
-### 5.4 Recent Changes
+### 6.4 Recent Changes
 
 *The last significant changes, what prompted them, and whether they are fully
 settled.*
 
 ---
 
-## 6. Deliverables Inventory
+## 7. Deliverables Inventory
 
 | # | Deliverable | Location / Link | Format | Status | Accepted by |
 | --- | --- | --- | --- | --- | --- |
@@ -275,32 +380,32 @@ settled.*
 
 ---
 
-## 7. Technical Architecture
+## 8. Technical Architecture
 
 *(Delete this section for a non-technical handover.)*
 
-### 7.1 System Overview
+### 8.1 System Overview
 
 *A diagram plus a paragraph. Show components, data flow, and trust boundaries —
 where does untrusted input enter, where is it validated.*
 
-### 7.2 Technology Stack
+### 8.2 Technology Stack
 
 | Layer | Technology | Version | Notes / justification |
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 7.3 Repository and Branching
+### 8.3 Repository and Branching
 
 *Repository URLs, the branch that deploys, the branch model, and any branch that
 must not be deleted.*
 
-### 7.4 Data Model
+### 8.4 Data Model
 
 *Principal entities, their relationships, and where the authoritative schema
 lives. Call out anything denormalised or cached, and what keeps it consistent.*
 
-### 7.5 Integrations
+### 8.5 Integrations
 
 | System | Purpose | Direction | Auth method | Owner | Documentation |
 | --- | --- | --- | --- | --- | --- |
@@ -308,15 +413,15 @@ lives. Call out anything denormalised or cached, and what keeps it consistent.*
 
 ---
 
-## 8. Environments and Access
+## 9. Environments and Access
 
-### 8.1 Environments
+### 9.1 Environments
 
 | Environment | URL | Purpose | Deploy source | Data | Owner |
 | --- | --- | --- | --- | --- | --- |
 | {{Production}} | {{}} | {{}} | {{branch / commit}} | {{real / synthetic}} | {{}} |
 
-### 8.2 Credentials and Secrets
+### 9.2 Credentials and Secrets
 
 *Never write a secret into this document. Record where each one lives and who
 can retrieve it.*
@@ -325,7 +430,7 @@ can retrieve it.*
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{vault / provider env}} | {{}} | {{}} |
 
-### 8.3 Access Requests
+### 9.3 Access Requests
 
 *Exactly what the receiving team must be granted, and to whom they should ask.*
 
@@ -333,46 +438,46 @@ can retrieve it.*
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{Yes / No}} |
 
-### 8.4 Local Development Setup
+### 9.4 Local Development Setup
 
 *Steps to go from a fresh machine to a running instance, plus the environment
 variables required and any step that fails silently when skipped.*
 
 ---
 
-## 9. Operations
+## 10. Operations
 
-### 9.1 Deployment Procedure
+### 10.1 Deployment Procedure
 
 *The exact steps, in order, including anything that must happen in the same
 window as something else.*
 
-### 9.2 Rollback Procedure
+### 10.2 Rollback Procedure
 
 *How to undo a bad deploy, how long it takes, and what cannot be rolled back.*
 
-### 9.3 Scheduled Jobs and Background Processes
+### 10.3 Scheduled Jobs and Background Processes
 
 | Job | Schedule | Purpose | Failure impact | Where to monitor |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 9.4 Monitoring and Alerting
+### 10.4 Monitoring and Alerting
 
 | Signal | Tool | Threshold | Alert recipient | Runbook |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 9.5 Backup and Recovery
+### 10.5 Backup and Recovery
 
 *What is backed up, how often, how retention works, the last time a restore was
 actually tested, and the measured recovery time.*
 
-### 9.6 Incident Response
+### 10.6 Incident Response
 
 *How a production problem is reported, who is on call, and the escalation path.*
 
-### 9.7 Routine Maintenance Calendar
+### 10.7 Routine Maintenance Calendar
 
 | Task | Frequency | How | Last done |
 | --- | --- | --- | --- |
@@ -380,94 +485,94 @@ actually tested, and the measured recovery time.*
 
 ---
 
-## 10. Testing and Quality
+## 11. Testing and Quality
 
-### 10.1 Test Strategy and Coverage
+### 11.1 Test Strategy and Coverage
 
 *What is automated, what is manual, and — more usefully — what is not tested at
 all.*
 
-### 10.2 How to Run the Checks
+### 11.2 How to Run the Checks
 
 | Check | Command | Expected result |
 | --- | --- | --- |
 | {{}} | {{}} | {{}} |
 
-### 10.3 Known Untested Areas
+### 11.3 Known Untested Areas
 
 ---
 
-## 11. Security, Privacy and Compliance
+## 12. Security, Privacy and Compliance
 
-### 11.1 Security Posture
+### 12.1 Security Posture
 
 *Authentication, authorisation, data protection in transit and at rest, and any
 control that is documented but not enforced.*
 
-### 11.2 Privacy and Data Handling
+### 12.2 Privacy and Data Handling
 
 *What personal data is held, on what lawful basis, retention, and how deletion
 requests are handled. Distinguish clearly between controls that exist and claims
 of regulatory compliance.*
 
-### 11.3 Compliance Obligations
+### 12.3 Compliance Obligations
 
 | Obligation | Applies? | Status | Evidence | Owner |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 11.4 Outstanding Security Work
+### 12.4 Outstanding Security Work
 
 *Ranked, with the risk of deferring each.*
 
 ---
 
-## 12. Known Issues and Risks
+## 13. Known Issues and Risks
 
-### 12.1 Open Defects
+### 13.1 Open Defects
 
 | ID | Description | Severity | Workaround | Impact if unresolved |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{Critical / High / Medium / Low}} | {{}} | {{}} |
 
-### 12.2 Risks Inherited
+### 13.2 Risks Inherited
 
 | Risk | Likelihood | Impact | Mitigation in place | Residual owner |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 12.3 Technical Debt
+### 13.3 Technical Debt
 
 *What was consciously traded away for speed, what it will cost to repay, and
 what breaks first if it is never repaid.*
 
 ---
 
-## 13. Outstanding Work and Roadmap
+## 14. Outstanding Work and Roadmap
 
-### 13.1 Immediate Priorities (first 30 days)
+### 14.1 Immediate Priorities (first 30 days)
 
 *Ordered, with the reason each is first.*
 
-### 13.2 Backlog
+### 14.2 Backlog
 
 | Item | Description | Priority | Estimate | Dependencies |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 13.3 Proposed Direction
+### 14.3 Proposed Direction
 
 *Recommendations that were formed but not acted on, and the reasoning behind
 them.*
 
-### 13.4 Deliberately Not Recommended
+### 14.4 Deliberately Not Recommended
 
 *Ideas considered and rejected, so they are not re-litigated by someone without
 the context.*
 
 ---
 
-## 14. Costs and Contracts
+## 15. Costs and Contracts
 
 | Item | Provider | Cost | Billing cycle | Renewal / expiry | Owner |
 | --- | --- | --- | --- | --- | --- |
@@ -477,36 +582,36 @@ the context.*
 
 ---
 
-## 15. Stakeholders and Contacts
+## 16. Stakeholders and Contacts
 
 | Name | Role | Responsibility | Contact | Availability |
 | --- | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} | {{}} |
 
-### 15.1 Post-Handover Support
+### 16.1 Post-Handover Support
 
 *How long the outgoing team remains reachable, on what terms, and what is
 explicitly not covered.*
 
 ---
 
-## 16. Knowledge Transfer
+## 17. Knowledge Transfer
 
-### 16.1 Sessions Delivered
+### 17.1 Sessions Delivered
 
 | Topic | Date | Attendees | Recording / notes |
 | --- | --- | --- | --- |
 | {{}} | {{}} | {{}} | {{}} |
 
-### 16.2 Scheduled Sessions
+### 17.2 Scheduled Sessions
 
-### 16.3 Recommended Reading Order
+### 17.3 Recommended Reading Order
 
 *The order in which someone should read the documentation, and why.*
 
 ---
 
-## 17. Documentation Index
+## 18. Documentation Index
 
 | Document | Location | Owner | Last updated |
 | --- | --- | --- | --- |
@@ -514,20 +619,20 @@ explicitly not covered.*
 
 ---
 
-## 18. Handover Acceptance
+## 19. Handover Acceptance
 
 *The receiving party confirms they have received, reviewed, and understood the
 above, and accept ownership from the effective date. Outstanding items in
-Section 13 remain the responsibility of the receiving party unless stated
+Section 14 remain the responsibility of the receiving party unless stated
 otherwise.*
 
-### 18.1 Outstanding Items Accepted
+### 19.1 Outstanding Items Accepted
 
 | Item | Accepted by receiving party? | Notes |
 | --- | --- | --- |
 | {{}} | {{Yes / No / Deferred}} | {{}} |
 
-### 18.2 Sign-off
+### 19.2 Sign-off
 
 | Role | Name | Signature | Date |
 | --- | --- | --- | --- |
@@ -559,4 +664,4 @@ otherwise.*
 
 ### Appendix E — Decision Log
 
-*The full record behind Section 3.3, if it is too long to include there.*
+*The full record behind Section 4.3, if it is too long to include there.*
