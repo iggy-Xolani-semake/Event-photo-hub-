@@ -35,39 +35,39 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f1ee] text-[#1c1b1d]">
-      <header className="sticky top-0 z-50 border-b border-[#2a221d]/10 bg-[#f5f1ee]/90 backdrop-blur-md">
+    <main className="min-h-screen bg-ink-950 text-[#1c1b1d]">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-950/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#c94c16] text-xs font-bold text-white shadow-sm">
               EP
             </span>
-            <span className="text-[1.1rem] font-black tracking-[-0.04em] text-[#1d1d20]">
+            <span className="text-[1.1rem] font-black tracking-[-0.04em] text-white">
               Event Photo Hub
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm font-medium text-[#1d1d20]/75 md:flex">
-            <Link href="/" className="border-b-2 border-[#f27a3a] pb-1 text-[#1d1d20]">
+          <nav className="hidden items-center gap-8 text-sm font-medium text-white/75 md:flex">
+            <Link href="/" className="border-b-2 border-[#f27a3a] pb-1 text-white">
               Home
             </Link>
-            <Link href="#features" className="transition hover:text-[#1d1d20]">
+            <Link href="#features" className="transition hover:text-white">
               Events
             </Link>
-            <Link href="#pricing" className="transition hover:text-[#1d1d20]">
+            <Link href="#pricing" className="transition hover:text-white">
               Pricing
             </Link>
-            <Link href="#about" className="transition hover:text-[#1d1d20]">
+            <Link href="#about" className="transition hover:text-white">
               About
             </Link>
           </nav>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Link href="/admin/login" className="rounded-full border border-[#1d1d20]/20 bg-[#f5f1ee] px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-[#f5f1ee]">
+              <Link href="/admin/login" className="rounded-full border border-white/20 bg-ink-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-ink-950">
                 Sign in
               </Link>
-              <Link href="/signup" className="rounded-full bg-[#1d1d20] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#343033] focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-[#f5f1ee]">
+              <Link href="/signup" className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-950 shadow-sm transition hover:bg-white/85 focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2 focus:ring-offset-ink-950">
                 Create event
               </Link>
             </div>
@@ -78,22 +78,22 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1200px] px-6 pb-16 pt-12 md:pb-20 md:pt-16">
         <div className="grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr]">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f27a3a]/25 bg-[#fef1e6] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f27a3a]/25 bg-accent/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               Capture • Share • Relive
             </div>
 
-            <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-[#1d1d20] md:text-[5.1rem]">
+            <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-white md:text-[5.1rem]">
               Your Event <span className="text-[#c94c16]">Photos, All in One</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#3a3632]">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
               Event Photo Hub makes it easy to capture, share and access all the photos from your
               special moments. Simply enter your event code and relive the memories.
             </p>
 
             <form onSubmit={handleEventLookup} className="mt-8 max-w-[440px]">
-              <div className="flex items-center gap-2 rounded-full border border-[#1d1d20]/15 bg-white/80 p-2 shadow-sm shadow-[#1d1d20]/5">
-                <span className="ml-2 text-lg text-[#1d1d20]/65">⌕</span>
+              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-2 shadow-sm shadow-[#1d1d20]/5">
+                <span className="ml-2 text-lg text-white/65">⌕</span>
                 <input
                   value={eventCode}
                   onChange={(e) => {
@@ -101,7 +101,7 @@ export default function HomePage() {
                     if (error) setError("");
                   }}
                   placeholder="Enter event code..."
-                  className="w-full border-none bg-transparent px-2 py-2 text-base text-[#1d1d20] outline-none placeholder:text-[#1d1d20]/45"
+                  className="w-full border-none bg-transparent px-2 py-2 text-base text-white outline-none placeholder:text-white/45"
                 />
                 <button
                   type="submit"
@@ -123,16 +123,16 @@ export default function HomePage() {
           </div>
 
           <div className="relative flex justify-center">
-            <div className="absolute -right-6 top-4 h-20 w-20 rotate-12 rounded-full border border-[#f27a3a]/30 bg-[#f8e0d1]" aria-hidden="true" />
+            <div className="absolute -right-6 top-4 h-20 w-20 rotate-12 rounded-full border border-[#f27a3a]/30 bg-accent/15" aria-hidden="true" />
             <div className="relative flex items-end gap-4">
-              <div className="relative ml-8 h-[420px] w-[220px] rounded-[32px] border-[12px] border-[#1e1d1f] bg-[#f7f0ea] p-3 shadow-[0_24px_46px_rgba(17,17,17,0.18)]">
-                <div className="flex h-full flex-col overflow-hidden rounded-[20px] bg-[#f7f0ea]">
-                  <div className="flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-[#1d1d20]/60">
+              <div className="relative ml-8 h-[420px] w-[220px] rounded-[32px] border-[12px] border-[#1e1d1f] bg-ink-900 p-3 shadow-[0_24px_46px_rgba(17,17,17,0.18)]">
+                <div className="flex h-full flex-col overflow-hidden rounded-[20px] bg-ink-900">
+                  <div className="flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-white/60">
                     <span>9:41</span>
                     <span>◉</span>
                   </div>
                   <div className="px-3 pb-3">
-                    <div className="mb-3 flex items-center justify-between rounded-full border border-[#1d1d20]/10 bg-white px-2 py-1.5 text-[9px] font-medium text-[#1d1d20]/75">
+                    <div className="mb-3 flex items-center justify-between rounded-full border border-white/10 bg-ink-800 px-2 py-1.5 text-[9px] font-medium text-white/75">
                       <span>Event Photos</span>
                       <span className="rounded-full bg-[#c94c16] px-1.5 py-0.5 text-white">Live</span>
                     </div>
@@ -140,7 +140,7 @@ export default function HomePage() {
                       {eventImages.map((src, index) => (
                         <div
                           key={src}
-                          className="h-20 overflow-hidden rounded-xl border border-[#1d1d20]/10 bg-cover bg-center"
+                          className="h-20 overflow-hidden rounded-xl border border-white/10 bg-cover bg-center"
                           style={{ backgroundImage: `url(${src})`, opacity: index === 2 ? 0.85 : 1 }}
                         />
                       ))}
@@ -149,7 +149,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="relative bottom-0 h-[220px] w-[160px] overflow-hidden rounded-[24px] border border-[#1d1d20]/10 bg-[#f7f0ea] shadow-[0_16px_35px_rgba(17,17,17,0.14)]">
+              <div className="relative bottom-0 h-[220px] w-[160px] overflow-hidden rounded-[24px] border border-white/10 bg-ink-900 shadow-[0_16px_35px_rgba(17,17,17,0.14)]">
                 <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80)" }} />
               </div>
             </div>
@@ -172,11 +172,11 @@ export default function HomePage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               Featured Events
             </p>
-            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white">
               Explore Our Events
             </h2>
           </div>
-          <Link href="#features" className="rounded-full border border-[#1d1d20]/20 bg-white px-4 py-2 text-sm font-semibold text-[#1d1d20] shadow-sm transition hover:bg-[#fffaf7] focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
+          <Link href="#features" className="rounded-full border border-white/20 bg-ink-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ink-900 focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
             See how it works →
           </Link>
         </div>
@@ -206,17 +206,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="pricing" className="bg-[#f1e8e2] py-16">
+      <section id="pricing" className="bg-ink-900 py-16">
         <div className="mx-auto max-w-[1200px] px-6">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
                 Pricing
               </p>
-              <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+              <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white">
                 Simple &amp; Flexible Pricing
               </h2>
-              <p className="mt-3 max-w-md text-base leading-relaxed text-[#3a3632]">
+              <p className="mt-3 max-w-md text-base leading-relaxed text-white/70">
                 Choose the plan that fits your event needs. No hidden fees.
               </p>
             </div>
@@ -236,10 +236,10 @@ export default function HomePage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               About Us
             </p>
-            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
+            <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white">
               We&apos;re Event Photo Hub
             </h2>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-[#3a3632]">
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-white/70">
               We believe every moment matters. Event Photo Hub was created to help event organizers,
               guests and families easily capture and share the best moments from their special occasions.
             </p>
@@ -256,9 +256,9 @@ export default function HomePage() {
               <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80)" }} />
               <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80)" }} />
               <div className="h-44 w-32 overflow-hidden rounded-[20px] bg-cover bg-center shadow-[0_16px_30px_rgba(17,17,17,0.12)]" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80)" }} />
-              <div className="relative flex h-44 w-32 items-center justify-center overflow-hidden rounded-[20px] bg-[#f9e8d8] shadow-[0_16px_30px_rgba(17,17,17,0.12)]">
+              <div className="relative flex h-44 w-32 items-center justify-center overflow-hidden rounded-[20px] bg-ink-800 shadow-[0_16px_30px_rgba(17,17,17,0.12)]">
                 <span className="font-display text-[2.6rem] leading-none tracking-[-0.07em] text-[#c94c16]">
-                  Good<br />Vibes<br /><span className="text-[#1d1d20]">Only</span>
+                  Good<br />Vibes<br /><span className="text-white">Only</span>
                 </span>
               </div>
             </div>
@@ -296,7 +296,7 @@ export default function HomePage() {
 
 function FeaturePill({ icon, label }: { icon: string; label: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-[#1d1d20]/10 bg-white/60 px-3 py-2 text-[11px] font-semibold text-[#1d1d20]">
+    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-[11px] font-semibold text-white">
       <span>{icon}</span>
       <span>{label}</span>
     </div>
@@ -305,27 +305,27 @@ function FeaturePill({ icon, label }: { icon: string; label: string }) {
 
 function FeatureCard({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
   return (
-    <div className="rounded-[1.5rem] border border-[#1d1d20]/10 bg-[#f7f3f0] p-6 text-center shadow-sm">
-      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#f8e7d9] text-[#c94c16]">
+    <div className="rounded-[1.5rem] border border-white/10 bg-ink-900 p-6 text-center shadow-sm">
+      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent/15 text-[#c94c16]">
         {icon}
       </div>
-      <h3 className="mb-3 text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
-      <p className="text-sm leading-relaxed text-[#3a3632]">{detail}</p>
+      <h3 className="mb-3 text-[1.05rem] font-bold text-white">{title}</h3>
+      <p className="text-sm leading-relaxed text-white/70">{detail}</p>
     </div>
   );
 }
 
 function EventCard({ date, title, subtitle, image, href }: { date: string; title: string; subtitle: string; image: string; href: string }) {
   return (
-    <article className="overflow-hidden rounded-[1.25rem] border border-[#1d1d20]/10 bg-white shadow-[0_18px_30px_rgba(17,17,17,0.05)]">
+    <article className="overflow-hidden rounded-[1.25rem] border border-white/10 bg-ink-900 shadow-[0_18px_30px_rgba(17,17,17,0.05)]">
       <div className="h-[230px] w-full bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
       <div className="p-4">
-        <div className="mb-3 flex items-center gap-2 text-sm text-[#1d1d20]/65">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#f8e7d9] text-[10px] text-[#c94c16]">◷</span>
+        <div className="mb-3 flex items-center gap-2 text-sm text-white/65">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent/15 text-[10px] text-[#c94c16]">◷</span>
           {date}
         </div>
-        <h3 className="text-[1.05rem] font-bold text-[#1d1d20]">{title}</h3>
-        <p className="mt-2 text-sm text-[#3a3632]">{subtitle}</p>
+        <h3 className="text-[1.05rem] font-bold text-white">{title}</h3>
+        <p className="mt-2 text-sm text-white/70">{subtitle}</p>
         <Link href={href} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#d94f16] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
           {href === "/e/DEMO482" ? "View demo event" : "Choose a plan"} <span>→</span>
         </Link>
@@ -350,26 +350,26 @@ function PricingCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-[1.5rem] border p-6 shadow-sm ${highlight ? "border-[#f27a3a]/30 bg-[#fffaf7] shadow-[#f27a3a]/10" : "border-[#1d1d20]/10 bg-white"}`}>
+    <div className={`rounded-[1.5rem] border p-6 shadow-sm ${highlight ? "border-[#f27a3a]/30 bg-ink-900 shadow-[#f27a3a]/10" : "border-white/10 bg-ink-900"}`}>
       {highlight && (
         <div className="mb-3 inline-flex rounded-full bg-[#c94c16] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
           Popular
         </div>
       )}
-      <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#1d1d20]/60">{title}</div>
-      <div className="mt-5 flex items-end gap-1 font-display text-4xl tracking-[-0.06em] text-[#1d1d20]">
+      <div className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">{title}</div>
+      <div className="mt-5 flex items-end gap-1 font-display text-4xl tracking-[-0.06em] text-white">
         <span>{price}</span>
-        <span className="pb-1 text-base tracking-normal text-[#1d1d20]/60">{suffix}</span>
+        <span className="pb-1 text-base tracking-normal text-white/60">{suffix}</span>
       </div>
-      <ul className="mt-5 space-y-2 text-sm text-[#3a3632]">
+      <ul className="mt-5 space-y-2 text-sm text-white/70">
         {list.map((item) => (
           <li key={item} className="flex items-center gap-2">
-            <span className="text-[#0db56a]">✓</span>
+            <span className="text-emerald-300">✓</span>
             <span>{item}</span>
           </li>
         ))}
       </ul>
-      <Link href={`/signup?plan=${plan}`} className={`mt-6 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#c94c16] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
+      <Link href={`/signup?plan=${plan}`} className={`mt-6 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#c94c16] text-white" : "border border-white/10 bg-ink-950 text-white"}`}>
         Get Started
       </Link>
     </div>
@@ -379,8 +379,8 @@ function PricingCard({
 function StatValue({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <div className="font-display text-[2.2rem] leading-none tracking-[-0.06em] text-[#1d1d20]">{value}</div>
-      <div className="mt-2 text-xs uppercase tracking-[0.18em] text-[#1d1d20]/60">{label}</div>
+      <div className="font-display text-[2.2rem] leading-none tracking-[-0.06em] text-white">{value}</div>
+      <div className="mt-2 text-xs uppercase tracking-[0.18em] text-white/60">{label}</div>
     </div>
   );
 }
