@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   CreateEventIcon,
   ShareQrIcon,
@@ -16,17 +16,48 @@ const eventImages = [
   "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
 ];
 
+interface PublicEvent {
+  event_code: string;
+  event_name: string;
+  event_date: string | null;
+  created_at: string;
+}
+
+function extractEventCode(value: string): string | null {
+  const input = value.trim();
+  if (!input) return null;
+
+  try {
+    const parsed = new URL(input.includes("://") ? input : `https://${input}`);
+    const match = parsed.pathname.match(/^\/(?:e|gallery)\/([^/]+)\/?$/i);
+    if (match?.[1]) return match[1].toUpperCase();
+  } catch {
+    // Treat non-URL input as a code below.
+  }
+
+  const code = input.replace(/^\/?(?:e|gallery)\//i, "").trim();
+  return /^[A-Z0-9_-]{4,64}$/i.test(code) ? code.toUpperCase() : null;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [eventCode, setEventCode] = useState("");
   const [error, setError] = useState("");
+  const [events, setEvents] = useState<PublicEvent[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/events")
+      .then((response) => (response.ok ? response.json() : { events: [] }))
+      .then((body: { events?: PublicEvent[] }) => setEvents((body.events ?? []).slice(0, 8)))
+      .catch(() => setEvents([]));
+  }, []);
 
   function handleEventLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const cleaned = eventCode.trim().toUpperCase();
+    const cleaned = extractEventCode(eventCode);
 
     if (!cleaned) {
-      setError("Enter an event code first.");
+      setError("Enter a valid event code or paste the full event link.");
       return;
     }
 
@@ -51,7 +82,7 @@ export default function HomePage() {
             <Link href="/" className="border-b-2 border-[#f27a3a] pb-1 text-white">
               Home
             </Link>
-            <Link href="#features" className="transition hover:text-white">
+              <Link href="#events" className="transition hover:text-white">
               Events
             </Link>
             <Link href="#pricing" className="transition hover:text-white">
@@ -100,7 +131,7 @@ export default function HomePage() {
                     setEventCode(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="Enter event code..."
+                  placeholder="Enter code or paste event link..."
                   className="w-full border-none bg-transparent px-2 py-2 text-base text-white outline-none placeholder:text-white/45"
                 />
                 <button
@@ -176,34 +207,20 @@ export default function HomePage() {
               Explore Our Events
             </h2>
           </div>
-          <Link href="#features" className="rounded-full border border-white/20 bg-ink-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ink-900 focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
-            See how it works →
-          </Link>
+          <span className="text-sm text-white/50">Latest public events</span>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <EventCard
-            date="24 Aug 2025"
-            title="Thabo & Lerato's Wedding"
-            subtitle="Beautiful moments, forever."
-            image="https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80"
-            href="/e/DEMO482"
-          />
-          <EventCard
-            date="16 Aug 2025"
-            title="Zinhle's 25th Birthday"
-            subtitle="Good vibes, great people."
-            image="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80"
-            href="#pricing"
-          />
-          <EventCard
-            date="02 Aug 2025"
-            title="NSX Inc. Corporate Event"
-            subtitle="Networking, growth, success."
-            image="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80"
-            href="#pricing"
-          />
-        </div>
+        {events.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {events.map((event, index) => (
+              <EventCard key={event.event_code} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-white/10 bg-ink-900 px-6 py-10 text-center text-white/60">
+            No public events are available yet. Enter an event link above to open a private event.
+          </div>
+        )}
       </section>
 
       <section id="pricing" className="bg-ink-900 py-16">
@@ -315,20 +332,20 @@ function FeatureCard({ icon, title, detail }: { icon: React.ReactNode; title: st
   );
 }
 
-function EventCard({ date, title, subtitle, image, href }: { date: string; title: string; subtitle: string; image: string; href: string }) {
+function EventCard({ event }: { event: PublicEvent }) {
+  const date = event.event_date
+    ? new Date(`${event.event_date}T00:00:00`).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+    : "Date to be announced";
   return (
     <article className="overflow-hidden rounded-[1.25rem] border border-white/10 bg-ink-900 shadow-[0_18px_30px_rgba(17,17,17,0.05)]">
-      <div className="h-[230px] w-full bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
+      <div className="flex h-[150px] items-center justify-center bg-ink-800 text-5xl" aria-hidden="true">📷</div>
       <div className="p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-white/65">
           <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent/15 text-[10px] text-[#c94c16]">◷</span>
-          {date}
+          {date} · {event.event_code}
         </div>
-        <h3 className="text-[1.05rem] font-bold text-white">{title}</h3>
-        <p className="mt-2 text-sm text-white/70">{subtitle}</p>
-        <Link href={href} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#d94f16] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#f27a3a] focus:ring-offset-2">
-          {href === "/e/DEMO482" ? "View demo event" : "Choose a plan"} <span>→</span>
-        </Link>
+        <h3 className="text-[1.05rem] font-bold text-white">{event.event_name}</h3>
+        <p className="mt-2 text-sm text-white/60">Public event gallery</p>
       </div>
     </article>
   );

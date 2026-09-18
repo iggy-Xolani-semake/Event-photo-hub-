@@ -4,6 +4,7 @@ import { formatStorageSize } from "@/lib/format";
 import { EventQrCode } from "@/components/admin/EventQrCode";
 import { PrintablePoster } from "@/components/admin/PrintablePoster";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { ShareEventButton } from "@/components/admin/ShareEventButton";
 import { EventStatusControls } from "@/components/admin/EventStatusControls";
 import { EventSettingsForm } from "@/components/admin/EventSettingsForm";
 import Link from "next/link";
@@ -149,6 +150,10 @@ export default async function EventManagementPage({ params }: PageProps) {
             <h2 className="font-medium mb-4 text-center">Guest QR Code</h2>
             <EventQrCode url={guestUrl} />
             <p className="text-white/40 text-xs text-center mt-4 break-all">{guestUrl}</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <CopyLinkButton url={guestUrl} label="Copy event link" />
+              <ShareEventButton url={guestUrl} title={event.event_name} />
+            </div>
           </section>
 
           <section className="bg-white/5 border border-white/10 rounded-xl p-5">
