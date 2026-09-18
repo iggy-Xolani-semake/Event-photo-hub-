@@ -39,7 +39,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-[#2a221d]/10 bg-[#f5f1ee]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f27a3a] text-xs font-bold text-white shadow-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#c94c16] text-xs font-bold text-white shadow-sm">
               EP
             </span>
             <span className="text-[1.1rem] font-black tracking-[-0.04em] text-[#1d1d20]">
@@ -134,7 +134,7 @@ export default function HomePage() {
                   <div className="px-3 pb-3">
                     <div className="mb-3 flex items-center justify-between rounded-full border border-[#1d1d20]/10 bg-white px-2 py-1.5 text-[9px] font-medium text-[#1d1d20]/75">
                       <span>Event Photos</span>
-                      <span className="rounded-full bg-[#f27a3a] px-1.5 py-0.5 text-white">Live</span>
+                      <span className="rounded-full bg-[#c94c16] px-1.5 py-0.5 text-white">Live</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {eventImages.map((src, index) => (
@@ -169,7 +169,7 @@ export default function HomePage() {
       <section id="events" className="mx-auto max-w-[1200px] px-6 py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f27a3a]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c94c16]">
               Featured Events
             </p>
             <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-[#1d1d20]">
@@ -269,7 +269,7 @@ export default function HomePage() {
       <footer className="bg-[#1d1b1d] text-white">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-8">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f27a3a] text-[10px] font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#c94c16] text-[10px] font-bold text-white">
               EP
             </span>
             <div>
@@ -352,7 +352,7 @@ function PricingCard({
   return (
     <div className={`rounded-[1.5rem] border p-6 shadow-sm ${highlight ? "border-[#f27a3a]/30 bg-[#fffaf7] shadow-[#f27a3a]/10" : "border-[#1d1d20]/10 bg-white"}`}>
       {highlight && (
-        <div className="mb-3 inline-flex rounded-full bg-[#f27a3a] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
+        <div className="mb-3 inline-flex rounded-full bg-[#c94c16] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
           Popular
         </div>
       )}
@@ -369,7 +369,7 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <Link href={`/signup?plan=${plan}`} className={`mt-6 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#f27a3a] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
+      <Link href={`/signup?plan=${plan}`} className={`mt-6 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold ${highlight ? "bg-[#c94c16] text-white" : "border border-[#1d1d20]/10 bg-[#f5f1ee] text-[#1d1d20]"}`}>
         Get Started
       </Link>
     </div>
