@@ -111,11 +111,11 @@ export function GalleryView({
       {(processingCount > 0 || failedCount > 0) && (
         <div className="mx-2 mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
           {processingCount > 0 && (
-            <span>{processingCount} photo{processingCount === 1 ? " is" : "s are"} still being processed. This gallery refreshes automatically.</span>
+            <span>{processingCount} memory{processingCount === 1 ? " is" : "ies are"} still being processed. This gallery refreshes automatically.</span>
           )}
           {processingCount > 0 && failedCount > 0 && <span> </span>}
           {failedCount > 0 && (
-            <span>{failedCount} photo{failedCount === 1 ? " could not" : "s could not"} be processed.</span>
+            <span>{failedCount} memory{failedCount === 1 ? " could not" : "ies could not"} be processed.</span>
           )}
         </div>
       )}
@@ -124,7 +124,7 @@ export function GalleryView({
         <div className="flex flex-col items-center justify-center py-24 text-center px-6">
           <div className="text-4xl mb-3">📷</div>
           <p className="text-white/50">
-            {tab === "favourites" ? "No favourites yet." : "No photos yet — be the first to share one!"}
+            {tab === "favourites" ? "No favourites yet." : "No memories yet — be the first to share one!"}
           </p>
         </div>
       ) : (

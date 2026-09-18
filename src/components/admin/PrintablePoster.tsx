@@ -39,12 +39,12 @@ export function PrintablePoster({ eventName, url }: Props) {
 
         {qrDataUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- print layout, data URL
-          <img src={qrDataUrl} alt="Scan to upload photos" className="mx-auto mb-6" />
+          <img src={qrDataUrl} alt="Scan to add a moment" className="mx-auto mb-6" />
         )}
 
         <p className="text-2xl font-semibold mb-4">Scan the QR code</p>
         <div className="text-lg space-y-1 text-ink-700">
-          <p>Take a photo</p>
+          <p>Add a moment</p>
           <p>Upload it</p>
           <p>See the memories</p>
         </div>

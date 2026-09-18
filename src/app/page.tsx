@@ -66,7 +66,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-ink-950 text-[#1c1b1d]">
+    <main className="min-h-screen bg-ink-950 text-white">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-950/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
@@ -74,7 +74,7 @@ export default function HomePage() {
               EP
             </span>
             <span className="text-[1.1rem] font-black tracking-[-0.04em] text-white">
-              Event Photo Hub
+              Memora
             </span>
           </Link>
 
@@ -114,11 +114,11 @@ export default function HomePage() {
             </div>
 
             <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-white md:text-[5.1rem]">
-              Your Event <span className="text-[#c94c16]">Photos, All in One</span>
+              Your <span className="text-[#c94c16]">Memories, All in One</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-              Event Photo Hub makes it easy to capture, share and access all the photos from your
+              Memora makes it easy to capture, share and access all the memories from your
               special moments. Simply enter your event code and relive the memories.
             </p>
 
@@ -164,7 +164,7 @@ export default function HomePage() {
                   </div>
                   <div className="px-3 pb-3">
                     <div className="mb-3 flex items-center justify-between rounded-full border border-white/10 bg-ink-800 px-2 py-1.5 text-[9px] font-medium text-white/75">
-                      <span>Event Photos</span>
+                      <span>Event Memories</span>
                       <span className="rounded-full bg-[#c94c16] px-1.5 py-0.5 text-white">Live</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -190,10 +190,10 @@ export default function HomePage() {
 
       <section id="features" className="mx-auto max-w-[1200px] px-6 py-8 md:py-12">
         <div className="grid gap-6 md:grid-cols-4">
-          <FeatureCard icon={<CreateEventIcon />} title="Easy to Use" detail="Just enter your event code and start uploading photos." />
+          <FeatureCard icon={<CreateEventIcon />} title="Easy to Use" detail="Just enter your event code and start adding moments." />
           <FeatureCard icon={<ShareQrIcon />} title="Share the Moments" detail="View, download and share with friends and family." />
-          <FeatureCard icon={<UploadPhotoIcon />} title="Safe & Secure" detail="Your photos are protected and always private." />
-          <FeatureCard icon={<ViewMemoriesIcon />} title="Instant Access" detail="Get your event photos right away without hassle." />
+          <FeatureCard icon={<UploadPhotoIcon />} title="Safe & Secure" detail="Your memories are protected and always private." />
+          <FeatureCard icon={<ViewMemoriesIcon />} title="Instant Access" detail="Get your event memories right away without hassle." />
         </div>
       </section>
 
@@ -239,9 +239,9 @@ export default function HomePage() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-3">
-              <PricingCard title="Basic" plan="basic" price="R99" suffix="/event" list={["Access to photos", "Download up to 50", "7 day access"]} />
-              <PricingCard title="Standard" plan="standard" price="R199" suffix="/event" list={["Access to photos", "Download up to 200", "30 day access"]} highlight />
-              <PricingCard title="Premium" plan="premium" price="R399" suffix="/event" list={["Access to photos", "Download unlimited", "Lifetime access"]} />
+              <PricingCard title="Basic" plan="basic" price="R99" suffix="/event" list={["Access to memories", "Download up to 50", "7 day access"]} />
+              <PricingCard title="Standard" plan="standard" price="R199" suffix="/event" list={["Access to memories", "Download up to 200", "30 day access"]} highlight />
+              <PricingCard title="Premium" plan="premium" price="R399" suffix="/event" list={["Access to memories", "Download unlimited", "Lifetime access"]} />
             </div>
           </div>
         </div>
@@ -254,16 +254,16 @@ export default function HomePage() {
               About Us
             </p>
             <h2 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white">
-              We&apos;re Event Photo Hub
+              We&apos;re Memora
             </h2>
             <p className="mt-4 max-w-lg text-base leading-relaxed text-white/70">
-              We believe every moment matters. Event Photo Hub was created to help event organizers,
+              We believe every moment matters. Memora was created to help event organizers,
               guests and families easily capture and share the best moments from their special occasions.
             </p>
 
             <div className="mt-8 grid gap-5 sm:grid-cols-3">
               <StatValue value="100+" label="Events Hosted" />
-              <StatValue value="50K+" label="Photos Shared" />
+              <StatValue value="50K+" label="Memories Shared" />
               <StatValue value="100%" label="Happy Clients" />
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function HomePage() {
               EP
             </span>
             <div>
-              <div className="text-base font-bold tracking-[-0.04em]">Event Photo Hub</div>
+              <div className="text-base font-bold tracking-[-0.04em]">Memora</div>
               <div className="text-[11px] uppercase tracking-[0.2em] text-white/65">
                 Capture • Share • Relive
               </div>
@@ -304,7 +304,7 @@ export default function HomePage() {
             <Link href="#about">About</Link>
           </nav>
 
-          <div className="text-xs text-white/65">© 2025 Event Photo Hub. All rights reserved.</div>
+          <div className="text-xs text-white/65">© 2025 Memora. All rights reserved.</div>
         </div>
       </footer>
     </main>
@@ -345,7 +345,7 @@ function EventCard({ event }: { event: PublicEvent }) {
           {date} · {event.event_code}
         </div>
         <h3 className="text-[1.05rem] font-bold text-white">{event.event_name}</h3>
-        <p className="mt-2 text-sm text-white/60">Public event gallery</p>
+        <p className="mt-2 text-sm text-white/60">Public memory gallery</p>
       </div>
     </article>
   );

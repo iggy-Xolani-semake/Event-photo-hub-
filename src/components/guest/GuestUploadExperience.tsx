@@ -125,11 +125,11 @@ export function GuestUploadExperience({
 
         <h1 className="font-display text-4xl mb-3 leading-tight">Share Your Moment</h1>
         <p className="text-white/60 mb-3 leading-relaxed">
-          Take a photo or choose one from your phone and add it to the event gallery.
+          Add a moment or choose one from your phone and add it to the memory gallery.
         </p>
         <p className="text-white/40 text-sm mb-10 leading-relaxed">
-          Up to {maxFilesPerUpload} photos. Your photos will be shared with the event host.
-          Please only upload photos you&apos;re comfortable sharing.
+          Up to {maxFilesPerUpload} moments. Your memories will be shared with the event host.
+          Please only add moments you&apos;re comfortable sharing.
         </p>
 
         {validationError && (
@@ -143,7 +143,7 @@ export function GuestUploadExperience({
             onClick={() => cameraInputRef.current?.click()}
             className="tap-target w-full bg-accent text-ink-950 font-semibold text-lg rounded-2xl px-6 py-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform shadow-lg shadow-accent/20"
           >
-            <span className="text-2xl">📷</span> Take Photo
+            <span className="text-2xl">📷</span> Add a Moment
           </button>
 
           <button

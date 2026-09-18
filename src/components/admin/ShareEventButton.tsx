@@ -7,7 +7,7 @@ interface Props {
   title?: string;
 }
 
-export function ShareEventButton({ url, title = "Event Photo Hub" }: Props) {
+export function ShareEventButton({ url, title = "Memora" }: Props) {
   const [open, setOpen] = useState(false);
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);

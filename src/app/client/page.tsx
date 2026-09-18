@@ -68,11 +68,11 @@ export default async function ClientHomePage() {
                 </p>
               )}
               <p className="text-white/60 text-sm">
-                {event.photo_count.toLocaleString()} photos ·{" "}
+                {event.photo_count.toLocaleString()} memories ·{" "}
                 {formatStorageSize(event.storage_used_bytes)}
               </p>
               <span className="inline-block mt-4 text-accent text-sm font-medium">
-                View Gallery →
+                See Memories →
               </span>
             </Link>
           ))}

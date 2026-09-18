@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-white/10 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
         <div>
           <Link href="/admin" className="font-display text-lg block mb-6">
-            Event Photo Hub
+            Memora
           </Link>
           <nav className="hidden md:flex flex-col gap-1 text-sm">
             <Link href="/admin" className="px-3 py-2 rounded-lg hover:bg-white/5 text-white/80">

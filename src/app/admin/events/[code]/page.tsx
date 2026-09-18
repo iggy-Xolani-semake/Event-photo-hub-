@@ -63,7 +63,7 @@ export default async function EventManagementPage({ params }: PageProps) {
   );
 
   // Surfaces stuck/failed uploads directly to the admin — without this,
-  // a photo stuck in "processing" (e.g. image-processing pipeline down)
+  // a memory stuck in "processing" (e.g. image-processing pipeline down)
   // looks identical to "no uploads yet", which is exactly the confusion
   // that made the missing-webhook bug hard to diagnose from the UI alone.
   const { count: processingCount } = await supabase
@@ -94,7 +94,7 @@ export default async function EventManagementPage({ params }: PageProps) {
                 month: "long",
                 year: "numeric",
               }) + " · "}
-            {event.photo_count.toLocaleString()} photos · {formatStorageSize(event.storage_used_bytes)} ·{" "}
+            {event.photo_count.toLocaleString()} memories · {formatStorageSize(event.storage_used_bytes)} ·{" "}
             {event.visibility}
           </p>
         </div>
@@ -103,21 +103,21 @@ export default async function EventManagementPage({ params }: PageProps) {
 
       {storagePercent >= 80 && event.status === "active" && (
         <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm rounded-xl px-4 py-3 mb-6">
-          This event has used {storagePercent}% of its {event.upload_limit.toLocaleString()} photo
+          This event has used {storagePercent}% of its {event.upload_limit.toLocaleString()} moment
           limit. Consider raising the limit in Settings below.
         </div>
       )}
 
       {!!processingCount && processingCount > 0 && (
         <div className="bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm rounded-xl px-4 py-3 mb-6">
-          {processingCount} photo{processingCount !== 1 ? "s" : ""} still processing — these will
+          {processingCount} moment{processingCount !== 1 ? "s" : ""} still processing — these will
           appear in the gallery shortly.
         </div>
       )}
 
       {!!failedCount && failedCount > 0 && (
         <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3 mb-6">
-          {failedCount} photo{failedCount !== 1 ? "s" : ""} failed to process and won&apos;t appear in
+          {failedCount} moment{failedCount !== 1 ? "s" : ""} failed to process and won&apos;t appear in
           the gallery.
         </div>
       )}
@@ -132,10 +132,10 @@ export default async function EventManagementPage({ params }: PageProps) {
                 target="_blank"
                 className="text-center text-sm bg-white/10 border border-white/20 rounded-lg px-4 py-3"
               >
-                View Gallery
+                See Memories
               </Link>
               <CopyLinkButton url={guestUrl} label="Copy Guest Link" />
-              <CopyLinkButton url={galleryUrl} label="Copy Gallery Link" />
+              <CopyLinkButton url={galleryUrl} label="Copy Memories Link" />
             </div>
           </section>
 

@@ -32,7 +32,7 @@ export function PhotoPreviewGrid({ items, onRemove, onRetry, onUpload, onCancel 
                 <button
                   onClick={() => onRemove(item.id)}
                   className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs"
-                  aria-label="Remove photo"
+                  aria-label="Remove moment"
                 >
                   ✕
                 </button>
@@ -71,7 +71,7 @@ export function PhotoPreviewGrid({ items, onRemove, onRetry, onUpload, onCancel 
         <div className="mt-auto flex flex-col gap-3">
           {anyError && allDone && (
             <p className="text-amber-300 text-sm text-center">
-              Some photos didn&apos;t upload — tap any marked photo to retry.
+              Some moments didn&apos;t upload — tap any marked moment to retry.
             </p>
           )}
 
@@ -81,7 +81,7 @@ export function PhotoPreviewGrid({ items, onRemove, onRetry, onUpload, onCancel 
               disabled={isUploading}
               className="tap-target w-full bg-accent text-ink-950 font-semibold text-lg rounded-2xl px-6 py-4 disabled:opacity-60 active:scale-[0.98] transition-transform"
             >
-              {isUploading ? "Uploading…" : `Upload ${items.length} Photo${items.length !== 1 ? "s" : ""}`}
+              {isUploading ? "Uploading…" : `Add ${items.length} Moment${items.length !== 1 ? "s" : ""}`}
             </button>
           )}
 

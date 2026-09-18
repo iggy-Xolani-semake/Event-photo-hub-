@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Privacy Policy — Event Photo Hub" };
+export const metadata = { title: "Privacy Policy — Memora" };
 
 // Content lives in a plain component (not fetched from a CMS) so it's
 // easy for a lawyer or the site owner to edit directly — see the
@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
           This service is operated by <strong>NSX Inc</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;) on
           behalf of event hosts (&ldquo;clients&rdquo;) who use it to collect photographs from their
           guests. If you&apos;re a guest scanning a QR code to upload a photo, or a client viewing
-          your event gallery, this policy explains what happens with your information.
+          your memory gallery, this policy explains what happens with your information.
         </p>
         <p className="mt-3 text-white/50 text-sm">
           [LEGAL REVIEW NEEDED: depending on the exact arrangement with each client, NSX Inc may

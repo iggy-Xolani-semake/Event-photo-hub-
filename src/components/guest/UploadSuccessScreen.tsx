@@ -16,21 +16,21 @@ export function UploadSuccessScreen({ successCount, failedCount, onUploadAnother
           <div className="text-6xl mb-6">⚠️</div>
           <h1 className="text-2xl font-semibold mb-2">Upload interrupted</h1>
           <p className="text-white/60 max-w-sm mb-10">
-            We couldn&apos;t upload your photos. Please check your connection and try again.
+            We couldn&apos;t upload your memories. Please check your connection and try again.
           </p>
         </>
       ) : (
         <>
           <div className="text-6xl mb-6 animate-slide-up">✓</div>
           <h1 className="text-2xl font-semibold mb-2">
-            Photo{successCount !== 1 ? "s" : ""} Uploaded
+            Moment{successCount !== 1 ? "s" : ""} Added
           </h1>
           <p className="text-white/60 max-w-sm mb-2">
-            {successCount} photo{successCount !== 1 ? "s" : ""} added to the event gallery.
+            {successCount} moment{successCount !== 1 ? "s" : ""} added to the memory gallery.
           </p>
           {failedCount > 0 && (
             <p className="text-amber-300/80 text-sm max-w-sm mb-8">
-              {failedCount} photo{failedCount !== 1 ? "s" : ""} couldn&apos;t be uploaded.
+              {failedCount} moment{failedCount !== 1 ? "s" : ""} couldn&apos;t be added.
             </p>
           )}
         </>
@@ -40,7 +40,7 @@ export function UploadSuccessScreen({ successCount, failedCount, onUploadAnother
         onClick={onUploadAnother}
         className="tap-target bg-accent text-ink-950 font-semibold text-lg rounded-2xl px-10 py-4 active:scale-[0.98] transition-transform mt-4"
       >
-        {allFailed ? "Try Again" : "Take Another Photo"}
+        {allFailed ? "Try Again" : "Add Another Moment"}
       </button>
     </main>
   );

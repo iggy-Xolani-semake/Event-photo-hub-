@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-ink-950 px-6 text-white">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <h1 className="font-display text-2xl mb-1 text-center">Event Photo Hub</h1>
+        <h1 className="font-display text-2xl mb-1 text-center">Memora</h1>
         <p className="text-white/50 text-sm text-center mb-8">Sign in</p>
 
         {error && (

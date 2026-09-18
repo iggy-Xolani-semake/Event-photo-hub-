@@ -24,12 +24,12 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="p-6 md:p-8 max-w-6xl mx-auto">
-      <h1 className="font-display text-2xl mb-1">Event Photo Hub</h1>
+      <h1 className="font-display text-2xl mb-1">Memora</h1>
       <p className="text-white/50 text-sm mb-8">Dashboard overview</p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         <StatCard label="Active Events" value={activeEvents.length.toLocaleString()} />
-        <StatCard label="Total Photos" value={totalPhotos.toLocaleString()} />
+        <StatCard label="Total Memories" value={totalPhotos.toLocaleString()} />
         <StatCard label="Storage Used" value={formatStorageSize(totalStorage)} />
       </div>
 
@@ -79,7 +79,7 @@ function EventRow({ event }: { event: Event }) {
       <div>
         <p className="font-medium">{event.event_name}</p>
         <p className="text-white/40 text-sm">
-          {event.photo_count.toLocaleString()} photos · {formatStorageSize(event.storage_used_bytes)}
+          {event.photo_count.toLocaleString()} memories · {formatStorageSize(event.storage_used_bytes)}
         </p>
       </div>
       <span className={`text-xs font-medium rounded-full px-2.5 py-1 ${statusColor}`}>

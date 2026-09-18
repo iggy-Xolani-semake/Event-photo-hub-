@@ -12,7 +12,7 @@ export default function NotFound() {
       <h1 className="text-2xl font-semibold mb-2">Page not found</h1>
       <p className="text-white/60 max-w-sm mb-8">
         This page doesn&apos;t exist, or the link may be out of date. If you&apos;re trying to
-        reach an event gallery, double-check the link or QR code with your host.
+        reach an memory gallery, double-check the link or QR code with your host.
       </p>
       <Link
         href="/"

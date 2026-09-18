@@ -9,7 +9,7 @@ export function EventStatusControls({ eventCode, status }: { eventCode: string; 
   const [loading, setLoading] = useState(false);
 
   async function updateStatus(newStatus: EventStatus) {
-    if (newStatus === "closed" && !confirm("Close this event? Guests will no longer be able to upload photos.")) {
+    if (newStatus === "closed" && !confirm("Close this event? Guests will no longer be able to add moments.")) {
       return;
     }
     setLoading(true);

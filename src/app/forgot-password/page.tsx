@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
     <main className="min-h-screen flex items-center justify-center px-6 py-12">
       <section className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <p className="font-display text-2xl">Event Photo Hub</p>
+          <p className="font-display text-2xl">Memora</p>
           <p className="mt-2 text-sm text-white/50">Reset your admin password</p>
         </div>
 

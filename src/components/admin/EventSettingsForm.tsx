@@ -81,7 +81,7 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
 
       <div className="grid sm:grid-cols-3 gap-4">
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Photo limit</span>
+          <span className="block text-sm text-white/60 mb-1.5">Memory limit</span>
           <input
             type="number"
             min={1}
@@ -102,7 +102,7 @@ export function EventSettingsForm({ event, collaboratorEmail, isAdmin }: Props) 
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Max photos per upload</span>
+          <span className="block text-sm text-white/60 mb-1.5">Max moments per upload</span>
           <input
             type="number"
             min={1}

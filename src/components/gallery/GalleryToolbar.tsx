@@ -74,7 +74,7 @@ export function GalleryToolbar({
           onClick={() => onTabChange("all")}
           className={`rounded-full px-3 py-1.5 ${tab === "all" ? "bg-white text-ink-950 font-medium" : "text-white/60"}`}
         >
-          All Photos: {totalCount}
+          All Memories: {totalCount}
         </button>
         <button
           onClick={() => onTabChange("favourites")}
@@ -104,7 +104,7 @@ export function GalleryToolbar({
                 ? "Preparing…"
                 : tab === "favourites"
                   ? "Download Favourites"
-                  : "Download All"}
+                  : "Download All Memories"}
             </button>
           </div>
         )

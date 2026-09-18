@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Event Photo Hub",
-  description: "Share your moments — instant event photo uploads.",
+  title: "Memora",
+  description: "Memora — collect, share, and relive the moments that matter.",
 };
 
 export const viewport: Viewport = {

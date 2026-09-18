@@ -109,7 +109,7 @@ export default function CreateEventPage() {
         <div className="border-t border-white/10 pt-5">
           <p className="text-sm font-medium text-white/70 mb-4">Limits</p>
 
-          <Field label="Photo limit">
+          <Field label="Memory limit">
             <input
               type="number"
               min={1}
