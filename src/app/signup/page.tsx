@@ -1,88 +1,163 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const plans = new Set(["basic", "standard", "premium"]);
-
+/**
+ * Client self-signup (V2 Sprint 2).
+ *
+ * Two things happen, and only the first is auth:
+ *   1. Supabase creates the auth user.
+ *   2. A clients row is created for them — via POST /api/account, which
+ *      calls create_own_client_profile(). That function derives identity
+ *      from the session, so this form cannot claim to be somebody else.
+ *
+ * Step 2 is also done lazily by /dashboard, because when Supabase email
+ * confirmation is ON, signUp() returns no session and there is nothing to
+ * attach a profile to yet. Doing it in both places means the client ends up
+ * with exactly one profile either way.
+ */
 export default function SignupPage() {
-  return (
-    <Suspense fallback={<main className="min-h-screen flex items-center justify-center px-6"><p className="text-white/60">Loading signup…</p></main>}>
-      <SignupForm />
-    </Suspense>
-  );
-}
-
-function SignupForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedPlan = searchParams.get("plan")?.toLowerCase() ?? "";
-  const plan = plans.has(requestedPlan) ? requestedPlan : "";
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    setBusy(true);
     setError(null);
-    setMessage(null);
-    setLoading(true);
 
     const supabase = createSupabaseBrowserClient();
-    const { data, error: signupError } = await supabase.auth.signUp({
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/admin/events/new${plan ? `?plan=${plan}` : ""}`,
+        data: { name: name.trim() || undefined },
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
-    setLoading(false);
-
-    if (signupError) {
-      setError(signupError.message);
+    if (authError) {
+      setError(authError.message);
+      setBusy(false);
       return;
     }
 
-    if (data.session) {
-      router.push(`/admin/events/new${plan ? `?plan=${plan}` : ""}`);
-      router.refresh();
+    // No session means the project requires email confirmation — the profile
+    // gets created on first sign-in instead.
+    if (!data.session) {
+      setNeedsConfirmation(true);
+      setBusy(false);
       return;
     }
 
-    setMessage("Check your email to confirm your account, then continue creating your event.");
+    await fetch("/api/account", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+
+    router.push("/dashboard");
+    router.refresh();
   }
 
+  const inputClass =
+    "w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 outline-none focus:border-accent";
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-ink-950 px-6 py-12 text-white">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <p className="text-center text-xs uppercase tracking-[0.2em] text-accent mb-3">Memora</p>
-        <h1 className="font-display text-3xl mb-2 text-center">Create your host account</h1>
-        <p className="text-white/50 text-sm text-center mb-8">
-          {plan ? `Selected plan: ${plan}. You will not be charged on signup.` : "Start by creating your free host account."}
-        </p>
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        <Link href="/" className="font-display text-2xl block mb-8">
+          Memora
+        </Link>
 
-        {error && <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
-        {message && <div className="bg-accent/10 border border-accent/30 text-accent text-sm rounded-xl px-4 py-3 mb-4">{message}</div>}
+        {needsConfirmation ? (
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+            <h1 className="font-display text-2xl mb-2">Check your inbox</h1>
+            <p className="text-white/60 text-sm leading-relaxed">
+              We sent a confirmation link to <span className="text-white">{email}</span>. Open it
+              to activate your account, then sign in and your dashboard will be waiting.
+            </p>
+            <Link
+              href="/login"
+              className="mt-6 inline-block bg-accent text-ink-950 font-semibold rounded-lg px-5 py-2.5 text-sm"
+            >
+              Go to sign in
+            </Link>
+          </div>
+        ) : (
+          <>
+            <h1 className="font-display text-3xl mb-2">Create your account</h1>
+            <p className="text-white/50 text-sm mb-8">
+              Collect photos from your guests with a QR code. No app for them to install.
+            </p>
 
-        <label className="block text-sm text-white/70 mb-1.5" htmlFor="signup-email">Email</label>
-        <input id="signup-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 mb-4 outline-none focus:border-accent" />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3">
+                  {error}
+                </div>
+              )}
 
-        <label className="block text-sm text-white/70 mb-1.5" htmlFor="signup-password">Password</label>
-        <input id="signup-password" type="password" required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 mb-6 outline-none focus:border-accent" />
+              <label className="block">
+                <span className="block text-sm text-white/60 mb-1.5">Your name</span>
+                <input
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Thabo Mokoena"
+                  className={inputClass}
+                />
+              </label>
 
-        <button type="submit" disabled={loading} className="tap-target w-full bg-accent text-ink-950 font-semibold rounded-xl px-6 py-3 disabled:opacity-60">
-          {loading ? "Creating account…" : "Create account"}
-        </button>
+              <label className="block">
+                <span className="block text-sm text-white/60 mb-1.5">Email</span>
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
 
-        <p className="mt-5 text-center text-sm text-white/60">
-          Already have an account? <Link href={`/admin/login${plan ? `?plan=${plan}` : ""}`} className="underline decoration-white/20 underline-offset-4 hover:text-white">Sign in</Link>
-        </p>
-      </form>
+              <label className="block">
+                <span className="block text-sm text-white/60 mb-1.5">Password</span>
+                <input
+                  required
+                  type="password"
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputClass}
+                />
+                <span className="block text-xs text-white/35 mt-1.5">At least 8 characters.</span>
+              </label>
+
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full bg-accent text-ink-950 font-semibold rounded-lg px-5 py-3 disabled:opacity-60"
+              >
+                {busy ? "Creating account…" : "Create account"}
+              </button>
+            </form>
+
+            <p className="text-sm text-white/50 mt-6">
+              Already have an account?{" "}
+              <Link href="/login" className="text-accent underline">
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
+      </div>
     </main>
   );
 }

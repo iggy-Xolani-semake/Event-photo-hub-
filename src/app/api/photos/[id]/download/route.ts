@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
+import { resolveDownloadEntitlement } from "@/lib/auth/downloadEntitlement";
 import type { Photo, Event } from "@/types/database";
 
 /**
- * Originals are never public (see lib/storage/publicUrl.ts) — this route
- * is the only way to get a working download link for one, and it's gated
- * by the SAME visibility rule as the gallery page itself: public/shared
- * events allow anyone with the link, private events require ownership.
+ * Originals are never public (see lib/storage/publicUrl.ts) — this route is
+ * the only way to get a working download link for one.
+ *
+ * It is gated by ENTITLEMENT, not by gallery visibility. Before Sprint 3 this
+ * used the same rule as the gallery page, which meant any guest holding a
+ * shared event link could download every original. Now it requires ownership
+ * and a paid event (or a site admin). See lib/auth/downloadEntitlement.ts.
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,20 +27,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Photo not found." }, { status: 404 });
   }
 
-  if (photo.events.visibility === "private") {
-    // Re-check via the session-bound client so RLS enforces ownership —
-    // same pattern as the gallery page's private-event branch.
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const sessionClient = await createSupabaseServerClient();
-    const { data: authorized } = await sessionClient
-      .from("events")
-      .select("id")
-      .eq("id", photo.event_id)
-      .maybeSingle();
+  const entitlement = await resolveDownloadEntitlement(photo.event_id);
 
-    if (!authorized) {
-      return NextResponse.json({ error: "Not authorized." }, { status: 403 });
-    }
+  if (!entitlement.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          entitlement.reason === "unpaid_owner"
+            ? "Downloads unlock once this event's package has been paid for."
+            : "Not authorized.",
+      },
+      { status: entitlement.reason === "unpaid_owner" ? 402 : 403 }
+    );
   }
 
   const url = await createPresignedDownloadUrl(photo.storage_path);

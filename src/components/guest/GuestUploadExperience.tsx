@@ -9,11 +9,14 @@ import { UploadSuccessScreen } from "./UploadSuccessScreen";
 interface Props {
   eventCode: string;
   eventName: string;
-  eventDate: string | null;
   maxFileSizeBytes: number;
   maxFilesPerUpload: number;
-  brandCompanyName: string | null;
-  brandPrimaryColor: string | null;
+  galleryHref: string;
+  galleryAvailable: boolean;
+  /** Photos in the gallery including everything this device just added. */
+  galleryCount: number | null;
+  onBack: () => void;
+  onUploaded: (successCount: number) => void;
 }
 
 type Screen = "start" | "preview" | "success";
@@ -21,37 +24,41 @@ type Screen = "start" | "preview" | "success";
 export function GuestUploadExperience({
   eventCode,
   eventName,
-  eventDate,
   maxFileSizeBytes,
   maxFilesPerUpload,
+  galleryHref,
+  galleryAvailable,
+  galleryCount,
+  onBack,
+  onUploaded,
 }: Props) {
   const [screen, setScreen] = useState<Screen>("start");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<{ successCount: number; failedCount: number } | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const { items, addFiles, removeItem, uploadAll, retryItem, reset } = useGuestUploader(eventCode);
 
-  const formattedDate = eventDate
-    ? new Date(eventDate + "T00:00:00").toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    : null;
-
-  function handleFilesSelected(fileList: FileList | null) {
+  function handleFilesSelected(fileList: FileList | null, input: HTMLInputElement | null) {
+    // Reset immediately so picking the SAME file again after a cancel still
+    // fires onChange — otherwise the picker silently does nothing the second
+    // time, which reads to a guest as "the button is broken".
+    if (input) input.value = "";
     if (!fileList || fileList.length === 0) return;
     setValidationError(null);
+    setInfoMessage(null);
 
     const files = Array.from(fileList);
-    const batchCheck = validateBatchSize(files.length, maxFilesPerUpload);
-    if (!batchCheck.valid) {
-      setValidationError(batchCheck.message!);
-      return;
-    }
 
-    const invalid = files
+    // FROG #8: don't silently reject the 11th photo, and don't throw the
+    // whole selection away either. Keep what fits and say so.
+    const batchCheck = validateBatchSize(files.length, maxFilesPerUpload);
+    const accepted = batchCheck.valid ? files : files.slice(0, maxFilesPerUpload);
+    if (!batchCheck.valid) setInfoMessage(batchCheck.message ?? null);
+
+    const invalid = accepted
       .map((f) => validateFile({ size: f.size, type: f.type }, maxFileSizeBytes))
       .find((r) => !r.valid);
     if (invalid) {
@@ -59,29 +66,69 @@ export function GuestUploadExperience({
       return;
     }
 
-    addFiles(files);
+    addFiles(accepted);
     setScreen("preview");
   }
 
   async function handleUploadClick() {
-    await uploadAll();
+    const uploadResult = await uploadAll();
+    setResult(uploadResult);
+    if (uploadResult.successCount > 0) {
+      onUploaded(uploadResult.successCount);
+      setScreen("success");
+    }
+    // All failed → stay on the preview grid, where every failed tile is
+    // tappable to retry. Sending a guest to a dead-end "interrupted" screen
+    // here would discard photos they can still recover.
+  }
+
+  async function handleRetryFailed() {
+    const failed = items.filter((i) => i.status === "error");
+    const uploadResult = await uploadAll(failed);
+    setResult((prev) => ({
+      successCount: (prev?.successCount ?? 0) + uploadResult.successCount,
+      failedCount: uploadResult.failedCount,
+    }));
+    if (uploadResult.successCount > 0) onUploaded(uploadResult.successCount);
+    if (uploadResult.successCount > 0) setScreen("success");
+  }
+
+  async function handleRetryOne(id: string) {
+    const succeeded = await retryItem(id);
+    if (!succeeded) return;
+    onUploaded(1);
+    setResult((prev) => ({
+      successCount: (prev?.successCount ?? 0) + 1,
+      failedCount: Math.max(0, (prev?.failedCount ?? 1) - 1),
+    }));
+  }
+
+  function handleSuccessContinue() {
+    const successCount = items.filter((i) => i.status === "success").length;
+    const failedCount = items.filter((i) => i.status === "error").length;
+    setResult({ successCount, failedCount });
     setScreen("success");
   }
 
-  function handleUploadAnother() {
+  function handleAddMore() {
     reset();
+    setResult(null);
     setValidationError(null);
+    setInfoMessage(null);
     setScreen("start");
   }
 
-  if (screen === "success") {
-    const successCount = items.filter((i) => i.status === "success").length;
-    const failedCount = items.filter((i) => i.status === "error").length;
+  if (screen === "success" && result) {
     return (
       <UploadSuccessScreen
-        successCount={successCount}
-        failedCount={failedCount}
-        onUploadAnother={handleUploadAnother}
+        eventName={eventName}
+        successCount={result.successCount}
+        failedCount={result.failedCount}
+        galleryHref={galleryHref}
+        galleryAvailable={galleryAvailable}
+        galleryCount={galleryCount}
+        onAddMore={handleAddMore}
+        onRetryFailed={handleRetryFailed}
       />
     );
   }
@@ -90,23 +137,29 @@ export function GuestUploadExperience({
     return (
       <PhotoPreviewGrid
         items={items}
+        maxFilesPerUpload={maxFilesPerUpload}
+        infoMessage={infoMessage}
         onRemove={removeItem}
-        onRetry={retryItem}
+        onRetry={handleRetryOne}
+        onRetryFailed={handleRetryFailed}
         onUpload={handleUploadClick}
-        onCancel={handleUploadAnother}
+        onContinue={handleSuccessContinue}
+        onCancel={handleAddMore}
       />
     );
   }
 
+  // FROG #3 — the whole ask is one line and one button. No name, no email,
+  // no phone number, no account.
   return (
-    <main className="min-h-screen flex flex-col px-6 py-10">
+    <main className="min-h-screen px-6 pb-8 pt-6">
       <input
         ref={cameraInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         capture="environment"
         className="hidden"
-        onChange={(e) => handleFilesSelected(e.target.files)}
+        onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
       <input
         ref={galleryInputRef}
@@ -114,52 +167,61 @@ export function GuestUploadExperience({
         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         multiple
         className="hidden"
-        onChange={(e) => handleFilesSelected(e.target.files)}
+        onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
 
-      <div className="flex-1 flex flex-col items-center justify-center text-center max-w-md mx-auto w-full">
-        <p className="uppercase tracking-[0.2em] text-accent text-sm font-medium mb-2">
-          {eventName}
-        </p>
-        {formattedDate && <p className="text-white/50 text-sm mb-8">{formattedDate}</p>}
+      <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-md flex-col">
+        <button
+          type="button"
+          onClick={onBack}
+          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-white/60"
+        >
+          <span aria-hidden="true">←</span> Back
+        </button>
 
-        <h1 className="font-display text-4xl mb-3 leading-tight">Share Your Moment</h1>
-        <p className="text-white/60 mb-3 leading-relaxed">
-          Add a moment or choose one from your phone and add it to the memory gallery.
-        </p>
-        <p className="text-white/40 text-sm mb-10 leading-relaxed">
-          Up to {maxFilesPerUpload} moments. Your memories will be shared with the event host.
-          Please only add moments you&apos;re comfortable sharing.
-        </p>
+        <div className="flex-1">
+          <span aria-hidden="true" className="text-4xl">
+            📸
+          </span>
+          <h1 className="mt-5 font-display text-4xl leading-tight">Share your moments</h1>
+          <p className="mt-3 text-base leading-relaxed text-white/60">
+            Add up to {maxFilesPerUpload} photos from your phone to {eventName}.
+          </p>
 
-        {validationError && (
-          <div className="w-full bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3 mb-6">
-            {validationError}
-          </div>
-        )}
+          {validationError && (
+            <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {validationError}
+            </div>
+          )}
+        </div>
 
-        <div className="w-full flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <button
-            onClick={() => cameraInputRef.current?.click()}
-            className="tap-target w-full bg-accent text-ink-950 font-semibold text-lg rounded-2xl px-6 py-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform shadow-lg shadow-accent/20"
+            type="button"
+            onClick={() => galleryInputRef.current?.click()}
+            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
           >
-            <span className="text-2xl">📷</span> Add a Moment
+            <span aria-hidden="true" className="text-2xl">
+              🖼️
+            </span>
+            Choose photos
           </button>
 
           <button
-            onClick={() => galleryInputRef.current?.click()}
-            className="tap-target w-full bg-white/10 border border-white/20 text-white font-semibold text-lg rounded-2xl px-6 py-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform"
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-6 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98]"
           >
-            <span className="text-2xl">🖼️</span> Choose from Gallery
+            <span aria-hidden="true" className="text-2xl">
+              📷
+            </span>
+            Take a moment
           </button>
         </div>
 
-        <p className="text-white/30 text-xs mt-10">No account needed</p>
-        <p className="text-white/25 text-xs mt-2">
-          By uploading, you agree to our{" "}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline">
-            Privacy Policy
-          </a>
+        <p className="mt-8 text-center text-xs text-white/30">
+          No account needed · JPG, PNG, WebP or HEIC up to{" "}
+          {Math.round(maxFileSizeBytes / (1024 * 1024))} MB
         </p>
       </div>
     </main>
