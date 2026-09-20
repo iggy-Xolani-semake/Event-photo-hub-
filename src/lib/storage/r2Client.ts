@@ -1,5 +1,5 @@
 import "server-only";
-import { S3Client, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { S3Client, DeleteObjectsCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 /**
  * Cloudflare R2 is S3-compatible, so we use the AWS SDK pointed at R2's
@@ -43,4 +43,25 @@ export async function deleteFromR2(keys: string[]): Promise<void> {
       Delete: { Objects: keys.map((Key) => ({ Key })) },
     })
   );
+}
+
+export async function getR2ObjectMetadata(
+  key: string
+): Promise<{ contentLength: number; contentType: string | null }> {
+  const client = createR2Client();
+  const response = await client.send(
+    new HeadObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+    })
+  );
+
+  if (response.ContentLength === undefined) {
+    throw new Error("Uploaded object did not include a content length.");
+  }
+
+  return {
+    contentLength: response.ContentLength,
+    contentType: response.ContentType?.toLowerCase() ?? null,
+  };
 }

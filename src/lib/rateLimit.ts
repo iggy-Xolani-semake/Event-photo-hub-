@@ -1,58 +1,24 @@
 import "server-only";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-/**
- * In-memory sliding-window rate limiter.
- *
- * KNOWN LIMITATION: this state lives in the Node process, so on a
- * multi-instance deployment (Vercel's default for serverless functions,
- * or Netlify with multiple concurrent function instances) each instance
- * has its own counter — the effective limit is (per-instance limit) x
- * (instance count), not a hard global cap. That's an acceptable V1
- * trade-off for "reasonable abuse protection" (spec section 24), but if
- * this becomes a real SaaS product handling adversarial traffic, replace
- * this with Upstash Redis (@upstash/ratelimit) or Cloudflare's own rate
- * limiting rules in front of the app — both are drop-in replacements for
- * the checkRateLimit() call sites below.
- */
+/** Shared sliding-window state is stored in Supabase so all app instances agree. */
 
-interface Bucket {
-  count: number;
-  windowStart: number;
-}
-
-const buckets = new Map<string, Bucket>();
-
-// Periodic cleanup so this Map doesn't grow unbounded over a long-running
-// process/many distinct events.
-const CLEANUP_INTERVAL_MS = 5 * 60_000;
-let lastCleanup = Date.now();
-
-function cleanupIfNeeded(now: number) {
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
-  for (const [key, bucket] of buckets.entries()) {
-    if (now - bucket.windowStart > CLEANUP_INTERVAL_MS) buckets.delete(key);
-  }
-  lastCleanup = now;
-}
-
-export function checkRateLimit(
+export async function checkDistributedRateLimit(
   key: string,
   opts: { windowMs: number; maxRequests: number }
-): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  cleanupIfNeeded(now);
+): Promise<{ allowed: boolean; remaining: number; error?: boolean }> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin.rpc("consume_rate_limit", {
+    p_key: key,
+    p_window_seconds: Math.ceil(opts.windowMs / 1000),
+    p_max_requests: opts.maxRequests,
+  });
 
-  const existing = buckets.get(key);
-
-  if (!existing || now - existing.windowStart > opts.windowMs) {
-    buckets.set(key, { count: 1, windowStart: now });
-    return { allowed: true, remaining: opts.maxRequests - 1 };
+  if (error) {
+    console.error("distributed rate limit failed:", error.message);
+    return { allowed: false, remaining: 0, error: true };
   }
 
-  if (existing.count >= opts.maxRequests) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  existing.count += 1;
-  return { allowed: true, remaining: opts.maxRequests - existing.count };
+  const result = (data as { allowed: boolean; remaining: number }[] | null)?.[0];
+  return result ?? { allowed: false, remaining: 0, error: true };
 }

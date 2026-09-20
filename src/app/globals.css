@@ -26,3 +26,418 @@ body {
 .tap-target {
   min-height: 56px;
 }
+
+.memora-animation {
+  position: relative;
+  width: min(100%, 560px);
+  min-height: 500px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  background: #242238;
+  color: #fff;
+  box-shadow: 0 28px 60px rgba(36, 34, 56, 0.2);
+}
+
+.animation-topline,
+.animation-caption {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.animation-topline i {
+  color: #ffb84a;
+  font-style: normal;
+}
+
+.event-stage {
+  position: relative;
+  height: 390px;
+  margin-top: 6px;
+}
+
+.stage-floor {
+  position: absolute;
+  right: 8%;
+  bottom: 42px;
+  left: 8%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stage-spark,
+.camera-flash {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffb84a;
+  box-shadow: 0 0 0 6px rgba(255, 184, 74, 0.12);
+  animation: sparkle 10s ease-in-out infinite;
+}
+
+.spark-one { top: 20%; left: 14%; }
+.spark-two { top: 31%; right: 18%; animation-delay: -2s; background: #71a7ff; }
+
+.stick-person {
+  position: absolute;
+  z-index: 5;
+  bottom: 44px;
+  width: 56px;
+  height: 150px;
+  animation: personBounce 10s ease-in-out infinite;
+}
+
+.person-one { left: 8%; animation-delay: -0.3s; }
+.person-two { left: 26%; animation-delay: -1.2s; }
+.person-three { left: 44%; animation-delay: -2.1s; }
+.person-four { right: 25%; animation-delay: -0.8s; }
+.person-five { right: 7%; animation-delay: -1.7s; }
+
+.stick-head {
+  position: absolute;
+  top: 13px;
+  left: 15px;
+  width: 31px;
+  height: 31px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #ffd5ae;
+}
+
+.stick-head i,
+.stick-head b {
+  position: absolute;
+  top: 11px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #332b39;
+}
+
+.stick-head i { left: 8px; }
+.stick-head b { right: 8px; }
+
+.stick-hair {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 16px;
+  width: 29px;
+  height: 12px;
+  border-radius: 50% 50% 35% 35%;
+  transform: rotate(-8deg);
+}
+
+.stick-body {
+  position: absolute;
+  top: 47px;
+  left: 20px;
+  width: 21px;
+  height: 43px;
+  border-radius: 12px 12px 8px 8px;
+}
+
+.stick-arm,
+.stick-leg {
+  position: absolute;
+  display: block;
+  width: 4px;
+  border-radius: 5px;
+  background: #fff;
+  transform-origin: top center;
+}
+
+.stick-arm { top: 52px; height: 41px; }
+.stick-arm-left { left: 19px; transform: rotate(52deg); }
+.stick-arm-right { left: 38px; transform: rotate(-52deg); }
+.stick-leg { top: 86px; height: 52px; }
+.stick-leg-left { left: 23px; transform: rotate(18deg); }
+.stick-leg-right { left: 35px; transform: rotate(-18deg); }
+
+.mini-phone {
+  position: absolute;
+  z-index: 8;
+  width: 20px;
+  height: 34px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  background: #332b39;
+  animation: phoneLift 10s ease-in-out infinite;
+}
+
+.phone-one { left: 17%; bottom: 140px; transform: rotate(-15deg); }
+.phone-two { left: 39%; bottom: 135px; transform: rotate(12deg); animation-delay: -1.3s; }
+.phone-three { right: 15%; bottom: 138px; transform: rotate(-10deg); animation-delay: -2.2s; }
+
+.phone-screen {
+  position: absolute;
+  top: 5px;
+  right: 3px;
+  bottom: 5px;
+  left: 3px;
+  border-radius: 2px;
+  background: #71a7ff;
+}
+
+.phone-screen i,
+.phone-screen b {
+  position: absolute;
+  bottom: 5px;
+  width: 5px;
+  border-radius: 4px 4px 1px 1px;
+  background: #ff7599;
+}
+
+.phone-screen i { left: 3px; height: 12px; }
+.phone-screen b { right: 3px; height: 8px; background: #ffb84a; }
+
+.camera-flash {
+  z-index: 12;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: 3px solid #fff;
+  box-shadow: 0 0 20px 7px rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  animation: flash 10s ease-in-out infinite;
+}
+
+.flash-one { left: 22%; bottom: 188px; }
+.flash-two { right: 19%; bottom: 181px; animation-delay: -1.5s; }
+
+.photo-stream,
+.gallery-grid {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+}
+
+.photo-card {
+  position: absolute;
+  display: block;
+  width: 48px;
+  height: 60px;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 5px;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.22);
+  background: #ffb84a;
+}
+
+.photo-card-yellow { background: #ffb84a; }
+.photo-card-pink { background: #ff7599; }
+.photo-card-blue { background: #71a7ff; }
+.photo-card-green { background: #5ed3c6; }
+.photo-card-orange { background: #f06f4f; }
+.photo-card-purple { background: #9b7cff; }
+.photo-card-mint { background: #9de5bc; }
+.photo-card-coral { background: #ff9c70; }
+.photo-card-lilac { background: #c3b2ff; }
+
+.photo-sun {
+  position: absolute;
+  top: 9px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff4b8;
+}
+
+.photo-person {
+  position: absolute;
+  bottom: 12px;
+  width: 12px;
+  height: 19px;
+  border-radius: 8px 8px 3px 3px;
+  background: #242238;
+}
+
+.photo-person::before {
+  position: absolute;
+  top: -7px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd5ae;
+  content: "";
+}
+
+.photo-person-a { left: 8px; }
+.photo-person-b { right: 8px; background: #fff; }
+.photo-card em {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  left: 6px;
+  height: 3px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.photo-stream .photo-card { opacity: 0; animation: photoPop 10s ease-in-out infinite; }
+.photo-1 { left: 24%; top: 37%; animation-delay: -0.4s !important; }
+.photo-2 { left: 36%; top: 30%; animation-delay: -0.8s !important; }
+.photo-3 { left: 49%; top: 39%; animation-delay: -1.2s !important; }
+.photo-4 { left: 61%; top: 31%; animation-delay: -1.6s !important; }
+.photo-5 { left: 30%; top: 51%; animation-delay: -2s !important; }
+.photo-6 { left: 56%; top: 52%; animation-delay: -2.4s !important; }
+.photo-7 { left: 42%; top: 56%; animation-delay: -2.8s !important; }
+.photo-8 { left: 67%; top: 48%; animation-delay: -3.2s !important; }
+.photo-9 { left: 18%; top: 49%; animation-delay: -3.6s !important; }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 64px);
+  place-content: center;
+  gap: 6px;
+  opacity: 0;
+  transform: scale(0.75);
+  animation: galleryReveal 10s ease-in-out infinite;
+}
+
+.gallery-grid .photo-card {
+  position: relative;
+  inset: auto;
+  width: 52px;
+  height: 64px;
+  box-shadow: none;
+}
+
+.memora-mark {
+  position: absolute;
+  z-index: 18;
+  top: 43%;
+  right: 0;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  opacity: 0;
+  transform: scale(0.65);
+  animation: logoReveal 10s ease-in-out infinite;
+}
+
+.memora-mark strong {
+  color: #fff;
+  font-size: clamp(34px, 8vw, 58px);
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+}
+
+.memora-mark span {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.memora-mark b {
+  margin-top: 16px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: #ffb84a;
+  color: #242238;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.share-arrow,
+.share-dot { position: absolute; z-index: 19; opacity: 0; animation: sharing 10s ease-in-out infinite; }
+.share-arrow { top: 47%; right: 25%; color: #ffb84a; font-size: 30px; }
+.share-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff7599; }
+.share-dot-one { top: 41%; left: 20%; }
+.share-dot-two { right: 15%; bottom: 30%; background: #5ed3c6; animation-delay: -0.5s; }
+
+.animation-caption {
+  display: grid;
+  padding: 0 24px 22px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.animation-caption strong { color: #fff; font-size: 15px; letter-spacing: -0.02em; }
+
+@keyframes personBounce {
+  0%, 16%, 100% { transform: translateY(0) rotate(0); }
+  19% { transform: translateY(-7px) rotate(-3deg); }
+  23%, 58% { transform: translateY(0) rotate(0); }
+  62% { transform: translateY(-4px) rotate(3deg); }
+  66% { transform: translateY(0) rotate(0); }
+  76%, 88% { opacity: 0.18; transform: translateY(8px) scale(0.92); }
+  94% { opacity: 1; }
+}
+
+@keyframes phoneLift {
+  0%, 14%, 100% { transform: translateY(0) rotate(-10deg); }
+  20%, 27% { transform: translateY(-32px) rotate(-5deg); }
+  34%, 68% { transform: translateY(0) rotate(-10deg); }
+  76%, 90% { opacity: 0; }
+}
+
+@keyframes flash {
+  0%, 17%, 100% { opacity: 0; transform: scale(0.4); }
+  20% { opacity: 1; transform: scale(1.2); }
+  24% { opacity: 0; transform: scale(1.8); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  20%, 32% { opacity: 1; transform: scale(1.2); }
+  55%, 90% { opacity: 0.2; transform: scale(0.8); }
+}
+
+@keyframes photoPop {
+  0%, 14% { opacity: 0; transform: translate(0, 24px) rotate(0) scale(0.3); }
+  20%, 38% { opacity: 1; transform: translate(0, 0) rotate(-8deg) scale(1); }
+  55% { opacity: 1; transform: translate(88px, -74px) rotate(12deg) scale(0.85); }
+  68%, 100% { opacity: 0; transform: translate(96px, -82px) rotate(15deg) scale(0.65); }
+}
+
+@keyframes galleryReveal {
+  0%, 43% { opacity: 0; transform: scale(0.75) rotate(-3deg); }
+  51%, 70% { opacity: 1; transform: scale(1) rotate(0); }
+  78%, 100% { opacity: 0; transform: scale(0.8); }
+}
+
+@keyframes sharing {
+  0%, 61% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  67%, 76% { opacity: 1; transform: translate(42px, -14px) scale(1); }
+  83%, 100% { opacity: 0; transform: translate(70px, -26px) scale(0.5); }
+}
+
+@keyframes logoReveal {
+  0%, 72% { opacity: 0; transform: scale(0.65); }
+  79%, 94% { opacity: 1; transform: scale(1); }
+  97%, 100% { opacity: 0; transform: scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memora-animation *,
+  .memora-animation *::before,
+  .memora-animation *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .memora-animation { min-height: 440px; }
+  .event-stage { height: 330px; }
+  .stick-person { transform: scale(0.84); transform-origin: bottom center; }
+  .memora-mark { top: 39%; }
+}

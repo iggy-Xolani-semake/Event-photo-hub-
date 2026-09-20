@@ -1,4 +1,4 @@
-# Event Photo Hub
+# Memora
 
 A mobile-first event photo sharing platform. Guests scan a QR code, take or
 choose a photo, and upload it to a cloud-hosted event gallery — no app, no

@@ -1,4 +1,4 @@
-# Netlify build configuration for Event Photo Hub.
+# Netlify build configuration for Memora.
 #
 # Without this file, Netlify's framework auto-detection can correctly
 # identify "this is a Next.js project" (see package.json) while still

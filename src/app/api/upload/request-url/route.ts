@@ -3,10 +3,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createPresignedUploadUrl } from "@/lib/storage/signUpload";
 import { originalPath, MIME_TO_EXTENSION, ALLOWED_MIME_TYPES } from "@/lib/storage/paths";
 import { validateFile } from "@/lib/validation/fileValidation";
-import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 import { randomUUID } from "crypto";
 import type { EventForUpload } from "@/types/database";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkDistributedRateLimit } from "@/lib/rateLimit";
 
 /**
  * STEP 1 of the guest upload flow.
@@ -47,10 +47,16 @@ export async function POST(request: NextRequest) {
     // enough for a genuine guest uploading 10 photos in a burst, tight
     // enough to blunt scripted abuse of the public endpoint.
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const rateCheck = checkRateLimit(`upload:${eventCode}:${ip}`, {
+    const rateCheck = await checkDistributedRateLimit(`upload:${eventCode}:${ip}`, {
       windowMs: 60_000,
       maxRequests: 30,
     });
+    if (rateCheck.error) {
+      return NextResponse.json(
+        { error: "Uploads are temporarily unavailable. Please try again." },
+        { status: 503 }
+      );
+    }
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Too many upload requests. Please wait a moment and try again." },
@@ -85,6 +91,32 @@ export async function POST(request: NextRequest) {
               ? "This event is no longer available."
               : "We couldn't find this event. Please check the link or QR code.";
       return NextResponse.json({ error: message }, { status: 403 });
+    }
+
+    const sessionToken = request.cookies.get(guestSessionCookieName(eventCode))?.value;
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: "Your upload session expired. Please reload and try again." },
+        { status: 400 }
+      );
+    }
+
+    const { data: session, error: sessionError } = await admin
+      .from("guest_sessions")
+      .select("id")
+      .eq("event_id", eventInfo.event_id)
+      .eq("session_token", sessionToken)
+      .maybeSingle();
+
+    if (sessionError) {
+      console.error("guest session lookup failed:", sessionError);
+      return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    }
+    if (!session) {
+      return NextResponse.json(
+        { error: "Your upload session expired. Please reload and try again." },
+        { status: 400 }
+      );
     }
 
     const maxFileSize = eventInfo.max_file_size_bytes ?? 15 * 1024 * 1024;
