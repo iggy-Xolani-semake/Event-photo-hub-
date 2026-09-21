@@ -57,11 +57,18 @@ export default function SignupPage() {
       return;
     }
 
-    await fetch("/api/account", {
+    const profileResponse = await fetch("/api/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
+
+    if (!profileResponse.ok) {
+      const profileBody = await profileResponse.json().catch(() => ({}));
+      setError(profileBody.error ?? "Your account was created, but we could not finish setting up your workspace.");
+      setBusy(false);
+      return;
+    }
 
     router.push("/dashboard");
     router.refresh();

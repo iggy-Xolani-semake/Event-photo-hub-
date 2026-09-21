@@ -9,6 +9,7 @@ import {
   UploadPhotoIcon,
   ViewMemoriesIcon,
 } from "@/components/marketing/StepIcons";
+import { MemoraLogo } from "@/components/marketing/MemoraLogo";
 import MemoraHeroAnimation from "@/components/marketing/MemoraHeroAnimation";
 
 interface PublicEvent {
@@ -65,9 +66,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-950/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#c94c16] text-xs font-bold text-white shadow-sm">
-              EP
-            </span>
+            <MemoraLogo size="sm" />
             <span className="text-[1.1rem] font-black tracking-[-0.04em] text-white">
               Memora
             </span>
@@ -250,9 +249,7 @@ export default function HomePage() {
       <footer className="bg-[#1d1b1d] text-white">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-8">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#c94c16] text-[10px] font-bold text-white">
-              EP
-            </span>
+            <MemoraLogo size="sm" />
             <div>
               <div className="text-base font-bold tracking-[-0.04em]">Memora</div>
               <div className="text-[11px] uppercase tracking-[0.2em] text-white/65">
