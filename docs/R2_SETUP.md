@@ -86,7 +86,14 @@ dev). A missing origin here is the most common cause of "upload just
 hangs on mobile" during testing — the presigned URL is valid but the
 browser blocks the request before it ever reaches R2.
 
-## 5. Lifecycle rules (optional, cost control)
+## 5. Lifecycle rules (required, cost control)
+
+Add a short-retention cleanup rule for abandoned originals. The upload API
+removes rejected confirmations, but a browser can still disconnect after a
+successful PUT and before confirmation. Use a 24-hour expiration rule for
+`events/` originals only if your retention policy permits it; otherwise run a
+scheduled reconciliation that deletes objects without a matching `photos`
+row.
 
 If you want to automatically age out very old/closed events' original
 files to cheaper storage or delete them after a retention period, R2

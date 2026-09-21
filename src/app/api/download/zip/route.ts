@@ -12,15 +12,12 @@ import type { Event, Photo } from "@/types/database";
  * of full-res files through the browser at once. A single-photo download
  * (/api/photos/:id/download) still offers the true original.
  *
- * HARD CAP: refuses batches over MAX_ZIP_PHOTOS. Building a server-side
- * ZIP of, say, 800 full galleries in one request would tie up the
- * function for minutes and risk timing out anyway — for very large
- * events this should move to a background job (e.g. a queued Edge
- * Function that emails a download link when ready) rather than a
- * synchronous request/response. That's flagged here as the next
+ * HARD CAP: refuses batches over MAX_ZIP_PHOTOS. The package catalog tops
+ * out at 1000 photos, so this supports every currently sellable tier while
+ * still refusing an unbounded request that could exhaust function memory.
  * scaling step rather than silently truncating results.
  */
-const MAX_ZIP_PHOTOS = 150;
+const MAX_ZIP_PHOTOS = 1000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const { data: photos, error } = await query
       .order("uploaded_at", { ascending: false })
-      .limit(MAX_ZIP_PHOTOS)
+      .limit(MAX_ZIP_PHOTOS + 1)
       .returns<Photo[]>();
 
     if (error) {
@@ -93,6 +90,13 @@ export async function POST(request: NextRequest) {
 
     if (!photos || photos.length === 0) {
       return NextResponse.json({ error: "No photos to download." }, { status: 404 });
+    }
+
+    if (photos.length > MAX_ZIP_PHOTOS) {
+      return NextResponse.json(
+        { error: `This download is larger than the ${MAX_ZIP_PHOTOS}-photo limit. Select a smaller batch.` },
+        { status: 413 }
+      );
     }
 
     const zip = new JSZip();

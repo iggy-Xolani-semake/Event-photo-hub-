@@ -151,7 +151,7 @@ export function useGuestUploader(eventCode: string) {
           throw new Error(body.error ?? "Upload interrupted. Please try again.");
         }
 
-        const { uploadUrl, storagePath } = await requestRes.json();
+        const { uploadUrl, storagePath, photoId } = await requestRes.json();
 
         updateItem(item.id, { progress: 30 });
 
@@ -168,6 +168,7 @@ export function useGuestUploader(eventCode: string) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             eventCode,
+            photoId,
             storagePath,
             originalFilename: item.file.name,
             fileSize: uploadFile.size,

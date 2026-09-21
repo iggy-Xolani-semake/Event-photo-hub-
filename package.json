@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "node scripts/verify/preflight.mjs",
+    "preflight": "node scripts/verify/preflight.mjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

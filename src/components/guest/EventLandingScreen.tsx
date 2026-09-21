@@ -25,7 +25,7 @@ interface Props {
 /**
  * FROG #1 + #2 — the screen a guest lands on after scanning the QR code.
  *
- * The job of this screen is not to explain EventPhoto Hub. It is to answer
+ * The job of this screen is not to explain Memora. It is to answer
  * three questions in under five seconds and then get out of the way:
  *   1. "Where am I?"        → event name + date
  *   2. "Is this worth it?"  → other people's photos, already here

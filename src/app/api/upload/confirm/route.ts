@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 import { errorCodeToMessage } from "@/lib/validation/fileValidation";
+import { deleteFromR2, getR2ObjectMetadata } from "@/lib/storage/r2Client";
+import { MIME_TO_EXTENSION, originalPath } from "@/lib/storage/paths";
 
 /**
  * STEP 2 of the guest upload flow — called after the browser has
@@ -25,9 +27,19 @@ import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode: rawEventCode, storagePath, originalFilename, fileSize, mimeType, width, height } =
+    const {
+      eventCode: rawEventCode,
+      photoId: requestedPhotoId,
+      storagePath,
+      originalFilename,
+      fileSize,
+      mimeType,
+      width,
+      height,
+    } =
       body as {
         eventCode?: string;
+        photoId?: string;
         storagePath?: string;
         originalFilename?: string;
         fileSize?: number;
@@ -40,7 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
     }
     const eventCode = rawEventCode.toUpperCase();
-    if (!storagePath || !fileSize || !mimeType) {
+    if (!requestedPhotoId || !storagePath || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
     }
     // The session token is HttpOnly and event-scoped. Never accept it from the
@@ -48,6 +60,35 @@ export async function POST(request: NextRequest) {
     const guestSessionToken = request.cookies.get(guestSessionCookieName(eventCode))?.value;
     if (!guestSessionToken) {
       return NextResponse.json({ error: "Your upload session expired. Please reload and try again." }, { status: 400 });
+    }
+
+    const extension = MIME_TO_EXTENSION[mimeType.toLowerCase()];
+    if (!extension || storagePath !== originalPath(eventCode, requestedPhotoId, extension)) {
+      return NextResponse.json({ error: "Invalid upload details." }, { status: 400 });
+    }
+
+    let objectMetadata: { contentLength: number; contentType: string | null };
+    try {
+      objectMetadata = await getR2ObjectMetadata(storagePath);
+    } catch (err) {
+      console.error("uploaded object lookup failed:", err);
+      return NextResponse.json(
+        { error: "The uploaded file could not be found. Please try again." },
+        { status: 400 }
+      );
+    }
+
+    if (
+      objectMetadata.contentLength !== fileSize ||
+      objectMetadata.contentType !== mimeType.toLowerCase()
+    ) {
+      await deleteFromR2([storagePath]).catch((err) =>
+        console.error("invalid upload cleanup failed:", err)
+      );
+      return NextResponse.json(
+        { error: "The uploaded file did not match its metadata." },
+        { status: 400 }
+      );
     }
 
     const admin = createSupabaseAdminClient();
@@ -64,6 +105,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
+      await deleteFromR2([storagePath]).catch((cleanupError) =>
+        console.error("unconfirmed upload cleanup failed:", cleanupError)
+      );
       // Postgres raises our custom exception messages (EVENT_NOT_FOUND etc.)
       // as error.message — map them to guest-safe copy, never surface the
       // raw Postgres error to the browser (spec section 35).

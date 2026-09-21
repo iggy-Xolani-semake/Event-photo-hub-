@@ -39,6 +39,7 @@ for (const f of [
   "0009_mark_photo_failed.sql", "0010_collaborators.sql",
   "0005_client_self_service.sql",
   "0011_lock_service_functions.sql", "0012_guest_sessions.sql",
+  "0013_distributed_rate_limits.sql",
 ]) {
   const sql = readFileSync(`${REPO}/supabase/migrations/${f}`, "utf8")
     .replace(/create extension if not exists "pgcrypto";/i, "-- pgcrypto not bundled in PGlite");

@@ -10,12 +10,7 @@ import {
   ViewMemoriesIcon,
 } from "@/components/marketing/StepIcons";
 import { MemoraLogo } from "@/components/marketing/MemoraLogo";
-
-const eventImages = [
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
-];
+import MemoraHeroAnimation from "@/components/marketing/MemoraHeroAnimation";
 
 interface PublicEvent {
   event_code: string;
@@ -152,38 +147,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex justify-center">
-            <div className="absolute -right-6 top-4 h-20 w-20 rotate-12 rounded-full border border-[#f27a3a]/30 bg-accent/15" aria-hidden="true" />
-            <div className="relative flex items-end gap-4">
-              <div className="relative ml-8 h-[420px] w-[220px] rounded-[32px] border-[12px] border-[#1e1d1f] bg-ink-900 p-3 shadow-[0_24px_46px_rgba(17,17,17,0.18)]">
-                <div className="flex h-full flex-col overflow-hidden rounded-[20px] bg-ink-900">
-                  <div className="flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-white/60">
-                    <span>9:41</span>
-                    <span>◉</span>
-                  </div>
-                  <div className="px-3 pb-3">
-                    <div className="mb-3 flex items-center justify-between rounded-full border border-white/10 bg-ink-800 px-2 py-1.5 text-[9px] font-medium text-white/75">
-                      <span>Event Memories</span>
-                      <span className="rounded-full bg-[#c94c16] px-1.5 py-0.5 text-white">Live</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {eventImages.map((src, index) => (
-                        <div
-                          key={src}
-                          className="h-20 overflow-hidden rounded-xl border border-white/10 bg-cover bg-center"
-                          style={{ backgroundImage: `url(${src})`, opacity: index === 2 ? 0.85 : 1 }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative bottom-0 h-[220px] w-[160px] overflow-hidden rounded-[24px] border border-white/10 bg-ink-900 shadow-[0_16px_35px_rgba(17,17,17,0.14)]">
-                <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80)" }} />
-              </div>
-            </div>
-          </div>
+          <MemoraHeroAnimation />
         </div>
       </section>
 
