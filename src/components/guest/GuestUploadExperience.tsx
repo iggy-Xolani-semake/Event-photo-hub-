@@ -42,15 +42,18 @@ export function GuestUploadExperience({
   const { items, addFiles, removeItem, uploadAll, retryItem, reset } = useGuestUploader(eventCode);
 
   function handleFilesSelected(fileList: FileList | null, input: HTMLInputElement | null) {
+    // Copy the FileList before clearing the input. On several mobile browsers,
+    // setting input.value immediately invalidates the live FileList, which
+    // makes a valid selection look like an empty/cancelled picker.
+    const files = fileList ? Array.from(fileList) : [];
+
     // Reset immediately so picking the SAME file again after a cancel still
     // fires onChange — otherwise the picker silently does nothing the second
     // time, which reads to a guest as "the button is broken".
     if (input) input.value = "";
-    if (!fileList || fileList.length === 0) return;
+    if (files.length === 0) return;
     setValidationError(null);
     setInfoMessage(null);
-
-    const files = Array.from(fileList);
 
     // FROG #8: don't silently reject the 11th photo, and don't throw the
     // whole selection away either. Keep what fits and say so.
@@ -158,7 +161,7 @@ export function GuestUploadExperience({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         capture="environment"
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
       <input
@@ -166,7 +169,7 @@ export function GuestUploadExperience({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
 

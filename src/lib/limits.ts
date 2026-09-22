@@ -7,10 +7,9 @@
  *      (/api/events, /api/events/[code]) with human-readable messages, and
  *      shown in the create/edit forms so a client sees the ceiling before
  *      they hit it.
- *   2. The absolute maxima in the `events_assert_limits` trigger
- *      (0005_client_self_service.sql), which are looser and exist only so
- *      that nothing — a future route, a dashboard edit, a script — can ever
- *      store an absurd value.
+ *   2. The database trigger in migration 0013, which repeats these ceilings
+ *      so a future route, dashboard edit, or direct SQL client cannot bypass
+ *      the tested version-one cost and abuse envelope.
  *
  * If you change a number here, the form hints and the server rejection
  * messages follow automatically, because both read this object.
@@ -33,20 +32,20 @@ export const EVENT_LIMIT_CAPS: Record<LimitKey, LimitRule> = {
   uploadLimit: {
     label: "Total photos the gallery can hold",
     min: 10,
-    max: 1000,
-    fallback: 250,
+    max: 500,
+    fallback: 500,
   },
   maxFileSizeMb: {
     label: "Largest photo you'll accept",
     min: 1,
-    max: 25,
+    max: 15,
     fallback: 15,
     unit: "MB",
   },
   maxFilesPerUpload: {
     label: "Photos a guest can add at once",
     min: 1,
-    max: 20,
+    max: 10,
     fallback: 10,
   },
 };
@@ -113,7 +112,7 @@ export function normalizeEventLimits(
   return { values, errors };
 }
 
-/** Field hint for the forms, e.g. "10 – 1000". */
+/** Field hint for the forms, e.g. "10 – 500". */
 export function limitHint(key: LimitKey): string {
   const rule = EVENT_LIMIT_CAPS[key];
   return `${rule.min} – ${rule.max}${rule.unit ? ` ${rule.unit}` : ""}`;

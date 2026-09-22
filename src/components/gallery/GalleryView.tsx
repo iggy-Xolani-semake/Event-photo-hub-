@@ -65,6 +65,9 @@ export function GalleryView({
   );
 
   const favouriteCount = useMemo(() => photos.filter((p) => p.is_favourite).length, [photos]);
+  // Version-one guest galleries are preview-only. Full-size viewing and
+  // original downloads unlock together for the event owner after payment.
+  const canOpenLightbox = canDownload || canManage;
 
   async function toggleFavourite(photoId: string) {
     const target = photos.find((p) => p.id === photoId);
@@ -144,8 +147,20 @@ export function GalleryView({
           {visiblePhotos.map((photo, index) => (
             <button
               key={photo.id}
-              onClick={() => (selectMode ? toggleSelected(photo.id) : setLightboxIndex(index))}
-              className="relative mb-2 w-full block break-inside-avoid rounded-lg overflow-hidden bg-white/5"
+              onClick={() => {
+                if (selectMode) toggleSelected(photo.id);
+                else if (canOpenLightbox) setLightboxIndex(index);
+              }}
+              aria-label={
+                selectMode
+                  ? `Select memory ${index + 1}`
+                  : canOpenLightbox
+                    ? `Open memory ${index + 1}`
+                    : "Preview only — full-size viewing is locked"
+              }
+              className={`relative mb-2 w-full block break-inside-avoid rounded-lg overflow-hidden bg-white/5 ${
+                !selectMode && !canOpenLightbox ? "cursor-default" : ""
+              }`}
             >
               {photo.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- variable-aspect masonry tiles, next/image forces a fixed box
@@ -185,6 +200,7 @@ export function GalleryView({
           onClose={() => setLightboxIndex(null)}
           onToggleFavourite={toggleFavourite}
           canManage={canManage}
+          canDownload={canDownload}
           onDelete={async (photoId) => {
             const success = await deletePhoto(photoId);
             if (success) setLightboxIndex(null);

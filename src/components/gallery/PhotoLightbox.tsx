@@ -9,6 +9,7 @@ interface Props {
   onClose: () => void;
   onToggleFavourite: (photoId: string) => void;
   canManage: boolean;
+  canDownload: boolean;
   onDelete: (photoId: string) => Promise<boolean>;
 }
 
@@ -18,6 +19,7 @@ export function PhotoLightbox({
   onClose,
   onToggleFavourite,
   canManage,
+  canDownload,
   onDelete,
 }: Props) {
   const [index, setIndex] = useState(initialIndex);
@@ -102,12 +104,14 @@ export function PhotoLightbox({
       </div>
 
       <div className="px-4 py-4 flex justify-center gap-3">
-        <button
-          onClick={handleDownloadOriginal}
-          className="tap-target bg-white/10 border border-white/20 text-white rounded-full px-6 py-3 text-sm font-medium"
-        >
-          Download Original
-        </button>
+        {canDownload && (
+          <button
+            onClick={handleDownloadOriginal}
+            className="tap-target bg-white/10 border border-white/20 text-white rounded-full px-6 py-3 text-sm font-medium"
+          >
+            Download Original
+          </button>
+        )}
         {canManage && (
           <button
             onClick={handleDelete}
