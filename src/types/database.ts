@@ -61,6 +61,10 @@ export interface Event {
   package_id: string | null;
   /** When the host paid. Null = originals are not downloadable by anyone. */
   download_unlocked_at: string | null;
+  /** Uploads stop after this time; originals are retained. */
+  uploads_close_at: string | null;
+  /** Gallery viewing stops after this time; originals are retained. */
+  gallery_expires_at: string | null;
 }
 
 /** A sellable tier. Limits here are the ceiling an event may configure. */

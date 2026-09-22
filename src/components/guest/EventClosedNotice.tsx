@@ -15,6 +15,8 @@ export function EventClosedNotice({ eventName, reason, galleryHref }: Props) {
   const message =
     reason === "limit_reached"
       ? "This event's gallery is full — no more photos can be added right now."
+      : reason === "upload_expired"
+        ? "The upload period for this event has ended."
       : isArchived
         ? "This event is no longer available."
         : "This event is no longer accepting photographs.";

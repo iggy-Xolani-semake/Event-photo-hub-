@@ -59,6 +59,8 @@ export function errorCodeToMessage(code: string): string {
       return "This event is no longer accepting photographs.";
     case "EVENT_UPLOAD_LIMIT_REACHED":
       return "This event has reached its photo limit.";
+    case "EVENT_UPLOADS_EXPIRED":
+      return "The upload period for this event has ended.";
     case "GUEST_UPLOAD_LIMIT_REACHED":
       return "You've shared all the photos you can for this event. Thank you!";
     case "GUEST_SESSION_NOT_FOUND":

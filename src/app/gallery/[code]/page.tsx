@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
 import { GalleryView } from "@/components/gallery/GalleryView";
-import { publicImageUrl } from "@/lib/storage/publicUrl";
+import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
 import { resolveDownloadEntitlement } from "@/lib/auth/downloadEntitlement";
 import type { Event, Photo } from "@/types/database";
 import type { Metadata } from "next";
@@ -38,6 +38,17 @@ export default async function GalleryPage({ params }: PageProps) {
 
   if (!event) {
     return <EventNotFoundNotice />;
+  }
+
+  if (event.gallery_expires_at && new Date(event.gallery_expires_at).getTime() <= Date.now()) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-2xl font-semibold mb-2">Gallery access has ended</h1>
+        <p className="text-white/60 max-w-sm">
+          This event&apos;s viewing period has ended. The original files remain retained by the event owner.
+        </p>
+      </main>
+    );
   }
 
   // Single ownership check, used for two purposes:
@@ -94,13 +105,16 @@ export default async function GalleryPage({ params }: PageProps) {
     (photo) => photo.status === "failed"
   ).length;
 
-  const galleryPhotos = photos.map((p) => ({
+  const galleryPhotos = await Promise.all(photos.map(async (p) => ({
     ...p,
-    thumbnailUrl: publicImageUrl(p.thumbnail_path),
-    galleryUrl: publicImageUrl(p.gallery_path),
-  }));
+    thumbnailUrl: p.thumbnail_path ? await createPresignedDownloadUrl(p.thumbnail_path) : null,
+    galleryUrl: p.gallery_path ? await createPresignedDownloadUrl(p.gallery_path) : null,
+  })));
 
-  const canAddPhotos = event.status === "active" && event.photo_count < event.upload_limit;
+  const canAddPhotos =
+    event.status === "active" &&
+    event.photo_count < event.upload_limit &&
+    (!event.uploads_close_at || new Date(event.uploads_close_at).getTime() > Date.now());
 
   // Looking is free; taking is not. Guests keep the gallery and lose the
   // download buttons, which is the whole point of Sprint 3.
@@ -118,6 +132,7 @@ export default async function GalleryPage({ params }: PageProps) {
       failedCount={failedCount}
       canAddPhotos={canAddPhotos}
       canDownload={entitlement.allowed}
+      canViewEnlarged={entitlement.allowed}
     />
   );
 }

@@ -108,12 +108,12 @@ export default function HomePage() {
             </div>
 
             <h1 className="max-w-xl font-display text-5xl leading-[0.94] tracking-[-0.06em] text-white md:text-[5.1rem]">
-              Your <span className="text-[#c94c16]">Memories, All in One</span>
+              One <span className="text-[#c94c16]">event gallery</span> for every moment
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-              Memora makes it easy to capture, share and access all the memories from your
-              special moments. Simply enter your event code and relive the memories.
+              Create one private gallery for your event, invite guests to contribute, and pay once
+              to unlock enlarged previews and original downloads for your archive.
             </p>
 
             <form onSubmit={handleEventLookup} className="mt-8 max-w-[440px]">
@@ -140,10 +140,10 @@ export default function HomePage() {
             </form>
 
             <div className="mt-8 grid max-w-[420px] gap-3 sm:grid-cols-4">
-              <FeaturePill icon="⚡" label="Instant Access" />
-              <FeaturePill icon="🔒" label="Secure & Private" />
-              <FeaturePill icon="📷" label="Share with Everyone" />
-              <FeaturePill icon="✨" label="Simple" />
+              <FeaturePill icon="⚡" label="Preview first" />
+              <FeaturePill icon="🔒" label="Owner controlled" />
+              <FeaturePill icon="📷" label="Guest uploads" />
+              <FeaturePill icon="✨" label="7-day upload window" />
             </div>
           </div>
 
@@ -154,9 +154,9 @@ export default function HomePage() {
       <section id="features" className="mx-auto max-w-[1200px] px-6 py-8 md:py-12">
         <div className="grid gap-6 md:grid-cols-4">
           <FeatureCard icon={<CreateEventIcon />} title="Easy to Use" detail="Just enter your event code and start adding moments." />
-          <FeatureCard icon={<ShareQrIcon />} title="Share the Moments" detail="View, download and share with friends and family." />
-          <FeatureCard icon={<UploadPhotoIcon />} title="Safe & Secure" detail="Your memories are protected and always private." />
-          <FeatureCard icon={<ViewMemoriesIcon />} title="Instant Access" detail="Get your event memories right away without hassle." />
+          <FeatureCard icon={<ShareQrIcon />} title="Invite your guests" detail="Share a QR code or event link so guests can add photos without accounts." />
+          <FeatureCard icon={<UploadPhotoIcon />} title="Preview before payment" detail="Guests see a thumbnail gallery while the owner controls the archive." />
+          <FeatureCard icon={<ViewMemoriesIcon />} title="Unlock the originals" detail="Pay for the event package to enable enlarged previews and individual or bulk downloads." />
         </div>
       </section>
 

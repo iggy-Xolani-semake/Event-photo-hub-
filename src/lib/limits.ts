@@ -33,20 +33,20 @@ export const EVENT_LIMIT_CAPS: Record<LimitKey, LimitRule> = {
   uploadLimit: {
     label: "Total photos the gallery can hold",
     min: 10,
-    max: 1000,
-    fallback: 250,
+    max: 500,
+    fallback: 500,
   },
   maxFileSizeMb: {
     label: "Largest photo you'll accept",
     min: 1,
-    max: 25,
+    max: 15,
     fallback: 15,
     unit: "MB",
   },
   maxFilesPerUpload: {
     label: "Photos a guest can add at once",
     min: 1,
-    max: 20,
+    max: 10,
     fallback: 10,
   },
 };

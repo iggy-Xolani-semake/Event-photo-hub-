@@ -1,6 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
-import { publicImageUrl } from "@/lib/storage/publicUrl";
+import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
 import { GuestEventExperience } from "@/components/guest/GuestEventExperience";
 import { EventClosedNotice } from "@/components/guest/EventClosedNotice";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
@@ -62,9 +62,9 @@ export default async function GuestEventPage({ params, searchParams }: PageProps
     admin.rpc("get_event_for_upload", { p_event_code: eventCode }),
     admin
       .from("events")
-      .select("id, visibility")
+      .select("id, visibility, gallery_expires_at")
       .eq("event_code", eventCode)
-      .maybeSingle<{ id: string; visibility: EventVisibility }>(),
+      .maybeSingle<{ id: string; visibility: EventVisibility; gallery_expires_at: string | null }>(),
   ]);
 
   if (rpcError) {
@@ -83,7 +83,8 @@ export default async function GuestEventPage({ params, searchParams }: PageProps
   // exists. Defaulting to false only costs them a CTA; defaulting to true
   // would send them to a 404.
   const galleryAvailable =
-    eventRow?.visibility === "shared" || eventRow?.visibility === "public";
+    (eventRow?.visibility === "shared" || eventRow?.visibility === "public") &&
+    Boolean(eventRow?.gallery_expires_at && new Date(eventRow.gallery_expires_at).getTime() > Date.now());
   const galleryHref = `/gallery/${eventCode}`;
 
   // One query does double duty: the 6 newest visible thumbnails for the
@@ -105,12 +106,13 @@ export default async function GuestEventPage({ params, searchParams }: PageProps
       .limit(TEASER_LIMIT);
 
     sharedCount = count ?? 0;
-    teasers = (recentRows as RecentPhotoRow[] | null)
-      ?.map((row) => ({
-        thumbnailUrl: publicImageUrl(row.thumbnail_path),
-        aspectRatio: row.width && row.height ? `${row.width}/${row.height}` : null,
-      }))
-      .filter((t): t is LandingTeaser => Boolean(t.thumbnailUrl)) ?? [];
+    teasers =
+      (await Promise.all(
+        (recentRows as RecentPhotoRow[] | null)?.map(async (row) => ({
+          thumbnailUrl: row.thumbnail_path ? await createPresignedDownloadUrl(row.thumbnail_path) : null,
+          aspectRatio: row.width && row.height ? `${row.width}/${row.height}` : null,
+        })) ?? []
+      )).filter((t): t is LandingTeaser => Boolean(t.thumbnailUrl));
   }
 
   if (!eventInfo.can_upload) {

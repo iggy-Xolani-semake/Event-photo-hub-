@@ -24,6 +24,8 @@ interface Props {
   canAddPhotos?: boolean;
   /** False for guests and for a host who hasn't paid — originals are gated. */
   canDownload?: boolean;
+  /** Enlarged previews are part of the paid owner experience. */
+  canViewEnlarged?: boolean;
   /** True for the event owner, a collaborator or an admin — enables delete. */
   canManage?: boolean;
 }
@@ -40,6 +42,7 @@ export function GalleryView({
   failedCount = 0,
   canAddPhotos = false,
   canDownload = false,
+  canViewEnlarged = false,
   canManage = false,
 }: Props) {
   const router = useRouter();
@@ -140,12 +143,12 @@ export function GalleryView({
           </p>
         </div>
       ) : (
-        <div className="columns-2 sm:columns-3 lg:columns-4 gap-2 px-2 [column-fill:_balance]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 px-2">
           {visiblePhotos.map((photo, index) => (
             <button
               key={photo.id}
-              onClick={() => (selectMode ? toggleSelected(photo.id) : setLightboxIndex(index))}
-              className="relative mb-2 w-full block break-inside-avoid rounded-lg overflow-hidden bg-white/5"
+              onClick={() => (selectMode ? toggleSelected(photo.id) : canViewEnlarged && setLightboxIndex(index))}
+              className="relative aspect-square w-full overflow-hidden rounded-lg bg-white/5"
             >
               {photo.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- variable-aspect masonry tiles, next/image forces a fixed box
@@ -153,8 +156,7 @@ export function GalleryView({
                   src={photo.thumbnailUrl}
                   alt=""
                   loading="lazy"
-                  className="w-full h-auto block"
-                  style={{ aspectRatio: photo.width && photo.height ? `${photo.width}/${photo.height}` : undefined }}
+                  className="w-full h-full object-cover block"
                 />
               ) : (
                 <div className="w-full aspect-square bg-white/5" />
