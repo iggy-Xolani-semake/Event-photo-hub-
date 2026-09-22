@@ -26,7 +26,7 @@ const required = [
   "NEXT_PUBLIC_R2_PUBLIC_HOST",
   "NEXT_PUBLIC_APP_URL",
 ];
-const placeholders = /^(your-|your_|replace-|changeme|example|pub-xxxxxxxx)/i;
+const placeholders = /^(your-|your_|replace-|changeme|example|pub-xxxxxxxx|paste_your_own_value_here)/i;
 const missing = required.filter((name) => {
   const value = process.env[name]?.trim();
   return !value || placeholders.test(value);
