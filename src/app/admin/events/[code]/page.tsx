@@ -9,6 +9,7 @@ import { EventStatusControls } from "@/components/admin/EventStatusControls";
 import { EventSettingsForm } from "@/components/admin/EventSettingsForm";
 import Link from "next/link";
 import type { Event } from "@/types/database";
+import { isApprovedAdminUser } from "@/lib/auth/adminAllowlist";
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -29,7 +30,7 @@ export default async function EventManagementPage({ params }: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isAdmin = (user?.app_metadata as Record<string, unknown> | undefined)?.role === "admin";
+  const isAdmin = isApprovedAdminUser(user);
 
   // RLS scopes this to events the caller owns (or all, if admin) — a
   // client trying /admin/events/SOMEONE-ELSES-CODE simply gets no row

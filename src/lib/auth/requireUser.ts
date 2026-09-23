@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isApprovedAdminUser } from "@/lib/auth/adminAllowlist";
 
 export interface SessionUser {
   userId: string;
@@ -25,11 +26,9 @@ export async function requireUser(): Promise<SessionUser | null> {
 
   if (!user) return null;
 
-  const role = (user.app_metadata as Record<string, unknown> | undefined)?.role;
-
   return {
     userId: user.id,
     email: user.email ?? "",
-    isAdmin: role === "admin",
+    isAdmin: isApprovedAdminUser(user),
   };
 }

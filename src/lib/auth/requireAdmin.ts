@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isApprovedAdminUser } from "@/lib/auth/adminAllowlist";
 
 /**
  * Used at the top of every /api/admin/** route. The route namespace is
@@ -18,7 +19,9 @@ export async function requireAdmin(): Promise<{ userId: string; role: string; cu
   const role = (user.app_metadata as Record<string, unknown> | undefined)?.role;
   if (role !== "admin" && role !== "curator") return null;
 
-  if (role === "admin") return { userId: user.id, role, curatorId: null };
+  if (role === "admin") {
+    return isApprovedAdminUser(user) ? { userId: user.id, role, curatorId: null } : null;
+  }
 
   const { data: curator } = await supabase
     .from("curators")

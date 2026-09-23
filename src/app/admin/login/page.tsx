@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isApprovedAdminEmail } from "@/lib/auth/adminAllowlist";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -43,8 +44,9 @@ export default function AdminLoginPage() {
       data: { user },
     } = await supabase.auth.getUser();
     const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role;
+    const isApprovedAdmin = role === "admin" && isApprovedAdminEmail(user?.email);
 
-    router.push(role === "admin" || role === "curator" ? "/admin" : "/client");
+    router.push(isApprovedAdmin || role === "curator" ? "/admin" : "/client");
     router.refresh();
   }
 
