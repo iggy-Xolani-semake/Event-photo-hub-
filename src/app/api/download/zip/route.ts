@@ -1,24 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import JSZip from "jszip";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { resolveDownloadEntitlement } from "@/lib/auth/downloadEntitlement";
 import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
+import type { DownloadManifestFile, DownloadManifestPart } from "@/lib/download/types";
 import type { Event, Photo } from "@/types/database";
 
-/**
- * Generates a ZIP of GALLERY-resolution images (not full originals) for
- * bulk download, per spec section 15's guidance not to attempt hundreds
- * of full-res files through the browser at once. A single-photo download
- * (/api/photos/:id/download) still offers the true original.
- *
- * HARD CAP: refuses batches over MAX_ZIP_PHOTOS. The package catalog tops
- * out at 1000 photos, so this supports every currently sellable tier while
- * still refusing an unbounded request that could exhaust function memory.
- * scaling step rather than silently truncating results.
- */
 const MAX_ZIP_PHOTOS = 1000;
+const ZIP_PART_TARGET_BYTES = 150 * 1024 * 1024;
 
+/**
+ * Returns a manifest only. Photo bytes never pass through the server.
+ *
+ * The browser uses the short-lived original URLs to build one ZIP64 archive
+ * per approximately 150 MB part. Keeping the parts small makes the fallback
+ * viable on iOS Safari and prevents a multi-gigabyte Blob from being built.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -36,7 +33,6 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createSupabaseAdminClient();
-
     const { data: event } = await admin
       .from("events")
       .select("*")
@@ -47,8 +43,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Event not found." }, { status: 404 });
     }
 
-    // Entitlement gate, identical to the single-photo route: the gallery is
-    // free to look at, bulk downloads belong to the host once they have paid.
     const entitlement = await resolveDownloadEntitlement(event.id);
     if (!entitlement.allowed) {
       return NextResponse.json(
@@ -64,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     let query = admin
       .from("photos")
-      .select("*")
+      .select("id, original_filename, storage_path, file_size, mime_type")
       .eq("event_id", event.id)
       .eq("status", "ready")
       .eq("is_hidden", false);
@@ -72,8 +66,8 @@ export async function POST(request: NextRequest) {
     if (scope === "favourites") {
       query = query.eq("is_favourite", true);
     } else if (scope === "selected") {
-      if (!photoIds || photoIds.length === 0) {
-        return NextResponse.json({ error: "No photos selected." }, { status: 400 });
+      if (!photoIds || photoIds.length === 0 || photoIds.length > MAX_ZIP_PHOTOS) {
+        return NextResponse.json({ error: "Invalid photo selection." }, { status: 400 });
       }
       query = query.in("id", photoIds);
     }
@@ -81,17 +75,15 @@ export async function POST(request: NextRequest) {
     const { data: photos, error } = await query
       .order("uploaded_at", { ascending: false })
       .limit(MAX_ZIP_PHOTOS + 1)
-      .returns<Photo[]>();
+      .returns<Pick<Photo, "id" | "original_filename" | "storage_path" | "file_size" | "mime_type">[]>();
 
     if (error) {
-      console.error("zip photo query failed:", error);
+      console.error("download manifest query failed:", error);
       return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
     }
-
     if (!photos || photos.length === 0) {
       return NextResponse.json({ error: "No photos to download." }, { status: 404 });
     }
-
     if (photos.length > MAX_ZIP_PHOTOS) {
       return NextResponse.json(
         { error: `This download is larger than the ${MAX_ZIP_PHOTOS}-photo limit. Select a smaller batch.` },
@@ -99,53 +91,80 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const zip = new JSZip();
     const usedNames = new Set<string>();
+    const files: DownloadManifestFile[] = await Promise.all(
+      photos.map(async (photo) => {
+        const name = uniqueDownloadName(photo.original_filename, photo.id, photo.mime_type, usedNames);
+        return {
+          id: photo.id,
+          name,
+          url: await createPresignedDownloadUrl(photo.storage_path),
+          size: photo.file_size,
+        };
+      })
+    );
 
-    // Fetch sequentially in small batches rather than all-at-once — R2
-    // presigned GETs + downloads for 150 files done with Promise.all(150)
-    // would open 150 concurrent sockets from one function instance, which
-    // is more likely to trip provider limits than to finish faster.
-    const BATCH_SIZE = 10;
-    for (let i = 0; i < photos.length; i += BATCH_SIZE) {
-      const batch = photos.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        batch.map(async (photo) => {
-          const pathToFetch = photo.gallery_path ?? photo.storage_path;
-          const url = await createPresignedDownloadUrl(pathToFetch);
-          const res = await fetch(url);
-          if (!res.ok) return; // skip a single bad file rather than failing the whole zip
+    const parts: DownloadManifestPart[] = [];
+    let current: DownloadManifestFile[] = [];
+    let currentBytes = 0;
 
-          const buffer = await res.arrayBuffer();
-          const baseName = photo.original_filename?.replace(/\.[^.]+$/, "") || photo.id;
-          let fileName = `${baseName}.jpg`;
-          let n = 1;
-          while (usedNames.has(fileName)) {
-            fileName = `${baseName}-${n}.jpg`;
-            n += 1;
-          }
-          usedNames.add(fileName);
-
-          zip.file(fileName, buffer);
-        })
-      );
+    for (const file of files) {
+      if (current.length > 0 && currentBytes + file.size > ZIP_PART_TARGET_BYTES) {
+        parts.push({
+          part: parts.length + 1,
+          totalParts: 0,
+          estimatedBytes: currentBytes,
+          files: current,
+        });
+        current = [];
+        currentBytes = 0;
+      }
+      current.push(file);
+      currentBytes += file.size;
+    }
+    if (current.length > 0) {
+      parts.push({
+        part: parts.length + 1,
+        totalParts: 0,
+        estimatedBytes: currentBytes,
+        files: current,
+      });
     }
 
-    const zipBytes = await zip.generateAsync({ type: "uint8array", compression: "STORE" });
-    // .slice() copies into a plain ArrayBuffer-backed view — JSZip's typed
-    // output can be backed by SharedArrayBuffer under some bundler/runtime
-    // combinations, which DOM's BlobPart type (correctly) doesn't accept.
-    const zipBlob = new Blob([zipBytes.slice()], { type: "application/zip" });
+    const totalParts = parts.length;
+    for (const part of parts) part.totalParts = totalParts;
 
-    return new NextResponse(zipBlob, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${eventCode}-${scope}.zip"`,
-      },
+    return NextResponse.json({
+      eventCode,
+      scope,
+      targetPartBytes: ZIP_PART_TARGET_BYTES,
+      parts,
     });
   } catch (err) {
-    console.error("zip download error:", err);
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    console.error("download manifest error:", err);
+    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
+}
+
+function uniqueDownloadName(
+  originalFilename: string | null,
+  photoId: string,
+  mimeType: string,
+  usedNames: Set<string>
+): string {
+  const fallbackExtension = mimeType.split("/")[1]?.replace("jpeg", "jpg") || "bin";
+  const raw = originalFilename?.trim() || `${photoId}.${fallbackExtension}`;
+  const cleaned = raw.replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").slice(0, 160) || photoId;
+  const dot = cleaned.lastIndexOf(".");
+  const base = dot > 0 ? cleaned.slice(0, dot) : cleaned;
+  const extension = dot > 0 ? cleaned.slice(dot) : `.${fallbackExtension}`;
+
+  let candidate = `${base}${extension}`;
+  let suffix = 2;
+  while (usedNames.has(candidate)) {
+    candidate = `${base}-${suffix}${extension}`;
+    suffix += 1;
+  }
+  usedNames.add(candidate);
+  return candidate;
 }

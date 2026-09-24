@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import imageCompression from "browser-image-compression";
+import { mimeTypeFromFilename } from "@/lib/storage/paths";
 
 export type UploadItemStatus = "queued" | "compressing" | "uploading" | "success" | "error";
 
@@ -110,22 +111,13 @@ export function useGuestUploader(eventCode: string) {
       try {
         updateItem(item.id, { status: "compressing", progress: 5 });
 
-        // Client-side pre-compression BEFORE upload: mobile cameras easily
-        // produce 8-12MB originals (spec section 5). Shrinking to a
-        // reasonable ceiling here saves guest mobile data and cuts upload
-        // time dramatically on venue wifi shared by 100+ phones — the
-        // server-side pipeline still produces gallery/thumb variants from
-        // whatever lands, so this is an optimization, not the source of
-        // truth for image quality.
-        let uploadFile: File = item.file;
-        if (item.file.size > 3 * 1024 * 1024 && item.file.type !== "image/heic") {
-          uploadFile = await imageCompression(item.file, {
-            maxSizeMB: 4,
-            maxWidthOrHeight: 4000,
-            useWebWorker: true,
-          });
-        }
-
+        // Apply only a light JPEG optimization. HEIC/HEIF and PNG are left
+        // byte-for-byte untouched because browser decoding/re-encoding can
+        // damage them or remove useful metadata. Resolution is preserved;
+        // the optimizer targets roughly 10% savings and falls back to the
+        // original if a device cannot decode the image.
+        const uploadFile = await lightlyOptimizeJpeg(item.file);
+        const effectiveMimeType = item.file.type || mimeTypeFromFilename(item.file.name) || "";
         const dimensions = await getImageDimensions(item.file);
 
         updateItem(item.id, { status: "uploading", progress: 15 });
@@ -142,7 +134,7 @@ export function useGuestUploader(eventCode: string) {
             eventCode,
             fileName: item.file.name,
             fileSize: uploadFile.size,
-            mimeType: uploadFile.type || item.file.type,
+            mimeType: effectiveMimeType,
           }),
         });
 
@@ -156,9 +148,22 @@ export function useGuestUploader(eventCode: string) {
         updateItem(item.id, { progress: 30 });
 
         // STEP 2: PUT the actual bytes directly to R2 using the presigned URL.
-        await putWithProgress(uploadUrl, uploadFile, (pct) => {
-          updateItem(item.id, { progress: 30 + Math.round(pct * 0.6) }); // 30-90%
-        });
+        let lastUploadError: unknown;
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          try {
+            await putWithProgress(uploadUrl, uploadFile, effectiveMimeType, (pct) => {
+              updateItem(item.id, { progress: 30 + Math.round(pct * 0.6) }); // 30-90%
+            });
+            lastUploadError = undefined;
+            break;
+          } catch (err) {
+            lastUploadError = err;
+            if (attempt < 3) {
+              await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            }
+          }
+        }
+        if (lastUploadError) throw lastUploadError;
 
         updateItem(item.id, { progress: 92 });
 
@@ -172,7 +177,7 @@ export function useGuestUploader(eventCode: string) {
             storagePath,
             originalFilename: item.file.name,
             fileSize: uploadFile.size,
-            mimeType: uploadFile.type || item.file.type,
+            mimeType: effectiveMimeType,
             width: dimensions?.width,
             height: dimensions?.height,
           }),
@@ -201,11 +206,9 @@ export function useGuestUploader(eventCode: string) {
       targetItems?: UploadItem[]
     ): Promise<{ successCount: number; failedCount: number }> => {
       const toUpload = targetItems ?? items.filter((it) => it.status === "queued" || it.status === "error");
-      // Concurrency cap: don't fire 10 simultaneous PUTs from one phone on
-      // possibly-poor venue wifi — that starves each request of bandwidth
-      // and makes progress bars look stuck. 3-at-a-time keeps the phone
-      // responsive and completes faster in practice on congested networks.
-      const CONCURRENCY = 3;
+      // Concurrency cap: two uploads at a time keeps the phone responsive on
+      // weak venue Wi-Fi and avoids competing for the same mobile uplink.
+      const CONCURRENCY = 2;
       const queue = [...toUpload];
       let successCount = 0;
       let failedCount = 0;
@@ -243,11 +246,35 @@ export function useGuestUploader(eventCode: string) {
   return { items, addFiles, removeItem, uploadAll, retryItem, reset };
 }
 
-function putWithProgress(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
+async function lightlyOptimizeJpeg(file: File): Promise<File> {
+  const mimeType = file.type || mimeTypeFromFilename(file.name) || "";
+  if (mimeType !== "image/jpeg" || file.size < 6 * 1024 * 1024) return file;
+
+  try {
+    const targetMb = Math.max(1, (file.size / (1024 * 1024)) * 0.9);
+    const optimized = await imageCompression(file, {
+      maxSizeMB: targetMb,
+      initialQuality: 0.92,
+      alwaysKeepResolution: true,
+      useWebWorker: true,
+      fileType: "image/jpeg",
+    });
+    return optimized.size < file.size ? new File([optimized], file.name, { type: "image/jpeg" }) : file;
+  } catch {
+    return file;
+  }
+}
+
+function putWithProgress(
+  url: string,
+  file: File,
+  contentType: string,
+  onProgress: (pct: number) => void
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", url, true);
-    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+    xhr.setRequestHeader("Content-Type", contentType);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress((e.loaded / e.total) * 100);
     };

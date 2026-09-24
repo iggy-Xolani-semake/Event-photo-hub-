@@ -1,4 +1,4 @@
-import { ALLOWED_MIME_TYPES } from "@/lib/storage/paths";
+import { ALLOWED_MIME_TYPES, mimeTypeFromFilename } from "@/lib/storage/paths";
 
 export interface FileValidationResult {
   valid: boolean;
@@ -15,6 +15,7 @@ export interface FileValidationResult {
 export function validateFile(file: {
   size: number;
   type: string;
+  name?: string;
 }, maxSizeBytes: number): FileValidationResult {
   if (file.size <= 0) {
     return { valid: false, errorCode: "EMPTY_FILE", message: "This file appears to be empty." };
@@ -29,7 +30,8 @@ export function validateFile(file: {
     };
   }
 
-  if (!ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
+  const effectiveType = file.type.toLowerCase() || mimeTypeFromFilename(file.name ?? "") || "";
+  if (!ALLOWED_MIME_TYPES.includes(effectiveType)) {
     return {
       valid: false,
       errorCode: "UNSUPPORTED_FILE_TYPE",

@@ -41,9 +41,18 @@ export function eventCodeFromPath(path: string): string | null {
 export const MIME_TO_EXTENSION: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
-  "image/webp": "webp",
   "image/heic": "heic",
   "image/heif": "heif",
 };
 
 export const ALLOWED_MIME_TYPES = Object.keys(MIME_TO_EXTENSION);
+
+/** Some mobile browsers leave File.type empty for HEIC/HEIF photos. */
+export function mimeTypeFromFilename(fileName: string): string | null {
+  const extension = fileName.toLowerCase().split(".").pop();
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "heic") return "image/heic";
+  if (extension === "heif") return "image/heif";
+  return null;
+}

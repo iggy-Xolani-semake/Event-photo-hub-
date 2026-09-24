@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { formatEventDate } from "@/lib/format";
+import { downloadZipPart, type ZipProgress } from "@/lib/download/streamZip";
+import type { DownloadManifestPart } from "@/lib/download/types";
 
 interface Props {
   eventName: string;
@@ -19,6 +21,12 @@ interface Props {
   canDownload: boolean;
 }
 
+interface DownloadManifest {
+  eventCode: string;
+  scope: "all" | "favourites" | "selected";
+  parts: DownloadManifestPart[];
+}
+
 export function GalleryToolbar({
   eventName,
   eventDate = null,
@@ -34,10 +42,12 @@ export function GalleryToolbar({
   canDownload,
 }: Props) {
   const [downloading, setDownloading] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState<string | null>(null);
   const formattedDate = formatEventDate(eventDate);
 
   async function handleDownload(scope: "all" | "favourites" | "selected") {
     setDownloading(true);
+    setDownloadStatus("Preparing download parts…");
     try {
       const res = await fetch("/api/download/zip", {
         method: "POST",
@@ -48,59 +58,78 @@ export function GalleryToolbar({
           photoIds: scope === "selected" ? selectedIds : undefined,
         }),
       });
-      if (!res.ok) throw new Error("Download failed");
+      const payload = (await res.json().catch(() => ({}))) as DownloadManifest & { error?: string };
+      if (!res.ok || !payload.parts?.length) throw new Error(payload.error ?? "Download failed");
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${eventCode}-${scope}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      alert("Download failed. Please try again.");
+      const totalBytes = payload.parts.reduce((sum, part) => sum + part.estimatedBytes, 0);
+      if (totalBytes > 500 * 1024 * 1024) {
+        const sizeGb = (totalBytes / (1024 * 1024 * 1024)).toFixed(1);
+        const confirmed = window.confirm(
+          `This download is about ${sizeGb} GB and will arrive as ${payload.parts.length} ZIP files of about 150 MB each. Continue?`
+        );
+        if (!confirmed) return;
+      }
+
+      for (const part of payload.parts) {
+        const filename = `${eventCode}-${scope}-part-${part.part}-of-${part.totalParts}.zip`;
+        setDownloadStatus(`Building ZIP ${part.part} of ${part.totalParts}…`);
+        await downloadZipPart(part, filename, (progress: ZipProgress) => {
+          setDownloadStatus(
+            `Building ZIP ${progress.part} of ${progress.totalParts} (${progress.completedFiles}/${progress.totalFiles} photos)…`
+          );
+        });
+      }
+      setDownloadStatus(`Downloaded ${payload.parts.length} ZIP ${payload.parts.length === 1 ? "file" : "files"}.`);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      console.error("bulk download failed", error);
+      setDownloadStatus("Download failed. Please try again.");
     } finally {
       setDownloading(false);
     }
   }
 
   return (
-    <div className="sticky top-0 z-10 bg-ink-950/90 backdrop-blur-md border-b border-white/10 px-4 py-3 mb-3">
-      <div className="flex items-start justify-between mb-3">
+    <div className="sticky top-0 z-10 mb-3 border-b border-white/10 bg-ink-950/90 px-4 py-3 backdrop-blur-md">
+      <div className="mb-3 flex items-start justify-between">
         <div className="min-w-0">
-          <h1 className="font-display text-xl truncate">{eventName}</h1>
+          <h1 className="truncate font-display text-xl">{eventName}</h1>
           {formattedDate && <p className="truncate text-xs text-white/40">{formattedDate}</p>}
         </div>
         <button
           onClick={onToggleSelectMode}
-          className="text-sm text-white/60 border border-white/20 rounded-full px-3 py-1.5 shrink-0"
+          className="shrink-0 rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/60"
         >
           {selectMode ? "Cancel" : "Select"}
         </button>
       </div>
 
-      <div className="flex items-center gap-2 text-sm mb-3">
+      <div className="mb-3 flex items-center gap-2 text-sm">
         <button
           onClick={() => onTabChange("all")}
-          className={`rounded-full px-3 py-1.5 ${tab === "all" ? "bg-white text-ink-950 font-medium" : "text-white/60"}`}
+          className={`rounded-full px-3 py-1.5 ${tab === "all" ? "bg-white font-medium text-ink-950" : "text-white/60"}`}
         >
           All Memories: {totalCount}
         </button>
         <button
           onClick={() => onTabChange("favourites")}
-          className={`rounded-full px-3 py-1.5 ${tab === "favourites" ? "bg-white text-ink-950 font-medium" : "text-white/60"}`}
+          className={`rounded-full px-3 py-1.5 ${tab === "favourites" ? "bg-white font-medium text-ink-950" : "text-white/60"}`}
         >
           ❤️ Favourites: {favouriteCount}
         </button>
       </div>
 
-      {/* Download controls only render for a caller who is actually entitled
-          — the API re-checks, so hiding them is courtesy, not security. */}
+      {downloadStatus && (
+        <p className="mb-2 text-xs text-white/60" aria-live="polite">
+          {downloadStatus}
+        </p>
+      )}
+
       {canDownload && selectMode && selectedCount > 0 && (
         <button
           onClick={() => handleDownload("selected")}
           disabled={downloading}
-          className="tap-target w-full bg-accent text-ink-950 font-semibold rounded-xl px-4 py-2.5 disabled:opacity-60"
+          className="tap-target w-full rounded-xl bg-accent px-4 py-2.5 font-semibold text-ink-950 disabled:opacity-60"
         >
           {downloading ? "Preparing…" : `Download ${selectedCount} Selected`}
         </button>
@@ -110,7 +139,7 @@ export function GalleryToolbar({
         <button
           onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
           disabled={downloading}
-          className="w-full bg-white/10 border border-white/20 text-sm rounded-xl px-3 py-2 disabled:opacity-60"
+          className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm disabled:opacity-60"
         >
           {downloading ? "Preparing…" : tab === "favourites" ? "Download Favourites" : "Download All Memories"}
         </button>

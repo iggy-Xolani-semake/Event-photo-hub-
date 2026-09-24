@@ -19,7 +19,7 @@ const DOWNLOAD_URL_TTL_SECONDS = 3600; // 1 hour, for client "download original"
 export async function createPresignedUploadUrl(params: {
   key: string;
   contentType: string;
-  maxSizeBytes: number;
+  contentLength: number;
 }): Promise<{ uploadUrl: string; key: string }> {
   const client = createR2Client();
 
@@ -27,12 +27,8 @@ export async function createPresignedUploadUrl(params: {
     Bucket: R2_BUCKET,
     Key: params.key,
     ContentType: params.contentType,
-    // R2 (S3-compatible) enforces this as an exact content-length match
-    // is NOT possible via presigned URL conditions the same way POST
-    // policies allow — so max size is enforced by the API route reading
-    // the actual upload buffer/stream length BEFORE issuing the URL in
-    // the direct-upload-via-server variant, and is enforced again by the
-    // insert_guest_photo() RPC check against file_size. Belt and braces.
+    // Lock the PUT to the exact bytes validated by the request-url route.
+    ContentLength: params.contentLength,
   });
 
   const uploadUrl = await getSignedUrl(client, command, {

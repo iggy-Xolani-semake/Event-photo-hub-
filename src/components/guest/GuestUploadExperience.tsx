@@ -61,7 +61,7 @@ export function GuestUploadExperience({
     if (!batchCheck.valid) setInfoMessage(batchCheck.message ?? null);
 
     const invalid = accepted
-      .map((f) => validateFile({ size: f.size, type: f.type }, maxFileSizeBytes))
+      .map((f) => validateFile({ size: f.size, type: f.type, name: f.name }, maxFileSizeBytes))
       .find((r) => !r.valid);
     if (invalid) {
       setValidationError(invalid.message!);
@@ -158,7 +158,7 @@ export function GuestUploadExperience({
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/heic,image/heif"
         capture="environment"
         className="hidden"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
@@ -166,7 +166,7 @@ export function GuestUploadExperience({
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/heic,image/heif"
         multiple
         className="hidden"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
@@ -222,8 +222,10 @@ export function GuestUploadExperience({
         </div>
 
         <p className="mt-8 text-center text-xs text-white/30">
-          No account needed · JPG, PNG, WebP or HEIC up to{" "}
+          No account needed · JPG, PNG, HEIC or HEIF up to{" "}
           {Math.round(maxFileSizeBytes / (1024 * 1024))} MB
+          <br />
+          Large JPEGs are lightly optimized to save mobile data while keeping high quality.
         </p>
       </div>
     </main>

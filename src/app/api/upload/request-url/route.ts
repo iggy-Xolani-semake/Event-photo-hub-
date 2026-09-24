@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createPresignedUploadUrl } from "@/lib/storage/signUpload";
-import { originalPath, MIME_TO_EXTENSION, ALLOWED_MIME_TYPES } from "@/lib/storage/paths";
+import {
+  originalPath,
+  MIME_TO_EXTENSION,
+  ALLOWED_MIME_TYPES,
+  mimeTypeFromFilename,
+} from "@/lib/storage/paths";
 import { validateFile } from "@/lib/validation/fileValidation";
 import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
 import { randomUUID } from "crypto";
@@ -28,7 +33,7 @@ import { checkDistributedRateLimit } from "@/lib/rateLimit";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { eventCode, fileSize, mimeType } = body as {
+    const { eventCode, fileName, fileSize, mimeType: rawMimeType } = body as {
       eventCode?: string;
       fileName?: string;
       fileSize?: number;
@@ -39,7 +44,8 @@ export async function POST(request: NextRequest) {
     if (!eventCode || typeof eventCode !== "string" || !isValidEventCodeFormat(eventCode)) {
       return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
     }
-    if (!fileSize || !mimeType) {
+    const mimeType = (rawMimeType || mimeTypeFromFilename(fileName ?? "") || "").toLowerCase();
+    if (!fileName || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing file metadata." }, { status: 400 });
     }
 
@@ -138,7 +144,7 @@ export async function POST(request: NextRequest) {
     const { uploadUrl } = await createPresignedUploadUrl({
       key,
       contentType: mimeType,
-      maxSizeBytes: maxFileSize,
+      contentLength: fileSize,
     });
 
     return NextResponse.json({
