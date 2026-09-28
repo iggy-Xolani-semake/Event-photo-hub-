@@ -157,6 +157,12 @@ export function GalleryToolbar({
         </button>
       </div>
 
+      {!canDownload && (
+        <p className="mb-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400">
+          Preview gallery — full-size viewing and downloads unlock after the event package is paid.
+        </p>
+      )}
+
       {downloadStatus && (
         <p className="mb-2 text-xs text-slate-400" aria-live="polite">
           {downloadStatus}

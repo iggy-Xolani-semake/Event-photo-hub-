@@ -59,7 +59,7 @@ await db.exec(`
   insert into auth.users (id, email, raw_app_meta_data) values
     ('${ALICE}', 'alice@example.com', '{"role":"client"}'),
     ('${BOB}',   'bob@example.com',   '{"role":"client"}'),
-    ('${ADMIN}', 'staff@example.com', '{"role":"admin"}');
+    ('${ADMIN}', 'xolanisemake@gmail.com', '{"role":"admin"}');
 `);
 
 const asUser = async (sub, email, role) => {
@@ -120,7 +120,7 @@ check("bob sees none of alice's events", bobSees === 0, `bob sees ${bobSees}`);
 const bobSeesDemo = (await scalar(`select count(*)::int as n from public.events where event_code in ('ALICE01','DEMO482')`)).n;
 check("bob cannot see alice's or the demo event", bobSeesDemo === 0, `saw ${bobSeesDemo}`);
 
-await asUser(ADMIN, "staff@example.com", "admin");
+await asUser(ADMIN, "xolanisemake@gmail.com", "admin");
 const adminSees = (await scalar(`select count(*)::int as n from public.events`)).n;
 check("site admin sees every event", adminSees >= 2, `admin sees ${adminSees}`);
 

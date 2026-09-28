@@ -180,7 +180,7 @@ export function GuestUploadExperience({
         type="file"
         accept="image/jpeg,image/png,image/heic,image/heif"
         capture="environment"
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
       <input
@@ -188,7 +188,7 @@ export function GuestUploadExperience({
         type="file"
         accept="image/jpeg,image/png,image/heic,image/heif"
         multiple
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFilesSelected(e.target.files, e.target)}
       />
 
