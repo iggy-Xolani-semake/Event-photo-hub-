@@ -4,6 +4,7 @@ import { formatStorageSize } from "@/lib/format";
 import { EventQrCode } from "@/components/admin/EventQrCode";
 import { PrintablePoster } from "@/components/admin/PrintablePoster";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { DeleteEventButton } from "@/components/admin/DeleteEventButton";
 import { ShareEventButton } from "@/components/admin/ShareEventButton";
 import { EventStatusControls } from "@/components/admin/EventStatusControls";
 import { EventSettingsForm } from "@/components/admin/EventSettingsForm";
@@ -80,14 +81,14 @@ export default async function EventManagementPage({ params }: PageProps) {
 
   return (
     <main className="p-6 md:p-8 max-w-5xl mx-auto">
-      <Link href="/admin" className="text-sm text-white/50 hover:text-white/80">
+      <Link href="/admin" className="text-sm text-slate-500 hover:text-slate-300">
         ← Back to dashboard
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4 mt-3 mb-8">
         <div>
-          <h1 className="font-display text-3xl">{event.event_name}</h1>
-          <p className="text-white/50 text-sm mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-white">{event.event_name}</h1>
+          <p className="text-slate-500 text-sm mt-1">
             {event.event_date &&
               new Date(event.event_date + "T00:00:00").toLocaleDateString("en-US", {
                 day: "numeric",
@@ -124,13 +125,13 @@ export default async function EventManagementPage({ params }: PageProps) {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
-          <section className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-3">Quick actions</h2>
             <div className="grid grid-cols-3 gap-3">
               <Link
                 href={galleryUrl}
                 target="_blank"
-                className="text-center text-sm bg-white/10 border border-white/20 rounded-lg px-4 py-3"
+                className="text-center text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-3"
               >
                 See Memories
               </Link>
@@ -139,29 +140,42 @@ export default async function EventManagementPage({ params }: PageProps) {
             </div>
           </section>
 
-          <section className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-4">Event settings</h2>
             <EventSettingsForm event={event} collaboratorEmail={collaboratorEmail} isAdmin={isAdmin} />
           </section>
         </div>
 
         <div className="space-y-6">
-          <section className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-4 text-center">Guest QR Code</h2>
             <EventQrCode url={guestUrl} />
-            <p className="text-white/40 text-xs text-center mt-4 break-all">{guestUrl}</p>
+            <p className="text-slate-500 text-xs text-center mt-4 break-all">{guestUrl}</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <CopyLinkButton url={guestUrl} label="Copy event link" />
               <ShareEventButton url={guestUrl} title={event.event_name} />
             </div>
           </section>
 
-          <section className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-4">Printable Poster</h2>
             <PrintablePoster eventName={event.event_name} url={guestUrl} />
           </section>
         </div>
       </div>
+
+      {isAdmin && (
+        <section className="mt-6 rounded-xl border border-rose-500/30 bg-rose-500/[0.06] p-5">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-rose-300">
+            Danger zone — site manager only
+          </h2>
+          <p className="mb-4 text-sm text-slate-400">
+            Permanently delete this event together with all of its photos, files, payment records
+            and guest sessions.
+          </p>
+          <DeleteEventButton eventCode={event.event_code} eventName={event.event_name} />
+        </section>
+      )}
     </main>
   );
 }

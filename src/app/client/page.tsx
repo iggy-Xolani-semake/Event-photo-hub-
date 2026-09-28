@@ -36,17 +36,17 @@ export default async function ClientHomePage() {
 
   return (
     <main className="p-6 md:p-10 max-w-3xl mx-auto">
-      <h1 className="font-display text-3xl mb-1">
+      <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
         {firstName ? `Welcome, ${firstName}` : "Welcome"}
       </h1>
-      <p className="text-white/50 text-sm mb-10">
+      <p className="text-slate-500 text-sm mb-10">
         {myEvents.length === 0
           ? "You don't have any events yet."
           : `You have ${myEvents.length} event${myEvents.length !== 1 ? "s" : ""}.`}
       </p>
 
       {myEvents.length === 0 ? (
-        <div className="border border-dashed border-white/15 rounded-xl p-10 text-center text-white/50">
+        <div className="border border-dashed border-slate-700 rounded-xl p-10 text-center text-slate-500">
           Once your event is set up, it will appear here with a link to your gallery.
         </div>
       ) : (
@@ -55,11 +55,11 @@ export default async function ClientHomePage() {
             <Link
               key={event.id}
               href={`/gallery/${event.event_code}`}
-              className="block bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-2xl p-6 transition-colors"
+              className="block bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 transition-colors"
             >
-              <p className="font-display text-xl mb-1">{event.event_name}</p>
+              <p className="text-lg font-semibold text-slate-100 mb-1">{event.event_name}</p>
               {event.event_date && (
-                <p className="text-white/40 text-sm mb-3">
+                <p className="text-slate-500 text-sm mb-3">
                   {new Date(event.event_date + "T00:00:00").toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "long",
@@ -67,11 +67,11 @@ export default async function ClientHomePage() {
                   })}
                 </p>
               )}
-              <p className="text-white/60 text-sm">
+              <p className="text-slate-400 text-sm">
                 {event.photo_count.toLocaleString()} memories ·{" "}
                 {formatStorageSize(event.storage_used_bytes)}
               </p>
-              <span className="inline-block mt-4 text-accent text-sm font-medium">
+              <span className="inline-block mt-4 text-violet-400 text-sm font-medium">
                 See Memories →
               </span>
             </Link>

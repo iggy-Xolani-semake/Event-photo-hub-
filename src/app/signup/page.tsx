@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
+import { Input } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
@@ -74,97 +79,75 @@ export default function SignupPage() {
     router.refresh();
   }
 
-  const inputClass =
-    "w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 outline-none focus:border-accent";
+  if (needsConfirmation) {
+    return (
+      <AuthLayout title="Check your inbox">
+        <div className="flex flex-col items-center text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30">
+            <MailCheck className="h-6 w-6" strokeWidth={2.2} />
+          </span>
+          <p className="mt-5 text-sm leading-relaxed text-slate-400">
+            We sent a confirmation link to <span className="font-semibold text-white">{email}</span>.
+            Open it to activate your account, then sign in and your dashboard will be waiting.
+          </p>
+          <ButtonLink href="/login" className="mt-6">
+            Go to sign in
+          </ButtonLink>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <Link href="/" className="font-display text-2xl block mb-8">
-          Memora
+    <AuthLayout
+      title="Create your account"
+      subtitle="Collect photos from your guests with a QR code. No app for them to install."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <ErrorAlert title="We couldn't create your account">{error}</ErrorAlert>}
+
+        <Input
+          label="Your name"
+          required
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Thabo Mokoena"
+          autoComplete="name"
+        />
+
+        <Input
+          label="Email"
+          required
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+          autoComplete="email"
+        />
+
+        <Input
+          label="Password"
+          required
+          type="password"
+          minLength={8}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="At least 8 characters"
+          autoComplete="new-password"
+          hint="At least 8 characters."
+        />
+
+        <Button type="submit" loading={busy} className="w-full">
+          {busy ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-slate-400">
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-indigo-300 transition-colors hover:text-indigo-200">
+          Sign in
         </Link>
-
-        {needsConfirmation ? (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <h1 className="font-display text-2xl mb-2">Check your inbox</h1>
-            <p className="text-white/60 text-sm leading-relaxed">
-              We sent a confirmation link to <span className="text-white">{email}</span>. Open it
-              to activate your account, then sign in and your dashboard will be waiting.
-            </p>
-            <Link
-              href="/login"
-              className="mt-6 inline-block bg-accent text-ink-950 font-semibold rounded-lg px-5 py-2.5 text-sm"
-            >
-              Go to sign in
-            </Link>
-          </div>
-        ) : (
-          <>
-            <h1 className="font-display text-3xl mb-2">Create your account</h1>
-            <p className="text-white/50 text-sm mb-8">
-              Collect photos from your guests with a QR code. No app for them to install.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3">
-                  {error}
-                </div>
-              )}
-
-              <label className="block">
-                <span className="block text-sm text-white/60 mb-1.5">Your name</span>
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Thabo Mokoena"
-                  className={inputClass}
-                />
-              </label>
-
-              <label className="block">
-                <span className="block text-sm text-white/60 mb-1.5">Email</span>
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-
-              <label className="block">
-                <span className="block text-sm text-white/60 mb-1.5">Password</span>
-                <input
-                  required
-                  type="password"
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass}
-                />
-                <span className="block text-xs text-white/35 mt-1.5">At least 8 characters.</span>
-              </label>
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="w-full bg-accent text-ink-950 font-semibold rounded-lg px-5 py-3 disabled:opacity-60"
-              >
-                {busy ? "Creating account…" : "Create account"}
-              </button>
-            </form>
-
-            <p className="text-sm text-white/50 mt-6">
-              Already have an account?{" "}
-              <Link href="/login" className="text-accent underline">
-                Sign in
-              </Link>
-            </p>
-          </>
-        )}
-      </div>
-    </main>
+      </p>
+    </AuthLayout>
   );
 }

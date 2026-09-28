@@ -49,10 +49,10 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-ink-950 px-6 text-white">
+    <main className="min-h-screen flex items-center justify-center bg-canvas px-6 text-white">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <h1 className="font-display text-2xl mb-1 text-center">Memora</h1>
-        <p className="text-white/50 text-sm text-center mb-8">Sign in</p>
+        <h1 className="text-2xl font-bold tracking-tight text-white mb-1 text-center">Memora</h1>
+        <p className="text-slate-500 text-sm text-center mb-8">Sign in</p>
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3 mb-4">
@@ -60,39 +60,39 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        <label className="block text-sm text-white/70 mb-1.5">Email</label>
+        <label className="block text-sm text-slate-400 mb-1.5">Email</label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 mb-4 outline-none focus:border-accent"
+          className="w-full bg-slate-800/40 border border-slate-700 rounded-xl px-4 py-3 mb-4 outline-none focus:border-indigo-500"
         />
 
-        <label className="block text-sm text-white/70 mb-1.5">Password</label>
+        <label className="block text-sm text-slate-400 mb-1.5">Password</label>
         <input
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 mb-6 outline-none focus:border-accent"
+          className="w-full bg-slate-800/40 border border-slate-700 rounded-xl px-4 py-3 mb-6 outline-none focus:border-indigo-500"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="tap-target w-full bg-accent text-ink-950 font-semibold rounded-xl px-6 py-3 disabled:opacity-60"
+          className="tap-target w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl px-6 py-3 disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign In"}
         </button>
 
         <div className="mt-4 text-center">
-          <Link href="/forgot-password" className="text-sm text-white/60 underline decoration-white/20 underline-offset-4 hover:text-white">
+          <Link href="/forgot-password" className="text-sm text-slate-400 underline decoration-white/20 underline-offset-4 hover:text-white">
             Forgot password?
           </Link>
         </div>
 
-        <p className="mt-5 text-center text-sm text-white/60">
+        <p className="mt-5 text-center text-sm text-slate-400">
           New host? <Link href={`/signup${searchParams.get("plan") ? `?plan=${searchParams.get("plan")}` : ""}`} className="underline decoration-white/20 underline-offset-4 hover:text-white">Create an account</Link>
         </p>
       </form>

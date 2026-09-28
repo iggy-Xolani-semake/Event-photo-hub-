@@ -2,6 +2,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
+import { AppFooter } from "@/components/layout/AppFooter";
+import { Clock, Lock } from "lucide-react";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
 import { GalleryView } from "@/components/gallery/GalleryView";
 import { createPresignedDownloadUrl } from "@/lib/storage/signUpload";
@@ -42,11 +44,17 @@ export default async function GalleryPage({ params }: PageProps) {
 
   if (event.gallery_expires_at && new Date(event.gallery_expires_at).getTime() <= Date.now()) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Gallery access has ended</h1>
-        <p className="text-white/60 max-w-sm">
-          This event&apos;s viewing period has ended. The original files remain retained by the event owner.
-        </p>
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-md rounded-2xl border border-slate-800 bg-slate-900/50 p-8 shadow-xl">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/60 text-slate-400">
+            <Clock className="h-6 w-6" strokeWidth={2} />
+          </span>
+          <h1 className="mt-5 text-xl font-semibold text-white">Gallery access has ended</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            This event&apos;s viewing period has ended. The original files remain retained by the
+            event owner.
+          </p>
+        </div>
       </main>
     );
   }
@@ -77,12 +85,22 @@ export default async function GalleryPage({ params }: PageProps) {
 
   if (event.visibility === "private" && !canManage) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-5xl mb-4">🔒</div>
-        <h1 className="text-2xl font-semibold mb-2">Private gallery</h1>
-        <p className="text-white/60 max-w-sm">
-          This gallery is private. Please sign in as the event owner to view it.
-        </p>
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-md rounded-2xl border border-slate-800 bg-slate-900/50 p-8 shadow-xl">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400">
+            <Lock className="h-6 w-6" strokeWidth={2} />
+          </span>
+          <h1 className="mt-5 text-xl font-semibold text-white">Private gallery</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            This gallery is private. Please sign in as the event owner to view it.
+          </p>
+          <a
+            href="/login"
+            className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98]"
+          >
+            Sign in
+          </a>
+        </div>
       </main>
     );
   }
@@ -121,18 +139,21 @@ export default async function GalleryPage({ params }: PageProps) {
   const entitlement = await resolveDownloadEntitlement(event.id);
 
   return (
-    <GalleryView
-      eventCode={eventCode}
-      eventName={event.event_name}
-      eventDate={event.event_date}
-      photos={galleryPhotos}
-      totalCount={event.photo_count}
-      canManage={canManage}
-      processingCount={processingCount}
-      failedCount={failedCount}
-      canAddPhotos={canAddPhotos}
-      canDownload={entitlement.allowed}
-      canViewEnlarged={entitlement.allowed}
-    />
+    <div className="flex min-h-screen flex-col">
+      <GalleryView
+        eventCode={eventCode}
+        eventName={event.event_name}
+        eventDate={event.event_date}
+        photos={galleryPhotos}
+        totalCount={event.photo_count}
+        canManage={canManage}
+        processingCount={processingCount}
+        failedCount={failedCount}
+        canAddPhotos={canAddPhotos}
+        canDownload={entitlement.allowed}
+        canViewEnlarged={entitlement.allowed}
+      />
+      <AppFooter />
+    </div>
   );
 }

@@ -10,13 +10,15 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1, // guests shouldn't accidentally pinch-zoom the upload UI mid-tap
-  themeColor: "#0a0a0c",
+  themeColor: "#090D16",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-ink-950 text-white antialiased">{children}</body>
+      <body className="min-h-screen bg-canvas font-sans text-slate-300 antialiased">
+        {children}
+      </body>
     </html>
   );
 }
