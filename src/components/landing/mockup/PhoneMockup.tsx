@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import Image from "next/image";
 import {
   ArrowLeft,
   BatteryFull,
@@ -12,6 +13,7 @@ import {
   Upload,
   Wifi,
 } from "lucide-react";
+import { CAMERA_BACKDROP, cameraRollPhoto, uploadBatchPhoto } from "./demoPhotos";
 import { PhotoTile } from "./PhotoTile";
 import { QrGlyph } from "./QrGlyph";
 
@@ -80,48 +82,68 @@ export function PhoneMockup({ phase, progress, completed, onAdvance }: PhoneMock
 /** Phase 1 — the camera viewfinder locked onto the venue's QR poster. */
 function ScanPhase({ onAdvance }: { onAdvance: () => void }) {
   return (
-    <div className="relative flex h-full flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950">
-      <div className="px-4 pt-3 text-center">
-        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Camera</p>
-      </div>
+    <div className="relative flex h-full flex-col overflow-hidden bg-slate-950">
+      {/* What the lens is actually pointed at: the candlelit room, out of focus
+          behind the poster. This is a real photo, so the "camera" the demo
+          describes is a camera and not a gradient. */}
+      <Image
+        src={CAMERA_BACKDROP.src}
+        alt=""
+        fill
+        sizes="260px"
+        placeholder="blur"
+        blurDataURL={CAMERA_BACKDROP.blurDataURL || undefined}
+        className="object-cover opacity-70 blur-[2px]"
+        style={{ objectPosition: CAMERA_BACKDROP.position }}
+      />
+      <span
+        className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/55 to-indigo-950/85"
+        aria-hidden="true"
+      />
 
-      {/* the printed poster sitting in the viewfinder — paper stays paper */}
-      <div className="relative mx-5 mt-3 flex-1 overflow-hidden rounded-2xl bg-white p-4 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.9)]">
-        <div className="flex h-full flex-col items-center justify-center gap-2">
-          <div className="h-[104px] w-[104px] text-slate-900">
-            <QrGlyph />
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="px-4 pt-3 text-center">
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">Camera</p>
+        </div>
+
+        {/* the printed poster sitting in the viewfinder — paper stays paper */}
+        <div className="relative mx-5 mt-3 flex-1 overflow-hidden rounded-2xl bg-white p-4 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.9)]">
+          <div className="flex h-full flex-col items-center justify-center gap-2">
+            <div className="h-[104px] w-[104px] text-slate-900">
+              <QrGlyph />
+            </div>
+            <p className="text-[10px] font-black tracking-tight text-slate-900">
+              Amara &amp; Thabo&apos;s Wedding
+            </p>
+            <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Scan to add your photos
+            </p>
           </div>
-          <p className="text-[10px] font-black tracking-tight text-slate-900">
-            Amara &amp; Thabo&apos;s Wedding
-          </p>
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-            Scan to add your photos
-          </p>
+
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-full overflow-hidden">
+            <div className="absolute inset-x-2 h-[2px] animate-scan rounded-full bg-indigo-500 shadow-[0_0_14px_3px_rgba(99,102,241,0.85)]" />
+          </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-full overflow-hidden">
-          <div className="absolute inset-x-2 h-[2px] animate-scan rounded-full bg-indigo-500 shadow-[0_0_14px_3px_rgba(99,102,241,0.85)]" />
+        <div className="pointer-events-none absolute inset-x-4 top-[52px] bottom-[92px]">
+          {[
+            "left-0 top-0 border-l-2 border-t-2 rounded-tl-lg",
+            "right-0 top-0 border-r-2 border-t-2 rounded-tr-lg",
+            "left-0 bottom-0 border-b-2 border-l-2 rounded-bl-lg",
+            "right-0 bottom-0 border-b-2 border-r-2 rounded-br-lg",
+          ].map((position) => (
+            <span key={position} className={clsx("absolute h-5 w-5 border-white/80", position)} />
+          ))}
         </div>
-      </div>
 
-      <div className="pointer-events-none absolute inset-x-4 top-[52px] bottom-[92px]">
-        {[
-          "left-0 top-0 border-l-2 border-t-2 rounded-tl-lg",
-          "right-0 top-0 border-r-2 border-t-2 rounded-tr-lg",
-          "left-0 bottom-0 border-b-2 border-l-2 rounded-bl-lg",
-          "right-0 bottom-0 border-b-2 border-r-2 rounded-br-lg",
-        ].map((position) => (
-          <span key={position} className={clsx("absolute h-5 w-5 border-white/80", position)} />
-        ))}
-      </div>
-
-      <div className="px-4 pb-6 pt-4">
-        <p className="mb-3 text-center text-[10px] font-medium leading-relaxed text-slate-400">
-          memora.app detected · no app install needed
-        </p>
-        <PhoneButton onClick={onAdvance} icon={<ScanLine className="h-3.5 w-3.5" />}>
-          Open upload page
-        </PhoneButton>
+        <div className="px-4 pb-6 pt-4">
+          <p className="mb-3 text-center text-[10px] font-medium leading-relaxed text-slate-300">
+            memora.app detected · no app install needed
+          </p>
+          <PhoneButton onClick={onAdvance} icon={<ScanLine className="h-3.5 w-3.5" />}>
+            Open upload page
+          </PhoneButton>
+        </div>
       </div>
     </div>
   );
@@ -160,7 +182,13 @@ function PickPhase({ onAdvance }: { onAdvance: () => void }) {
                 selected ? "ring-indigo-500" : "ring-transparent"
               )}
             >
-              <PhotoTile seed={index + 2} className="h-full w-full" rounded="rounded-md" />
+              <PhotoTile
+                photo={cameraRollPhoto(index)}
+                sizes="80px"
+                priority={index < SELECTED_TILES}
+                className="h-full w-full"
+                rounded="rounded-md"
+              />
               {selected && (
                 <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm">
                   <Check className="h-2.5 w-2.5" strokeWidth={4} />
@@ -212,7 +240,12 @@ function UploadPhase({ progress, completed }: { progress: number; completed: num
               key={index}
               className="flex items-center gap-2.5 rounded-xl border border-slate-800 bg-slate-800/40 p-2"
             >
-              <PhotoTile seed={index + 2} className="h-9 w-9 shrink-0" rounded="rounded-lg" />
+              <PhotoTile
+                photo={uploadBatchPhoto(index)}
+                sizes="40px"
+                className="h-9 w-9 shrink-0"
+                rounded="rounded-lg"
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="truncate text-[9px] font-semibold text-slate-300">
@@ -276,7 +309,8 @@ function DonePhase({ onAdvance }: { onAdvance: () => void }) {
         {Array.from({ length: SELECTED_TILES }, (_, index) => (
           <PhotoTile
             key={index}
-            seed={index + 2}
+            photo={uploadBatchPhoto(index)}
+            sizes="80px"
             className="aspect-square w-full animate-pop-in"
             rounded="rounded-lg"
             style={{ animationDelay: `${index * 90}ms` }}

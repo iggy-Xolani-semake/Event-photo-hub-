@@ -1,109 +1,80 @@
+"use client";
+
 import clsx from "clsx";
+import Image from "next/image";
 import type { CSSProperties } from "react";
+import type { DemoPhoto } from "./demoPhotos";
 
 /**
- * A stylised stand-in for a guest photo, used inside the hero mockups.
+ * One photo tile inside the hero mockups and the feature cards.
  *
- * Deliberately not a real photograph: the hero must render instantly with zero
- * network requests (no layout shift, no broken tiles on a flaky venue
- * connection), and a decorative abstract tile reads as "product mockup" rather
- * than "stock photo". Every tile is derived from its seed with plain maths, so
- * the server and the client produce identical markup.
+ * It renders a real event photograph through next/image (`fill` + `object-cover`,
+ * so it scales cleanly inside a rounded card or a phone screen frame) with two
+ * overlays on top:
+ *
+ *   - `bg-black/20`, a flat scrim that keeps white text, hover badges and the
+ *     favourite heart readable no matter how bright the photo underneath is;
+ *   - a bottom-up gradient, which does the rest of the work where text sits.
+ *
+ * Optimization stays on: next/image picks a width from `sizes`, serves WebP,
+ * and (because the files are local) never has to reach a third-party host.
  */
 
-const PALETTES: ReadonlyArray<readonly [string, string]> = [
-  ["#fb923c", "#e11d48"],
-  ["#a855f7", "#4f46e5"],
-  ["#22d3ee", "#2563eb"],
-  ["#34d399", "#0f766e"],
-  ["#f472b6", "#7c3aed"],
-  ["#facc15", "#ea580c"],
-  ["#818cf8", "#1e1b4b"],
-  ["#4ade80", "#0891b2"],
-];
-
-const FALLBACK_PALETTE: readonly [string, string] = ["#818cf8", "#7c3aed"];
-
-/** Small deterministic PRNG so bokeh placement looks organic but never flickers. */
-function makeRandom(seed: number) {
-  let state = (seed + 1) * 1103515245;
-  return () => {
-    state = (state * 1103515245 + 12345) % 2147483648;
-    return state / 2147483648;
-  };
-}
-
-interface Bokeh {
-  top: number;
-  left: number;
-  size: number;
-  opacity: number;
-}
-
-function buildBokeh(seed: number): Bokeh[] {
-  const random = makeRandom(seed);
-  const count = 3 + Math.floor(random() * 2);
-  return Array.from({ length: count }, () => ({
-    top: 6 + random() * 62,
-    left: 4 + random() * 74,
-    size: 18 + random() * 46,
-    opacity: 0.12 + random() * 0.28,
-  }));
-}
-
 interface PhotoTileProps {
-  seed: number;
+  photo: DemoPhoto;
   className?: string;
   style?: CSSProperties;
-  /** Two dark figures at the bottom of the frame — reads as "people at a party". */
-  silhouettes?: boolean;
+  /** Tailwind rounding classes; matches the container it sits in. */
   rounded?: string;
+  /**
+   * Text alternative. Leave it undefined for the decorative tiles inside the
+   * mockups (the phone is already `aria-hidden`, the gallery is illustration)
+   * and pass real alt text where the photo carries meaning, e.g. feature cards.
+   */
+  alt?: string;
+  /** Layout hint for the srcset; always give the real rendered width. */
+  sizes?: string;
+  /** Preload this tile — only worth it for the first few above the fold. */
+  priority?: boolean;
 }
 
 export function PhotoTile({
-  seed,
+  photo,
   className,
   style,
-  silhouettes = seed % 3 === 0,
   rounded = "rounded-lg",
+  alt = "",
+  sizes = "(min-width: 1024px) 140px, 30vw",
+  priority = false,
 }: PhotoTileProps) {
-  const palette = PALETTES[seed % PALETTES.length] ?? FALLBACK_PALETTE;
-  const bokeh = buildBokeh(seed);
-
   return (
     <div
-      aria-hidden="true"
-      className={clsx("relative overflow-hidden", rounded, className)}
-      style={{
-        backgroundImage: `linear-gradient(150deg, ${palette[0]} 0%, ${palette[1]} 100%)`,
-        ...style,
-      }}
+      aria-hidden={alt ? undefined : "true"}
+      className={clsx("relative overflow-hidden bg-slate-800/60", rounded, className)}
+      style={style}
     >
-      {bokeh.map((dot, index) => (
-        <span
-          key={index}
-          className="absolute rounded-full bg-white blur-[2px]"
-          style={{
-            top: `${dot.top}%`,
-            left: `${dot.left}%`,
-            width: `${dot.size}%`,
-            aspectRatio: "1",
-            opacity: dot.opacity,
-          }}
-        />
-      ))}
+      <Image
+        src={photo.src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        placeholder="blur"
+        blurDataURL={photo.blurDataURL || undefined}
+        className="object-cover"
+        style={{
+          objectPosition: photo.position,
+          transform: photo.flip ? "scaleX(-1)" : undefined,
+        }}
+      />
 
-      {silhouettes && (
-        <>
-          <span className="absolute -bottom-[18%] left-[12%] h-[46%] w-[42%] rounded-[50%] bg-slate-950/40" />
-          <span className="absolute bottom-[26%] left-[22%] h-[26%] w-[22%] rounded-full bg-slate-950/40" />
-          <span className="absolute -bottom-[18%] right-[10%] h-[40%] w-[38%] rounded-[50%] bg-slate-950/30" />
-          <span className="absolute bottom-[22%] right-[20%] h-[22%] w-[20%] rounded-full bg-slate-950/30" />
-        </>
-      )}
-
-      {/* Vignette + top sheen so the tiles look like photos, not flat colour chips. */}
-      <span className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-white/10" />
+      {/* Readability scrim over every photo: flat darkening for badges and
+          hearts, gradient for the captions that sit at the bottom. */}
+      <span className="pointer-events-none absolute inset-0 bg-black/20" aria-hidden="true" />
+      <span
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-950/5 to-transparent"
+        aria-hidden="true"
+      />
     </div>
   );
 }

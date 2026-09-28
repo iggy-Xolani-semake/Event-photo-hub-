@@ -86,6 +86,36 @@ Trigger functions are deliberately *not* revoked: Postgres requires the role
 that fires a trigger to hold EXECUTE on its function, so revoking from
 anon/authenticated would break guest uploads and client event edits.
 
+### 0023 — editing your host profile actually saves (do not skip this one either)
+
+Report: a host changes "Your name" in Dashboard → Account Settings, the form
+says it saved, and the name is unchanged — in the form and in the header.
+
+Cause: `POST /api/account` posted the new name into `create_own_client_profile()`,
+which is an *ensure* function. For a caller who already has a `clients` row it
+returns early — `if found then return v_existing; end if;` — so `p_name` and
+`p_phone` were discarded by design. The settings screen was writing into the
+signup code path.
+
+`0023_client_profile_updates.sql` adds `update_own_client_profile(p_name, p_phone)`
+for the edit path and leaves the create function alone:
+
+- it targets the caller's own row by `auth.uid()` — there is no id parameter,
+  so a forged body cannot reach another account;
+- `NULL` means "leave this field alone", `''` means "clear it", so emptying the
+  phone field removes the number instead of being ignored;
+- a blank name raises `NAME_REQUIRED`, names cap at 120 characters and phones
+  at 32, enforced in Postgres rather than only in the form;
+- it returns the stored `{id, name, phone}` so the client renders what the
+  database holds.
+
+`/api/account` calls it, and falls back to `create_own_client_profile()` for a
+signed-in user with no row yet (an account created before the signup trigger
+existed). The form then calls `router.refresh()` so the header — which reads
+the name on the server — re-renders with the new value.
+`npm run verify:profile` reproduces the whole thing against real Postgres,
+including that one host still cannot write (or even read) another's row.
+
 ### V2 Sprint 3 — packages, payment, download entitlement
 
 Two things that used to be one are now separate:
@@ -169,6 +199,28 @@ npm run typecheck   # tsc --noEmit
 npm run lint
 npm run build        # production build
 ```
+
+### Landing page photography
+
+The hero mockups (phone + host gallery) and the feature cards render real event
+photographs, not gradient placeholder blocks. They live in
+`public/images/demo/*.webp` (10 frames, ~90 KB each, 1080 px wide) and are
+mapped to tiles in `src/components/landing/mockup/demoPhotos.ts`: which photo
+goes in which gallery slot, how each one is cropped for a square tile, and the
+16 px blur placeholder shown while it decodes.
+
+Files were chosen over remote URLs on purpose. `next/image` optimizes on the
+server, so pointing the tiles at images.unsplash.com would make every landing
+page depend on a third-party host being reachable from wherever the server
+runs — an offline or locked-down environment then renders broken images.
+Local files go through the same optimizer with nothing to fetch and no
+hotlinking or rate limits. Swapping to Unsplash URLs later means editing `src`
+in that one file (`images.remotePatterns` in `next.config.ts` already allows
+`images.unsplash.com`); the tile component itself does not change.
+
+To re-shoot the set, drop new frames in `public/images/demo/`, then regenerate
+the blur placeholders with the command in the header of
+`src/components/landing/mockup/demoPhotoBlur.ts`.
 
 ## Deployment (Netlify or Vercel)
 
@@ -287,7 +339,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all nine migrations in order (0001–0006, 0009–0011); if one reported an object already
+- [ ] Ran every file in `supabase/migrations/` in numeric order (0001 … 0023); if one reported an object already
       existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
       (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
@@ -379,7 +431,8 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0006 + 0009-0011, run in order
+  migrations/               run in numeric order — 0023_client_profile_updates is
+                            the newest; see the 0023 note above
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list
