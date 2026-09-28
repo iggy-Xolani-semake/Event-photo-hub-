@@ -1,7 +1,12 @@
 "use client";
 
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { Button } from "@/components/ui/Button";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
+import { Input } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
@@ -33,54 +38,44 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 py-12">
-      <section className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <p className="font-display text-2xl">Memora</p>
-          <p className="mt-2 text-sm text-white/50">Reset your admin password</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 sm:p-8">
-          <h1 className="text-xl font-semibold">Forgot your password?</h1>
-          <p className="mt-2 text-sm leading-6 text-white/60">
-            Enter the email address used for your admin account. We will send you a secure link to choose a new password.
-          </p>
-
-          {message && (
-            <div role="status" className="mt-5 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
-              {message}
-            </div>
-          )}
-          {error && (
-            <div role="alert" className="mt-5 rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-100">
-              {error}
-            </div>
-          )}
-
-          <label htmlFor="recovery-email" className="mt-6 block text-sm text-white/70">Email</label>
-          <input
-            id="recovery-email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="tap-target mt-6 w-full rounded-xl bg-accent px-6 py-3 font-semibold text-ink-950 disabled:cursor-not-allowed disabled:opacity-60"
+    <AuthLayout
+      title="Forgot your password?"
+      subtitle="Enter the email address on your account and we'll send a secure recovery link."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {message && (
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm leading-relaxed text-emerald-200"
           >
-            {loading ? "Sending link…" : "Send recovery link"}
-          </button>
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" strokeWidth={2.2} />
+            {message}
+          </div>
+        )}
+        {error && <ErrorAlert title="Recovery email failed">{error}</ErrorAlert>}
 
-          <Link href="/admin/login" className="mt-5 block text-center text-sm text-white/60 underline decoration-white/20 underline-offset-4 hover:text-white">
-            Back to admin login
-          </Link>
-        </form>
-      </section>
-    </main>
+        <Input
+          label="Email"
+          id="recovery-email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+        />
+
+        <Button type="submit" loading={loading} className="w-full">
+          {loading ? "Sending link…" : "Send recovery link"}
+        </Button>
+      </form>
+
+      <Link
+        href="/login"
+        className="mt-6 block text-center text-sm text-slate-400 underline decoration-slate-700 underline-offset-4 transition-colors hover:text-white"
+      >
+        Back to sign in
+      </Link>
+    </AuthLayout>
   );
 }

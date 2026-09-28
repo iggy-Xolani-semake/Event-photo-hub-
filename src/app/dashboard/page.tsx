@@ -1,13 +1,25 @@
+import { Images } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth/requireUser";
-import { ensureOwnClientProfile } from "@/lib/auth/eventAccess";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CreateEventForm } from "@/components/dashboard/CreateEventForm";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ensureOwnClientProfile } from "@/lib/auth/eventAccess";
+import { requireUser } from "@/lib/auth/requireUser";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatEventDate, formatStorageSize } from "@/lib/format";
-import type { Event } from "@/types/database";
+import type { Event, EventStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_TONE: Record<EventStatus, BadgeTone> = {
+  active: "success",
+  closed: "processing",
+  archived: "neutral",
+};
 
 export default async function ClientDashboardPage() {
   const user = await requireUser();
@@ -33,96 +45,104 @@ export default async function ClientDashboardPage() {
     .returns<Event[]>();
 
   const allEvents = events ?? [];
-  const activeEvents = allEvents.filter((e) => e.status === "active");
-  const totalPhotos = allEvents.reduce((sum, e) => sum + e.photo_count, 0);
+  const activeEvents = allEvents.filter((event) => event.status === "active");
+  const totalPhotos = allEvents.reduce((sum, event) => sum + event.photo_count, 0);
 
   return (
-    <main className="mx-auto max-w-5xl p-6 md:p-8">
-      <h1 className="font-display text-2xl mb-1">My events</h1>
-      <p className="text-white/50 text-sm mb-8">
-        Create an event, share its QR code, and watch the gallery fill up.
-      </p>
+    <div className="space-y-10">
+      <PageHeader
+        crumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Events" }]}
+        title="My events"
+        description="Create an event, share its QR code, and watch the gallery fill up."
+      />
 
       {!clientId && (
-        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <div
+          role="alert"
+          className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm leading-relaxed text-amber-200"
+        >
           We couldn&apos;t finish setting up your account. Creating an event will not work until
           this is resolved — please try again in a moment.
         </div>
       )}
 
       {user.isAdmin && (
-        <div className="mb-6 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/70">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-5 py-4 text-sm leading-relaxed text-slate-400">
           You&apos;re signed in as a site admin, so this list shows every client&apos;s events. The
           staff console is at{" "}
-          <Link href="/admin" className="text-accent underline">
+          <Link href="/admin" className="font-medium text-indigo-300 underline underline-offset-4 hover:text-indigo-200">
             /admin
           </Link>
           .
         </div>
       )}
 
-      <div className="mb-8 grid grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Events" value={allEvents.length.toLocaleString()} />
         <Stat label="Active" value={activeEvents.length.toLocaleString()} />
         <Stat label="Photos collected" value={totalPhotos.toLocaleString()} />
       </div>
 
-      <div className="mb-10">
+      <div id="new-event" className="scroll-mt-24">
         <CreateEventForm />
       </div>
 
-      <h2 className="text-lg font-medium mb-4">Your events</h2>
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-100 md:text-2xl">
+          Your events
+        </h2>
 
-      {allEvents.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/15 p-10 text-center text-white/50">
-          No events yet. Create your first one above to get a QR code and guest link.
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {allEvents.map((event) => (
-            <EventRow key={event.id} event={event} />
-          ))}
-        </div>
-      )}
-    </main>
+        {allEvents.length === 0 ? (
+          <EmptyState
+            icon={<Images className="h-6 w-6" strokeWidth={2} />}
+            title="No events yet"
+            description="Create your first event above to get a QR code, a guest link and a live gallery."
+            action={
+              <ButtonLink href="#new-event" variant="secondary">
+                Create your first event
+              </ButtonLink>
+            }
+          />
+        ) : (
+          <div className="grid gap-3">
+            {allEvents.map((event) => (
+              <EventRow key={event.id} event={event} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="mt-1 text-sm text-white/50">{label}</p>
-    </div>
+    <Card className="p-5">
+      <p className="text-3xl font-bold tracking-tight text-white tabular-nums">{value}</p>
+      <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
+    </Card>
   );
 }
 
 function EventRow({ event }: { event: Event }) {
-  const statusStyle =
-    event.status === "active"
-      ? "bg-green-500/20 text-green-300"
-      : event.status === "closed"
-        ? "bg-amber-500/20 text-amber-300"
-        : "bg-white/10 text-white/50";
-
   const date = formatEventDate(event.event_date);
 
   return (
     <Link
       href={`/dashboard/events/${event.event_code}`}
-      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition-colors hover:bg-white/[0.07]"
+      className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 px-5 py-4 shadow-xl transition-all hover:-translate-y-0.5 hover:border-indigo-500/40"
     >
       <div className="min-w-0">
-        <p className="truncate font-medium">{event.event_name}</p>
-        <p className="text-sm text-white/40">
+        <p className="truncate font-semibold text-slate-100">{event.event_name}</p>
+        <p className="mt-0.5 truncate text-sm text-slate-400">
           {date ? `${date} · ` : ""}
           {event.photo_count.toLocaleString()} / {event.upload_limit.toLocaleString()} memories ·{" "}
           {formatStorageSize(event.storage_used_bytes)}
         </p>
       </div>
-      <span className={`ml-3 shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle}`}>
+      <Badge tone={STATUS_TONE[event.status]} dot={event.status === "active"} className="shrink-0">
         {event.status}
-      </span>
+      </Badge>
     </Link>
   );
 }

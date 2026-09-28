@@ -24,8 +24,8 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="p-6 md:p-8 max-w-6xl mx-auto">
-      <h1 className="font-display text-2xl mb-1">Memora</h1>
-      <p className="text-white/50 text-sm mb-8">Dashboard overview</p>
+      <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Memora</h1>
+      <p className="text-slate-500 text-sm mb-8">Dashboard overview</p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         <StatCard label="Active Events" value={activeEvents.length.toLocaleString()} />
@@ -37,14 +37,14 @@ export default async function AdminDashboardPage() {
         <h2 className="text-lg font-medium">Events</h2>
         <Link
           href="/admin/events/new"
-          className="bg-accent text-ink-950 font-semibold text-sm rounded-lg px-4 py-2"
+          className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm rounded-lg px-4 py-2"
         >
           + Create Event
         </Link>
       </div>
 
       {allEvents.length === 0 ? (
-        <div className="border border-dashed border-white/15 rounded-xl p-10 text-center text-white/50">
+        <div className="border border-dashed border-slate-700 rounded-xl p-10 text-center text-slate-500">
           No events yet. Create your first event to generate a QR code and guest upload link.
         </div>
       ) : (
@@ -60,25 +60,25 @@ export default async function AdminDashboardPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+    <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
       <p className="text-2xl font-semibold">{value}</p>
-      <p className="text-white/50 text-sm mt-1">{label}</p>
+      <p className="text-slate-500 text-sm mt-1">{label}</p>
     </div>
   );
 }
 
 function EventRow({ event }: { event: Event }) {
   const statusColor =
-    event.status === "active" ? "bg-green-500/20 text-green-300" : event.status === "closed" ? "bg-amber-500/20 text-amber-300" : "bg-white/10 text-white/50";
+    event.status === "active" ? "bg-green-500/20 text-green-300" : event.status === "closed" ? "bg-amber-500/20 text-amber-300" : "bg-slate-800/60 text-slate-500";
 
   return (
     <Link
       href={`/admin/events/${event.event_code}`}
-      className="flex items-center justify-between bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl px-5 py-4 transition-colors"
+      className="flex items-center justify-between bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded-xl px-5 py-4 transition-colors"
     >
       <div>
         <p className="font-medium">{event.event_name}</p>
-        <p className="text-white/40 text-sm">
+        <p className="text-slate-500 text-sm">
           {event.photo_count.toLocaleString()} memories · {formatStorageSize(event.storage_used_bytes)}
         </p>
       </div>

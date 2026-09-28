@@ -30,29 +30,29 @@ export function UploadSuccessScreen({
 
   if (allFailed) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
         <div className="mb-6 text-6xl">⚠️</div>
         <h1 className="mb-2 text-2xl font-semibold">Upload interrupted</h1>
-        <p className="mb-10 max-w-sm text-white/60">
+        <p className="mb-10 max-w-sm text-slate-400">
           None of your memories made it through. Check your connection and try again —
           nothing was lost.
         </p>
         <button
           type="button"
           onClick={onRetryFailed}
-          className="tap-target rounded-2xl bg-accent px-10 py-4 text-lg font-semibold text-ink-950 transition-transform active:scale-[0.98]"
+          className="tap-target rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-10 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98]"
         >
           Try again
         </button>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen animate-fade-in flex-col items-center justify-center px-6 text-center">
+    <div className="flex animate-fade-in flex-col items-center justify-center px-4 py-10 text-center">
       <div className="mb-6 animate-slide-up text-6xl">🎉</div>
       <h1 className="mb-3 font-display text-3xl leading-tight">They&apos;re live!</h1>
-      <p className="max-w-sm text-white/60">
+      <p className="max-w-sm text-slate-400">
         Your {successCount} photo{successCount === 1 ? "" : "s"} {successCount === 1 ? "is" : "are"}{" "}
         now part of {eventName}
         {galleryAvailable && galleryCount !== null ? ` — ${galleryCount} in total.` : "."}
@@ -68,7 +68,7 @@ export function UploadSuccessScreen({
         {galleryAvailable && (
           <a
             href={galleryHref}
-            className="tap-target flex w-full items-center justify-center rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
+            className="tap-target flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-transform active:scale-[0.98]"
           >
             {galleryCount !== null ? `See all ${galleryCount} photos` : "See the gallery"}
           </a>
@@ -89,13 +89,13 @@ export function UploadSuccessScreen({
           onClick={onAddMore}
           className={`tap-target w-full rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
             galleryAvailable
-              ? "border border-white/20 bg-white/10 text-white"
-              : "bg-accent text-ink-950 shadow-lg shadow-accent/20"
+              ? "border border-slate-700 bg-slate-800/60 text-white"
+              : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
           }`}
         >
           Add more photos
         </button>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { Button } from "@/components/ui/Button";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
+import { Input } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
@@ -39,66 +43,44 @@ export default function LoginPage() {
     router.refresh();
   }
 
-  const inputClass =
-    "w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 outline-none focus:border-accent";
-
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <Link href="/" className="font-display text-2xl block mb-8">
-          Memora
+    <AuthLayout title="Sign in" subtitle="Manage your events and download your memories.">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <ErrorAlert title="We couldn't sign you in">{error}</ErrorAlert>}
+
+        <Input
+          label="Email"
+          required
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+        />
+
+        <Input
+          label="Password"
+          required
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="••••••••"
+        />
+
+        <Button type="submit" loading={busy} className="w-full">
+          {busy ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
+
+      <div className="mt-6 flex items-center justify-between text-sm">
+        <Link href="/forgot-password" className="text-slate-400 transition-colors hover:text-white">
+          Forgot password?
         </Link>
-
-        <h1 className="font-display text-3xl mb-2">Sign in</h1>
-        <p className="text-white/50 text-sm mb-8">Manage your events and download your memories.</p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-sm rounded-xl px-4 py-3">
-              {error}
-            </div>
-          )}
-
-          <label className="block">
-            <span className="block text-sm text-white/60 mb-1.5">Email</span>
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-sm text-white/60 mb-1.5">Password</span>
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full bg-accent text-ink-950 font-semibold rounded-lg px-5 py-3 disabled:opacity-60"
-          >
-            {busy ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-
-        <div className="flex items-center justify-between mt-6 text-sm">
-          <Link href="/forgot-password" className="text-white/50 hover:text-white/80">
-            Forgot password?
-          </Link>
-          <Link href="/signup" className="text-accent underline">
-            Create an account
-          </Link>
-        </div>
+        <Link href="/signup" className="font-medium text-indigo-300 transition-colors hover:text-indigo-200">
+          Create an account
+        </Link>
       </div>
-    </main>
+    </AuthLayout>
   );
 }

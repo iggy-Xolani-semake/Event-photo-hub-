@@ -15,13 +15,13 @@ export default async function ClientLayout({ children }: { children: React.React
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-ink-950 text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <Link href="/client" className="font-display text-lg">
+    <div className="min-h-screen bg-canvas text-white">
+      <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <Link href="/client" className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
           Your Events
         </Link>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-white/40 hidden sm:block">{user?.email}</span>
+          <span className="text-xs text-slate-500 hidden sm:block">{user?.email}</span>
           <SignOutButton />
         </div>
       </header>

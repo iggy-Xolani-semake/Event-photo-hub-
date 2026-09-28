@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { AppFooter } from "@/components/layout/AppFooter";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export const metadata = { title: "Privacy Policy — Memora" };
 
@@ -8,13 +9,12 @@ export const metadata = { title: "Privacy Policy — Memora" };
 // sign-off before this is relied on for a live paying client base.
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen px-6 py-12 max-w-2xl mx-auto text-white/80 leading-relaxed">
-      <Link href="/" className="text-sm text-white/50 hover:text-white/80">
-        ← Back
-      </Link>
+    <div className="flex min-h-screen flex-col">
+      <AppHeader />
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12 leading-relaxed text-slate-400">
 
-      <h1 className="font-display text-3xl text-white mt-4 mb-2">Privacy Policy</h1>
-      <p className="text-white/40 text-sm mb-10">Last updated: 1 September 2026</p>
+      <h1 className="mt-2 mb-2 text-3xl font-bold tracking-tight text-white md:text-4xl">Privacy Policy</h1>
+      <p className="text-slate-500 text-sm mb-10">Last updated: 1 September 2026</p>
 
       <Section title="Who this policy covers">
         <p>
@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
           guests. If you&apos;re a guest scanning a QR code to upload a photo, or a client viewing
           your memory gallery, this policy explains what happens with your information.
         </p>
-        <p className="mt-3 text-white/50 text-sm">
+        <p className="mt-3 text-slate-500 text-sm">
           [LEGAL REVIEW NEEDED: depending on the exact arrangement with each client, NSX Inc may
           be acting as a POPIA &ldquo;responsible party&rdquo;, an &ldquo;operator&rdquo;, or both
           depending on the event — this should be confirmed with a legal advisor and this section
@@ -68,7 +68,7 @@ export default function PrivacyPolicyPage() {
           stored using Supabase, a managed database provider. Depending on configuration, data may
           be stored on servers outside South Africa.
         </p>
-        <p className="mt-3 text-white/50 text-sm">
+        <p className="mt-3 text-slate-500 text-sm">
           [LEGAL REVIEW NEEDED: confirm the actual Supabase/R2 region(s) in use and whether
           POPIA&apos;s cross-border transfer conditions (Section 72) are satisfied — e.g. via the
           provider&apos;s own compliance commitments — and reference that specifically here.]
@@ -114,20 +114,22 @@ export default function PrivacyPolicyPage() {
         <p className="mt-2 text-white">nsxincorporated@gmail.com</p>
       </Section>
 
-      <p className="text-white/40 text-xs mt-12 border-t border-white/10 pt-6">
+      <p className="text-slate-500 text-xs mt-12 border-t border-slate-800 pt-6">
         This policy is a general template and has not been reviewed by a lawyer. Sections marked
         &ldquo;LEGAL REVIEW NEEDED&rdquo; should be confirmed with a South African legal or POPIA
         compliance advisor before this service is used to collect real guest photographs at
         paying-client events.
       </p>
     </main>
+      <AppFooter />
+    </div>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-medium text-white mb-3">{title}</h2>
+      <h2 className="mb-3 text-xl font-semibold text-slate-100 md:text-2xl">{title}</h2>
       {children}
     </section>
   );

@@ -48,8 +48,8 @@ export default function CreateEventPage() {
 
   return (
     <main className="p-6 md:p-8 max-w-2xl mx-auto">
-      <h1 className="font-display text-2xl mb-1">Create Event</h1>
-      <p className="text-white/50 text-sm mb-8">
+      <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Create Event</h1>
+      <p className="text-slate-500 text-sm mb-8">
         Generates a unique event code, guest upload link, and QR code.
       </p>
 
@@ -79,8 +79,8 @@ export default function CreateEventPage() {
           />
         </Field>
 
-        <div className="border-t border-white/10 pt-5">
-          <p className="text-sm font-medium text-white/70 mb-4">Client details</p>
+        <div className="border-t border-slate-800 pt-5">
+          <p className="text-sm font-medium text-slate-400 mb-4">Client details</p>
 
           <Field label="Client name" required>
             <input
@@ -106,8 +106,8 @@ export default function CreateEventPage() {
           </Field>
         </div>
 
-        <div className="border-t border-white/10 pt-5">
-          <p className="text-sm font-medium text-white/70 mb-4">Limits</p>
+        <div className="border-t border-slate-800 pt-5">
+          <p className="text-sm font-medium text-slate-400 mb-4">Limits</p>
 
           <Field label="Memory limit">
             <input
@@ -134,7 +134,7 @@ export default function CreateEventPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-accent text-ink-950 font-semibold rounded-xl px-6 py-3 disabled:opacity-60"
+          className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl px-6 py-3 disabled:opacity-60"
         >
           {loading ? "Creating…" : "Create Event"}
         </button>
@@ -168,8 +168,8 @@ function Field({
 }) {
   return (
     <label className="block mb-4">
-      <span className="block text-sm text-white/70 mb-1.5">
-        {label} {required && <span className="text-accent">*</span>}
+      <span className="block text-sm text-slate-400 mb-1.5">
+        {label} {required && <span className="text-violet-400">*</span>}
       </span>
       {children}
     </label>
