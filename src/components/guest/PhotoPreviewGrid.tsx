@@ -32,20 +32,20 @@ export function PhotoPreviewGrid({
   const atLimit = items.length >= maxFilesPerUpload;
 
   return (
-    <main className="flex min-h-screen flex-col px-5 py-8">
+    <div className="flex flex-col px-4 py-6">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
         {/* FROG #8 — the limit is visible as a counter, never a surprise. */}
         <div className="mb-4 flex items-baseline justify-between">
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-slate-400">
             <span className="text-base font-semibold text-white">{items.length}</span> /{" "}
             {maxFilesPerUpload} photos
           </p>
-          {atLimit && <p className="text-xs text-white/40">That&apos;s the most at once</p>}
+          {atLimit && <p className="text-xs text-slate-500">That&apos;s the most at once</p>}
         </div>
 
         <div className="mb-6 grid grid-cols-3 gap-2">
           {items.map((item) => (
-            <div key={item.id} className="relative aspect-square overflow-hidden rounded-xl bg-white/5">
+            <div key={item.id} className="relative aspect-square overflow-hidden rounded-xl bg-slate-800/40">
               {/* eslint-disable-next-line @next/next/no-img-element -- local blob URL preview, not an R2 asset */}
               <img src={item.previewUrl} alt="" className="h-full w-full object-cover" />
 
@@ -64,7 +64,7 @@ export function PhotoPreviewGrid({
                 <div className="absolute inset-0 flex items-end bg-black/50">
                   <div className="h-1.5 w-full bg-black/40">
                     <div
-                      className="h-full bg-accent transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-300"
                       style={{ width: `${item.progress}%` }}
                     />
                   </div>
@@ -92,7 +92,7 @@ export function PhotoPreviewGrid({
         </div>
 
         {infoMessage && !isUploading && (
-          <p className="mb-4 text-center text-sm text-white/50">{infoMessage}</p>
+          <p className="mb-4 text-center text-sm text-slate-500">{infoMessage}</p>
         )}
 
         <div className="mt-auto flex flex-col gap-3">
@@ -112,7 +112,7 @@ export function PhotoPreviewGrid({
               <button
                 type="button"
                 onClick={successCount > 0 ? onContinue : onRetryFailed}
-                className="tap-target w-full rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 transition-transform active:scale-[0.98]"
+                className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98]"
               >
                 {successCount > 0 ? "Continue" : "Try again"}
               </button>
@@ -132,7 +132,7 @@ export function PhotoPreviewGrid({
                 type="button"
                 onClick={onUpload}
                 disabled={isUploading}
-                className="tap-target w-full rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 transition-transform active:scale-[0.98] disabled:opacity-60"
+                className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
               >
                 {isUploading
                   ? "Uploading…"
@@ -142,7 +142,7 @@ export function PhotoPreviewGrid({
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-white/60"
+                  className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400"
                 >
                   Cancel
                 </button>
@@ -151,6 +151,6 @@ export function PhotoPreviewGrid({
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -25,17 +25,17 @@ export function PrintablePoster({ eventName, url }: Props) {
     <div>
       <button
         onClick={handlePrint}
-        className="text-sm bg-white/10 border border-white/20 rounded-lg px-3 py-2 mb-4 print:hidden"
+        className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2 mb-4 print:hidden"
       >
         Print Poster
       </button>
 
       <div
         ref={printRef}
-        className="bg-white text-ink-950 rounded-2xl p-10 text-center max-w-md mx-auto print:max-w-none print:rounded-none print:mx-0"
+        className="bg-white text-white rounded-2xl p-10 text-center max-w-md mx-auto print:max-w-none print:rounded-none print:mx-0"
       >
         <p className="text-3xl font-bold mb-1">📸 SHARE YOUR MOMENTS</p>
-        <p className="text-lg mb-6 text-ink-700">{eventName}</p>
+        <p className="text-lg mb-6 text-slate-700">{eventName}</p>
 
         {qrDataUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- print layout, data URL
@@ -43,7 +43,7 @@ export function PrintablePoster({ eventName, url }: Props) {
         )}
 
         <p className="text-2xl font-semibold mb-4">Scan the QR code</p>
-        <div className="text-lg space-y-1 text-ink-700">
+        <div className="text-lg space-y-1 text-slate-700">
           <p>Add a moment</p>
           <p>Upload it</p>
           <p>See the memories</p>

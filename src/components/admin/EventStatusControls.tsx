@@ -35,7 +35,7 @@ export function EventStatusControls({ eventCode, status, endpoint }: Props) {
       <button
         onClick={() => updateStatus("closed")}
         disabled={loading}
-        className="text-sm bg-white/10 border border-white/20 rounded-lg px-4 py-2 disabled:opacity-60"
+        className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-2 disabled:opacity-60"
       >
         Close Event
       </button>
@@ -51,7 +51,7 @@ export function EventStatusControls({ eventCode, status, endpoint }: Props) {
         <button
           onClick={() => updateStatus("active")}
           disabled={loading}
-          className="text-sm bg-accent text-ink-950 font-semibold rounded-lg px-4 py-2 disabled:opacity-60"
+          className="text-sm bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg px-4 py-2 disabled:opacity-60"
         >
           Reopen Event
         </button>
@@ -59,5 +59,5 @@ export function EventStatusControls({ eventCode, status, endpoint }: Props) {
     );
   }
 
-  return <span className="text-xs font-medium bg-white/10 text-white/50 rounded-full px-3 py-1.5">Archived</span>;
+  return <span className="text-xs font-medium bg-slate-800/60 text-slate-500 rounded-full px-3 py-1.5">Archived</span>;
 }

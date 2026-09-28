@@ -26,23 +26,23 @@ export function ShareEventButton({ url, title = "Memora" }: Props) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="text-sm bg-white/10 border border-white/20 rounded-lg px-3 py-2"
+        className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2"
         aria-expanded={open}
         aria-haspopup="menu"
       >
         Share event
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-2 grid min-w-48 gap-1 rounded-xl border border-white/10 bg-ink-800 p-2 shadow-xl" role="menu">
-          <button type="button" onClick={shareNative} className="rounded-lg px-3 py-2 text-left text-sm hover:bg-white/10">
+        <div className="absolute right-0 z-20 mt-2 grid min-w-48 gap-1 rounded-xl border border-slate-800 bg-slate-800/60 p-2 shadow-xl" role="menu">
+          <button type="button" onClick={shareNative} className="rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-800">
             Share or copy link
           </button>
-          <a target="_blank" rel="noopener noreferrer" href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">Facebook</a>
-          <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">WhatsApp</a>
-          <a href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">Email</a>
-          <a target="_blank" rel="noopener noreferrer" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">LinkedIn</a>
-          <a target="_blank" rel="noopener noreferrer" href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">X / Twitter</a>
-          <a target="_blank" rel="noopener noreferrer" href="https://www.instagram.com/" className="rounded-lg px-3 py-2 text-sm hover:bg-white/10" role="menuitem">Instagram</a>
+          <a target="_blank" rel="noopener noreferrer" href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">Facebook</a>
+          <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">WhatsApp</a>
+          <a href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">Email</a>
+          <a target="_blank" rel="noopener noreferrer" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">LinkedIn</a>
+          <a target="_blank" rel="noopener noreferrer" href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">X / Twitter</a>
+          <a target="_blank" rel="noopener noreferrer" href="https://www.instagram.com/" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" role="menuitem">Instagram</a>
         </div>
       )}
     </div>

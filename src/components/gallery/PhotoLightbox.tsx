@@ -83,7 +83,7 @@ export function PhotoLightbox({
         <button onClick={onClose} className="text-2xl w-10 h-10 flex items-center justify-center">
           ✕
         </button>
-        <span className="text-sm text-white/50">
+        <span className="text-sm text-slate-500">
           {index + 1} / {photos.length}
         </span>
         <button
@@ -104,7 +104,7 @@ export function PhotoLightbox({
       <div className="px-4 py-4 flex justify-center gap-3">
         <button
           onClick={handleDownloadOriginal}
-          className="tap-target bg-white/10 border border-white/20 text-white rounded-full px-6 py-3 text-sm font-medium"
+          className="tap-target bg-slate-800/60 border border-slate-700 text-white rounded-full px-6 py-3 text-sm font-medium"
         >
           Download Original
         </button>

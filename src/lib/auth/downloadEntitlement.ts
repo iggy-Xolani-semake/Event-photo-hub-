@@ -1,6 +1,7 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isApprovedAdminUser } from "@/lib/auth/adminAllowlist";
 
 export type DownloadReason = "admin" | "owner_paid" | "unpaid_owner" | "not_owner";
 
@@ -82,8 +83,7 @@ export async function resolveDownloadEntitlement(
     return { allowed: false, reason: "not_owner" };
   }
 
-  const role = (user.app_metadata as Record<string, unknown> | undefined)?.role;
-  const isAdmin = role === "admin";
+  const isAdmin = isApprovedAdminUser(user);
 
   // Ownership is answered by RLS, not by comparing client_id in application
   // code: events_select_authenticated already encodes the rule.

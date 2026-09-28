@@ -15,11 +15,11 @@ interface Props {
  */
 export function ShareConsentScreen({ onConfirm, onBack }: Props) {
   return (
-    <main className="min-h-screen px-6 pb-8 pt-12">
+    <div className="px-4 pb-8 pt-8">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md flex-col">
         <h1 className="font-display text-3xl leading-tight">Before you share</h1>
 
-        <div className="mt-8 space-y-4 text-base leading-relaxed text-white/70">
+        <div className="mt-8 space-y-4 text-base leading-relaxed text-slate-400">
           <p>
             Only upload photos you&apos;re comfortable sharing with everyone who
             has this event&apos;s link.
@@ -35,14 +35,14 @@ export function ShareConsentScreen({ onConfirm, onBack }: Props) {
           <button
             type="button"
             onClick={onConfirm}
-            className="tap-target w-full rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
+            className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-transform active:scale-[0.98]"
           >
             I understand
           </button>
           <button
             type="button"
             onClick={onBack}
-            className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-white/60"
+            className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400"
           >
             Back
           </button>
@@ -53,6 +53,6 @@ export function ShareConsentScreen({ onConfirm, onBack }: Props) {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

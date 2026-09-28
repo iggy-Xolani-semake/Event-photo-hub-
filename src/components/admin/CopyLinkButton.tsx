@@ -14,7 +14,7 @@ export function CopyLinkButton({ url, label }: { url: string; label: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-center text-sm bg-white/10 border border-white/20 rounded-lg px-4 py-3"
+      className="text-center text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-3"
     >
       {copied ? "Copied ✓" : label}
     </button>

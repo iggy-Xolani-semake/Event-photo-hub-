@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isApprovedAdminUser } from "@/lib/auth/adminAllowlist";
 
 /**
  * Used at the top of every /api/admin/** route. The route namespace is
@@ -18,7 +19,12 @@ export async function requireAdmin(): Promise<{ userId: string; role: string; cu
   const role = (user.app_metadata as Record<string, unknown> | undefined)?.role;
   if (role !== "admin" && role !== "curator") return null;
 
-  if (role === "admin") return { userId: user.id, role, curatorId: null };
+  if (role === "admin") {
+    // The role claim alone is not enough: global admin access also requires
+    // an email on the approved allowlist (mirrored in SQL by migration
+    // 0022_admin_email_allowlist.sql redefining is_admin()).
+    return isApprovedAdminUser(user) ? { userId: user.id, role, curatorId: null } : null;
+  }
 
   const { data: curator } = await supabase
     .from("curators")

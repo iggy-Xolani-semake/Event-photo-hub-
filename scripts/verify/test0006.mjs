@@ -53,7 +53,7 @@ await db.exec(`
   grant all on all tables in schema public to service_role;
   insert into auth.users (id, email, raw_app_meta_data) values
     ('${ALICE}', 'alice@example.com', '{"role":"client"}'),
-    ('${ADMIN}', 'staff@example.com', '{"role":"admin"}');
+    ('${ADMIN}', 'xolanisemake@gmail.com', '{"role":"admin"}');
 `);
 
 const asRole = async (role, claims = "") => {
@@ -64,7 +64,7 @@ const asRole = async (role, claims = "") => {
 const client = (sub, email) =>
   asRole("authenticated", JSON.stringify({ sub, email, role: "authenticated", app_metadata: { role: "client" } }));
 const admin = () =>
-  asRole("authenticated", JSON.stringify({ sub: ADMIN, email: "staff@example.com", role: "authenticated", app_metadata: { role: "admin" } }));
+  asRole("authenticated", JSON.stringify({ sub: ADMIN, email: "xolanisemake@gmail.com", role: "authenticated", app_metadata: { role: "admin" } }));
 
 let failures = 0;
 const check = (name, pass, detail = "") => {

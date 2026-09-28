@@ -68,10 +68,10 @@ export function UnlockDownloadsPanel({
   }
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+    <section className="rounded-xl border border-slate-800 bg-slate-800/40 p-5">
       <h2 className="mb-2 font-medium">Unlock original downloads</h2>
 
-      <p className="mb-4 text-sm leading-relaxed text-white/60">
+      <p className="mb-4 text-sm leading-relaxed text-slate-400">
         Your guests can already see and share the gallery — that part is free. Downloading the
         full-resolution originals is what the package pays for.
         {packageName ? (
@@ -86,7 +86,7 @@ export function UnlockDownloadsPanel({
       </p>
 
       {message && (
-        <div className="mb-4 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/80">
+        <div className="mb-4 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-sm text-slate-300">
           {message}
         </div>
       )}
@@ -102,7 +102,7 @@ export function UnlockDownloadsPanel({
             type="button"
             onClick={() => call(`/api/events/${eventCode}/checkout`)}
             disabled={busy}
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-ink-950 disabled:opacity-60"
+            className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
             {busy ? "Working…" : priceLabel ? `Pay ${priceLabel}` : "Start payment"}
           </button>
@@ -113,7 +113,7 @@ export function UnlockDownloadsPanel({
             type="button"
             onClick={() => call(`/api/admin/events/${eventCode}/mark-paid`)}
             disabled={busy}
-            className="rounded-lg border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-xl border border-slate-700 bg-slate-800/80 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
             Mark as paid (EFT confirmed)
           </button>
@@ -121,7 +121,7 @@ export function UnlockDownloadsPanel({
       </div>
 
       {!hasPackage && (
-        <p className="mt-3 text-xs text-white/40">
+        <p className="mt-3 text-xs text-slate-500">
           Events created before packages existed have no tier. Ask us to assign one.
         </p>
       )}
