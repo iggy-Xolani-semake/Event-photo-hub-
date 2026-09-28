@@ -13,30 +13,30 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-ink-950 text-white">
-      <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-white/10 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
+    <div className="min-h-screen flex flex-col md:flex-row bg-canvas text-white">
+      <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-slate-800 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
         <div>
-          <Link href="/admin" className="font-display text-lg block mb-6">
+          <Link href="/admin" className="mb-6 block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
             Memora
           </Link>
           <nav className="hidden md:flex flex-col gap-1 text-sm">
-            <Link href="/admin" className="px-3 py-2 rounded-lg hover:bg-white/5 text-white/80">
+            <Link href="/admin" className="px-3 py-2 rounded-lg hover:bg-slate-800/40 text-slate-300">
               Dashboard
             </Link>
-            <Link href="/admin/events/new" className="px-3 py-2 rounded-lg hover:bg-white/5 text-white/80">
+            <Link href="/admin/events/new" className="px-3 py-2 rounded-lg hover:bg-slate-800/40 text-slate-300">
               + Create Event
             </Link>
             <Link
               href="/privacy"
               target="_blank"
-              className="px-3 py-2 rounded-lg hover:bg-white/5 text-white/40 text-xs mt-2"
+              className="px-3 py-2 rounded-lg hover:bg-slate-800/40 text-slate-500 text-xs mt-2"
             >
               Privacy Policy
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-3 md:mt-auto md:pt-6 md:border-t md:border-white/10">
-          <span className="text-xs text-white/40 truncate hidden md:block">{user?.email}</span>
+        <div className="flex items-center gap-3 md:mt-auto md:pt-6 md:border-t md:border-slate-800">
+          <span className="text-xs text-slate-500 truncate hidden md:block">{user?.email}</span>
           <SignOutButton />
         </div>
       </aside>

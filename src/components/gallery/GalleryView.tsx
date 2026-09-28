@@ -138,7 +138,7 @@ export function GalleryView({
       {visiblePhotos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center px-6">
           <div className="text-4xl mb-3">📷</div>
-          <p className="text-white/50">
+          <p className="text-slate-500">
             {tab === "favourites" ? "No favourites yet." : "No memories yet — be the first to share one!"}
           </p>
         </div>
@@ -148,7 +148,7 @@ export function GalleryView({
             <button
               key={photo.id}
               onClick={() => (selectMode ? toggleSelected(photo.id) : canViewEnlarged && setLightboxIndex(index))}
-              className="relative aspect-square w-full overflow-hidden rounded-lg bg-white/5"
+              className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-800/40"
             >
               {photo.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- variable-aspect masonry tiles, next/image forces a fixed box
@@ -159,7 +159,7 @@ export function GalleryView({
                   className="w-full h-full object-cover block"
                 />
               ) : (
-                <div className="w-full aspect-square bg-white/5" />
+                <div className="w-full aspect-square bg-slate-800/40" />
               )}
 
               {photo.is_favourite && (
@@ -169,7 +169,7 @@ export function GalleryView({
               {selectMode && (
                 <span
                   className={`absolute top-1.5 left-1.5 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center text-[10px] ${
-                    selectedIds.has(photo.id) ? "bg-accent border-accent text-ink-950" : "bg-black/30"
+                    selectedIds.has(photo.id) ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-indigo-500 text-white" : "bg-black/30"
                   }`}
                 >
                   {selectedIds.has(photo.id) ? "✓" : ""}
@@ -199,10 +199,10 @@ export function GalleryView({
           the most motivated they will ever be to add their own, so the way
           back into the upload flow stays one tap away at all times. */}
       {canAddPhotos && (
-        <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-5 pt-8">
+        <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-canvas via-canvas/95 to-transparent px-4 pb-5 pt-8">
           <Link
             href={`/e/${eventCode}?add=1`}
-            className="tap-target mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
+            className="tap-target mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-transform active:scale-[0.98]"
           >
             <span aria-hidden="true" className="text-xl">
               ＋

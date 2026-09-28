@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Camera, Images, Plus } from "lucide-react";
 import { formatEventDate } from "@/lib/format";
 
 export interface LandingTeaser {
@@ -36,11 +37,9 @@ interface Props {
  * the only wall in this flow is the one the host pays to remove later.
  */
 export function EventLandingScreen({
-  eventName,
   eventDate,
   sharedCount,
   galleryAvailable,
-  brandCompanyName,
   teasers,
   galleryHref,
   onAddPhotos,
@@ -60,17 +59,11 @@ export function EventLandingScreen({
   const galleryIsPrimary = showGallery;
 
   return (
-    <main className="min-h-screen px-6 pb-8 pt-12">
+    <div className="px-4 pb-8 pt-8">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md flex-col">
-        <header>
-          {brandCompanyName && (
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
-              {brandCompanyName}
-            </p>
-          )}
-          <h1 className="mt-3 font-display text-4xl leading-tight">{eventName}</h1>
-          {formattedDate && <p className="mt-2 text-sm text-white/50">{formattedDate}</p>}
-        </header>
+        {formattedDate && (
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{formattedDate}</p>
+        )}
 
         {showGallery ? (
           <Link href={galleryHref} className="mt-8 block" aria-label="Open the memory gallery">
@@ -78,7 +71,7 @@ export function EventLandingScreen({
               {teasers.slice(0, 6).map((teaser, index) => (
                 <div
                   key={teaser.thumbnailUrl}
-                  className="relative aspect-square overflow-hidden rounded-xl bg-white/5"
+                  className="relative aspect-square overflow-hidden rounded-xl bg-slate-800/40"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element -- masonry-style teaser tiles, next/image forces a fixed box */}
                   <img
@@ -97,11 +90,11 @@ export function EventLandingScreen({
             </div>
           </Link>
         ) : (
-          <div className="mt-8 flex aspect-[3/2] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-6 text-center">
-            <span aria-hidden="true" className="text-3xl">
-              📷
+          <div className="mt-8 flex aspect-[3/2] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 px-6 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800/60 text-slate-400">
+              <Camera className="h-5 w-5" strokeWidth={2.2} />
             </span>
-            <p className="mt-3 text-sm text-white/50">
+            <p className="mt-3 text-sm text-slate-500">
               {showGallery
                 ? "No photos yet — yours could be the first."
                 : "Your memories go straight to the host."}
@@ -123,12 +116,12 @@ export function EventLandingScreen({
               href={galleryHref}
               className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
                 galleryIsPrimary
-                  ? "bg-accent text-ink-950 shadow-lg shadow-accent/20"
-                  : "border border-white/20 bg-white/10 text-white"
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                  : "border border-slate-700 bg-slate-800/60 text-white"
               }`}
             >
-              <span aria-hidden="true" className="text-xl">
-                🖼️
+              <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center">
+                <Images className="h-5 w-5" strokeWidth={2.2} />
               </span>
               See the photos
             </Link>
@@ -139,19 +132,19 @@ export function EventLandingScreen({
             onClick={onAddPhotos}
             className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
               galleryIsPrimary
-                ? "border border-white/20 bg-white/10 text-white"
-                : "bg-accent text-ink-950 shadow-lg shadow-accent/20"
+                ? "border border-slate-700 bg-slate-800/60 text-white"
+                : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
             }`}
           >
-            <span aria-hidden="true" className="text-xl">
-              ＋
+            <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center">
+              <Plus className="h-5 w-5" strokeWidth={2.6} />
             </span>
             Add my photos
           </button>
         </div>
 
         <div className="mt-auto pt-10 text-center">
-          <p className="text-xs text-white/40">No account needed · Free to share</p>
+          <p className="text-xs text-slate-500">No account needed · Free to share</p>
           <p className="mt-2 text-xs text-white/25">
             <a href="/privacy" className="underline">
               How we handle your memories
@@ -159,6 +152,6 @@ export function EventLandingScreen({
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

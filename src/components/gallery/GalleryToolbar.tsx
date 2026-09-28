@@ -90,15 +90,15 @@ export function GalleryToolbar({
   }
 
   return (
-    <div className="sticky top-0 z-10 mb-3 border-b border-white/10 bg-ink-950/90 px-4 py-3 backdrop-blur-md">
+    <div className="sticky top-0 z-10 mb-3 border-b border-slate-800 bg-canvas/90 px-4 py-3 backdrop-blur-md">
       <div className="mb-3 flex items-start justify-between">
         <div className="min-w-0">
           <h1 className="truncate font-display text-xl">{eventName}</h1>
-          {formattedDate && <p className="truncate text-xs text-white/40">{formattedDate}</p>}
+          {formattedDate && <p className="truncate text-xs text-slate-500">{formattedDate}</p>}
         </div>
         <button
           onClick={onToggleSelectMode}
-          className="shrink-0 rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/60"
+          className="shrink-0 rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-400"
         >
           {selectMode ? "Cancel" : "Select"}
         </button>
@@ -107,20 +107,20 @@ export function GalleryToolbar({
       <div className="mb-3 flex items-center gap-2 text-sm">
         <button
           onClick={() => onTabChange("all")}
-          className={`rounded-full px-3 py-1.5 ${tab === "all" ? "bg-white font-medium text-ink-950" : "text-white/60"}`}
+          className={`rounded-full px-3 py-1.5 ${tab === "all" ? "bg-white font-medium text-white" : "text-slate-400"}`}
         >
           All Memories: {totalCount}
         </button>
         <button
           onClick={() => onTabChange("favourites")}
-          className={`rounded-full px-3 py-1.5 ${tab === "favourites" ? "bg-white font-medium text-ink-950" : "text-white/60"}`}
+          className={`rounded-full px-3 py-1.5 ${tab === "favourites" ? "bg-white font-medium text-white" : "text-slate-400"}`}
         >
           ❤️ Favourites: {favouriteCount}
         </button>
       </div>
 
       {downloadStatus && (
-        <p className="mb-2 text-xs text-white/60" aria-live="polite">
+        <p className="mb-2 text-xs text-slate-400" aria-live="polite">
           {downloadStatus}
         </p>
       )}
@@ -129,7 +129,7 @@ export function GalleryToolbar({
         <button
           onClick={() => handleDownload("selected")}
           disabled={downloading}
-          className="tap-target w-full rounded-xl bg-accent px-4 py-2.5 font-semibold text-ink-950 disabled:opacity-60"
+          className="tap-target w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
         >
           {downloading ? "Preparing…" : `Download ${selectedCount} Selected`}
         </button>
@@ -139,7 +139,7 @@ export function GalleryToolbar({
         <button
           onClick={() => handleDownload(tab === "favourites" ? "favourites" : "all")}
           disabled={downloading}
-          className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm disabled:opacity-60"
+          className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm disabled:opacity-60"
         >
           {downloading ? "Preparing…" : tab === "favourites" ? "Download Favourites" : "Download All Memories"}
         </button>

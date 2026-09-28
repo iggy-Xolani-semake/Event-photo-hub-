@@ -74,29 +74,29 @@ export function EventSettingsForm({
     <div className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Event name</span>
+          <span className="block text-sm text-slate-400 mb-1.5">Event name</span>
           <input
             value={eventName}
             onChange={(e) => setEventName(e.target.value)}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Event date</span>
+          <span className="block text-sm text-slate-400 mb-1.5">Event date</span>
           <input
             type="date"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
         </label>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4">
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">
+          <span className="block text-sm text-slate-400 mb-1.5">
             {EVENT_LIMIT_CAPS.uploadLimit.label}
-            <span className="block text-xs text-white/35">{limitHint("uploadLimit")}</span>
+            <span className="block text-xs text-slate-600">{limitHint("uploadLimit")}</span>
           </span>
           <input
             type="number"
@@ -104,13 +104,13 @@ export function EventSettingsForm({
             max={EVENT_LIMIT_CAPS.uploadLimit.max}
             value={uploadLimit}
             onChange={(e) => setUploadLimit(Number(e.target.value))}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">
+          <span className="block text-sm text-slate-400 mb-1.5">
             {EVENT_LIMIT_CAPS.maxFileSizeMb.label}
-            <span className="block text-xs text-white/35">{limitHint("maxFileSizeMb")}</span>
+            <span className="block text-xs text-slate-600">{limitHint("maxFileSizeMb")}</span>
           </span>
           <input
             type="number"
@@ -118,13 +118,13 @@ export function EventSettingsForm({
             max={EVENT_LIMIT_CAPS.maxFileSizeMb.max}
             value={maxFileSizeMb}
             onChange={(e) => setMaxFileSizeMb(Number(e.target.value))}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">
+          <span className="block text-sm text-slate-400 mb-1.5">
             {EVENT_LIMIT_CAPS.maxFilesPerUpload.label}
-            <span className="block text-xs text-white/35">{limitHint("maxFilesPerUpload")}</span>
+            <span className="block text-xs text-slate-600">{limitHint("maxFilesPerUpload")}</span>
           </span>
           <input
             type="number"
@@ -132,17 +132,17 @@ export function EventSettingsForm({
             max={EVENT_LIMIT_CAPS.maxFilesPerUpload.max}
             value={maxFilesPerUpload}
             onChange={(e) => setMaxFilesPerUpload(Number(e.target.value))}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="block text-sm text-white/60 mb-1.5">Gallery visibility</span>
+        <span className="block text-sm text-slate-400 mb-1.5">Gallery visibility</span>
         <select
           value={visibility}
           onChange={(e) => setVisibility(e.target.value as typeof visibility)}
-          className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
         >
           <option value="private">Private — only the client can view</option>
           <option value="shared">Shared — anyone with the link can view</option>
@@ -152,7 +152,7 @@ export function EventSettingsForm({
 
       {isAdmin && (
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">
+          <span className="block text-sm text-slate-400 mb-1.5">
             Collaborator (photographer) email
           </span>
           <input
@@ -160,9 +160,9 @@ export function EventSettingsForm({
             value={collaboratorInput}
             onChange={(e) => setCollaboratorInput(e.target.value)}
             placeholder="Leave blank for no collaborator"
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 outline-none focus:border-accent"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-indigo-500"
           />
-          <span className="block text-xs text-white/30 mt-1.5">
+          <span className="block text-xs text-slate-600 mt-1.5">
             Gives this person edit access to this one event&apos;s settings.
           </span>
         </label>
@@ -177,7 +177,7 @@ export function EventSettingsForm({
       <button
         onClick={handleSave}
         disabled={saving}
-        className="bg-accent text-ink-950 font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60"
+        className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60"
       >
         {saving ? "Saving…" : saved ? "Saved ✓" : "Save Settings"}
       </button>

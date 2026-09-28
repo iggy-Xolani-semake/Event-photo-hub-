@@ -88,13 +88,13 @@ export function CreateEventForm() {
   }
 
   const inputClass =
-    "w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 outline-none focus:border-accent";
+    "w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 outline-none focus:border-indigo-500";
 
   return (
     <form
       id="new-event"
       onSubmit={handleSubmit}
-      className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4"
+      className="bg-slate-800/40 border border-slate-800 rounded-xl p-5 space-y-4"
     >
       <h2 className="font-medium">Create an event</h2>
 
@@ -106,7 +106,7 @@ export function CreateEventForm() {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Event name</span>
+          <span className="block text-sm text-slate-400 mb-1.5">Event name</span>
           <input
             required
             value={eventName}
@@ -116,7 +116,7 @@ export function CreateEventForm() {
           />
         </label>
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Event date</span>
+          <span className="block text-sm text-slate-400 mb-1.5">Event date</span>
           <input
             type="date"
             value={eventDate}
@@ -128,7 +128,7 @@ export function CreateEventForm() {
 
       {packages.length > 0 && (
         <label className="block">
-          <span className="block text-sm text-white/60 mb-1.5">Package</span>
+          <span className="block text-sm text-slate-400 mb-1.5">Package</span>
           <select
             value={packageCode}
             onChange={(e) => setPackageCode(e.target.value)}
@@ -144,7 +144,7 @@ export function CreateEventForm() {
               </option>
             ))}
           </select>
-          <span className="block text-xs text-white/35 mt-1.5">
+          <span className="block text-xs text-slate-600 mt-1.5">
             {selectedPackage
               ? `The package is the ceiling for the limits below. Downloads unlock once it is paid for.`
               : `Without a package, limits are capped by the app maximums (${limitHint("uploadLimit")} photos).`}
@@ -177,7 +177,7 @@ export function CreateEventForm() {
       </div>
 
       <label className="block">
-        <span className="block text-sm text-white/60 mb-1.5">Who can see the gallery</span>
+        <span className="block text-sm text-slate-400 mb-1.5">Who can see the gallery</span>
         <select
           value={visibility}
           onChange={(e) => setVisibility(e.target.value)}
@@ -192,7 +192,7 @@ export function CreateEventForm() {
       <button
         type="submit"
         disabled={busy}
-        className="bg-accent text-ink-950 font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60"
+        className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60"
       >
         {busy ? "Creating…" : "Create event"}
       </button>
@@ -216,9 +216,9 @@ function LimitField({
   const rule = EVENT_LIMIT_CAPS[ruleKey];
   return (
     <label className="block">
-      <span className="block text-sm text-white/60 mb-1.5">
+      <span className="block text-sm text-slate-400 mb-1.5">
         {label}
-        <span className="block text-xs text-white/35">{hint}</span>
+        <span className="block text-xs text-slate-600">{hint}</span>
       </span>
       <input
         type="number"
@@ -226,7 +226,7 @@ function LimitField({
         max={rule.max}
         value={value}
         onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 outline-none focus:border-accent"
+        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 outline-none focus:border-indigo-500"
       />
     </label>
   );

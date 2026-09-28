@@ -1,10 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Camera, ImagePlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useGuestUploader } from "./useGuestUploader";
 import { validateFile, validateBatchSize } from "@/lib/validation/fileValidation";
 import { PhotoPreviewGrid } from "./PhotoPreviewGrid";
 import { UploadSuccessScreen } from "./UploadSuccessScreen";
+
+/** File-picker triggers the guest shell's bottom action bar can call. */
+export interface GuestUploadActions {
+  camera: () => void;
+  picker: () => void;
+}
 
 interface Props {
   eventCode: string;
@@ -17,6 +24,8 @@ interface Props {
   galleryCount: number | null;
   onBack: () => void;
   onUploaded: (successCount: number) => void;
+  /** Lets the shell's fixed bottom bar open this screen's file inputs. */
+  registerActions?: (actions: GuestUploadActions | null) => void;
 }
 
 type Screen = "start" | "preview" | "success";
@@ -31,6 +40,7 @@ export function GuestUploadExperience({
   galleryCount,
   onBack,
   onUploaded,
+  registerActions,
 }: Props) {
   const [screen, setScreen] = useState<Screen>("start");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -40,6 +50,16 @@ export function GuestUploadExperience({
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const { items, addFiles, removeItem, uploadAll, retryItem, reset } = useGuestUploader(eventCode);
+
+  // Publish the hidden inputs' triggers to the shell's bottom action bar for
+  // as long as this screen is mounted.
+  useEffect(() => {
+    registerActions?.({
+      camera: () => cameraInputRef.current?.click(),
+      picker: () => galleryInputRef.current?.click(),
+    });
+    return () => registerActions?.(null);
+  }, [registerActions]);
 
   function handleFilesSelected(fileList: FileList | null, input: HTMLInputElement | null) {
     // FileList can be live: clearing the input first may also clear the
@@ -154,7 +174,7 @@ export function GuestUploadExperience({
   // FROG #3 — the whole ask is one line and one button. No name, no email,
   // no phone number, no account.
   return (
-    <main className="min-h-screen px-6 pb-8 pt-6">
+    <div className="px-4 pb-8 pt-4">
       <input
         ref={cameraInputRef}
         type="file"
@@ -176,17 +196,19 @@ export function GuestUploadExperience({
         <button
           type="button"
           onClick={onBack}
-          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-white/60"
+          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-slate-400"
         >
           <span aria-hidden="true">←</span> Back
         </button>
 
         <div className="flex-1">
-          <span aria-hidden="true" className="text-4xl">
-            📸
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-300 ring-1 ring-indigo-500/30">
+            <Camera className="h-5 w-5" strokeWidth={2.2} />
           </span>
-          <h1 className="mt-5 font-display text-4xl leading-tight">Share your moments</h1>
-          <p className="mt-3 text-base leading-relaxed text-white/60">
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-white md:text-4xl">
+            Share your moments
+          </h1>
+          <p className="mt-3 text-base leading-relaxed text-slate-400">
             Add up to {maxFilesPerUpload} photos from your phone to {eventName}.
           </p>
 
@@ -201,33 +223,29 @@ export function GuestUploadExperience({
           <button
             type="button"
             onClick={() => galleryInputRef.current?.click()}
-            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-4 text-lg font-semibold text-ink-950 shadow-lg shadow-accent/20 transition-transform active:scale-[0.98]"
+            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98]"
           >
-            <span aria-hidden="true" className="text-2xl">
-              🖼️
-            </span>
+            <ImagePlus className="h-5 w-5" strokeWidth={2.2} />
             Choose photos
           </button>
 
           <button
             type="button"
             onClick={() => cameraInputRef.current?.click()}
-            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-6 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98]"
+            className="tap-target flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/80 px-6 py-4 text-lg font-semibold text-slate-200 transition-all hover:bg-slate-800 active:scale-[0.98]"
           >
-            <span aria-hidden="true" className="text-2xl">
-              📷
-            </span>
+            <Camera className="h-5 w-5" strokeWidth={2.2} />
             Take a moment
           </button>
         </div>
 
-        <p className="mt-8 text-center text-xs text-white/30">
+        <p className="mt-8 text-center text-xs text-slate-600">
           No account needed · JPG, PNG, HEIC or HEIF up to{" "}
           {Math.round(maxFileSizeBytes / (1024 * 1024))} MB
           <br />
           Large JPEGs are lightly optimized to save mobile data while keeping high quality.
         </p>
       </div>
-    </main>
+    </div>
   );
 }
