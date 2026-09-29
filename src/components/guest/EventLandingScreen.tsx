@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Camera, Images, Plus } from "lucide-react";
+import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
 import { formatEventDate } from "@/lib/format";
 
 export interface LandingTeaser {
@@ -145,6 +146,7 @@ export function EventLandingScreen({
 
         <div className="mt-auto pt-10 text-center">
           <p className="text-xs text-slate-500">No account needed · Free to share</p>
+          <p className="mt-2 text-xs text-slate-500">{GUEST_CANNOT_DOWNLOAD_NOTE}</p>
           <p className="mt-2 text-xs text-white/25">
             <a href="/privacy" className="underline">
               How we handle your memories

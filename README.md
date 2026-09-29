@@ -380,6 +380,39 @@ never waits for this — they see their upload confirmation immediately,
 and the photo appears in the gallery a few seconds later once processing
 completes.
 
+### Keeping your own copy (the guest side)
+
+Two facts that surprise people, and which the guest UI is built around:
+
+- **Taking a photo in the app does not reliably put it in the phone's camera
+  roll.** On iOS Safari, `<input capture="environment">` opens the camera and
+  hands the shot straight to the page — there is no copy in Photos. Android
+  usually keeps one, because the camera app saves to the gallery itself, but
+  that is the camera app's behaviour, not the web platform's.
+- **A guest cannot download the originals from the gallery.** That is enforced
+  server-side by `decideDownloadEntitlement()` (`src/lib/auth/downloadEntitlement.ts`)
+  and the only route that mints a presigned original URL, `GET
+  /api/photos/[id]/download`, answers a guest with `403`. So after uploading, a
+  guest's originals exist on our storage and nowhere on their device.
+
+The success screen therefore ends with **"Save photos to my phone"**
+(`SavePhotosButton` → `src/lib/guest/saveToPhone.ts`), which hands the guest the
+untouched `File` objects `useGuestUploader` keeps in memory. Note `UploadItem.file`
+is the *original*: `lightlyOptimizeJpeg()` only swaps the bytes sent to R2. Two
+routes, in the order they work on phones:
+
+1. **Web Share Level 2** (`navigator.share({ files })`) — on iOS the share sheet
+   is the only reliable way into Photos ("Save Image"). A batch gets one sheet;
+   if the platform only accepts a single file it gets one sheet per file.
+2. **Anchor download per file** — fine on desktop and Android Chrome; iOS Safari
+   ignores the `download` attribute and opens the image instead, so the status
+   message says to long-press it.
+
+`npm run verify:save` asserts that decision matrix. The guest-facing copy that
+goes with it ("only the event creator can download the originals") lives in
+`src/lib/guest/photoRights.ts` so the landing screen, the upload screens and the
+gallery toolbar cannot drift apart.
+
 ## How event isolation works
 
 "Event A's guest must never be able to upload into Event B" is enforced

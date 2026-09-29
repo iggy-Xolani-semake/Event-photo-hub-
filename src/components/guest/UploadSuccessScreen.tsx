@@ -1,5 +1,8 @@
 "use client";
 
+import { SavePhotosButton } from "./SavePhotosButton";
+import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
+
 interface Props {
   eventName: string;
   successCount: number;
@@ -7,6 +10,13 @@ interface Props {
   galleryHref: string;
   galleryAvailable: boolean;
   galleryCount: number | null;
+  /**
+   * The guest's own originals for everything that uploaded — the last chance
+   * to hand them back before `useGuestUploader.reset()` drops them. iOS Safari
+   * does not put a `capture="environment"` shot in Photos, so without this the
+   * guest leaves with no copy at all.
+   */
+  savedFiles: File[];
   onAddMore: () => void;
   onRetryFailed: () => void;
 }
@@ -23,6 +33,7 @@ export function UploadSuccessScreen({
   galleryHref,
   galleryAvailable,
   galleryCount,
+  savedFiles,
   onAddMore,
   onRetryFailed,
 }: Props) {
@@ -64,6 +75,10 @@ export function UploadSuccessScreen({
         </p>
       )}
 
+      <p className="mt-6 max-w-sm text-xs leading-relaxed text-slate-500">
+        {GUEST_CANNOT_DOWNLOAD_NOTE}
+      </p>
+
       <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
         {galleryAvailable && (
           <a
@@ -83,6 +98,11 @@ export function UploadSuccessScreen({
             Retry the {failedCount} that failed
           </button>
         )}
+
+        {/* Their photos, back in their hands. The server never lets a guest
+            download an original, so this button is the guest's only way to
+            keep what they just contributed. */}
+        <SavePhotosButton files={savedFiles} eventName={eventName} />
 
         <button
           type="button"
