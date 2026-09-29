@@ -19,20 +19,34 @@ import { useBottomNoticeVisible } from "./noticeStore";
  *
  * ## Contact destination
  *
- * WhatsApp and email addresses come from `NEXT_PUBLIC_CONTACT_*`, so changing
- * who hosts can reach is an env change, not a code change. A channel is hidden
- * entirely when it is not configured — better to show one working way to reach
- * a human than a link that opens an empty chat to a placeholder number.
+ * WhatsApp and email come from `NEXT_PUBLIC_CONTACT_*` so the channels can be
+ * changed per deployment, but both fall back to the operator's real details:
+ * an unset env var on a fresh host should not silently remove the only way for
+ * a paying client to reach a human. The fallback number lives here, in the one
+ * component that uses it.
  */
 
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "nsxincorporated@gmail.com";
-const CONTACT_WHATSAPP = process.env.NEXT_PUBLIC_CONTACT_WHATSAPP ?? "";
+const CONTACT_WHATSAPP = process.env.NEXT_PUBLIC_CONTACT_WHATSAPP ?? "+27 76 088 3485";
 
 /** Digits only — wa.me rejects spaces, plus signs and brackets. */
 function whatsappHref(raw: string): string {
   const digits = raw.replace(/[^\d]/g, "");
   const message = encodeURIComponent("Hi Memora — I have a question about an event.");
   return `https://wa.me/${digits}?text=${message}`;
+}
+
+/**
+ * Human-readable form of the number for the panel, so a host can save it to
+ * their contacts before the chat opens. South African mobile numbers get the
+ * +27 XX XXX XXXX grouping; anything else is shown as typed rather than
+ * mangled by a formatter that only knows one country.
+ */
+function whatsappLabel(raw: string): string {
+  const digits = raw.replace(/[^\d]/g, "");
+  const match = /^27(\d{2})(\d{3})(\d{4})$/.exec(digits);
+  if (match) return `+27 ${match[1]} ${match[2]} ${match[3]}`;
+  return raw.trim();
 }
 
 export function FloatingUtilities({ className }: { className?: string }) {
@@ -115,15 +129,23 @@ export function FloatingUtilities({ className }: { className?: string }) {
             </p>
 
             {CONTACT_WHATSAPP && (
-              <a
-                href={whatsappHref(CONTACT_WHATSAPP)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white"
-              >
-                <MessageCircle className="h-4 w-4 shrink-0 text-emerald-400" strokeWidth={2.2} />
-                WhatsApp us
-              </a>
+              <>
+                <a
+                  href={whatsappHref(CONTACT_WHATSAPP)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white"
+                >
+                  <MessageCircle className="h-4 w-4 shrink-0 text-emerald-400" strokeWidth={2.2} />
+                  WhatsApp us
+                </a>
+                <p
+                  className="truncate px-2.5 pb-1 text-[11px] text-slate-500"
+                  title={whatsappLabel(CONTACT_WHATSAPP)}
+                >
+                  {whatsappLabel(CONTACT_WHATSAPP)}
+                </p>
+              </>
             )}
 
             <a

@@ -240,9 +240,13 @@ already in place).
   contact button offering WhatsApp and email. Both are `print:hidden` and are
   deliberately absent from `/e/[code]`, where the guest action bar owns the
   bottom of the screen.
-- Contact destinations come from `NEXT_PUBLIC_CONTACT_EMAIL` and
-  `NEXT_PUBLIC_CONTACT_WHATSAPP`. **WhatsApp is hidden entirely until a number
-  is set**, so no placeholder can ship as a link to an empty chat.
+- Contact destinations come from `NEXT_PUBLIC_CONTACT_EMAIL` (default
+  `nsxincorporated@gmail.com`) and `NEXT_PUBLIC_CONTACT_WHATSAPP` (default
+  `+27 76 088 3485`). Both default to the operator's real details in code, so an
+  unset env var on a fresh deployment cannot silently remove the only way for a
+  client to reach a human; set them to point a deployment somewhere else. The
+  WhatsApp link is `wa.me` with the number stripped to digits, and the panel
+  prints the number so a host can save it before the chat opens.
 - `SkipLink` on every surface that has a main region: landing, auth, dashboard,
   admin, client portal, guest flow, shared gallery, privacy and terms. Each
   target carries `id="main"` (or `auth-main`) plus `tabIndex={-1}` — without the
