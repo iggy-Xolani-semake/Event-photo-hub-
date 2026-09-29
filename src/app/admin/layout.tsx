@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/admin/SignOutButton";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createSupabaseServerClient();
@@ -14,6 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-canvas text-white">
+      <SkipLink />
       <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-slate-800 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
         <div>
           <Link href="/admin" className="mb-6 block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
@@ -40,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <SignOutButton />
         </div>
       </aside>
-      <div className="flex-1 min-w-0">{children}</div>
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">{children}</main>
     </div>
   );
 }

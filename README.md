@@ -222,6 +222,88 @@ To re-shoot the set, drop new frames in `public/images/demo/`, then regenerate
 the blur placeholders with the command in the header of
 `src/components/landing/mockup/demoPhotoBlur.ts`.
 
+### Site chrome: the small things that were missing
+
+A pass over the finishing touches, after an audit of what already existed
+(sticky header, mobile menu, FAQ accordion, 404 page and copy-to-clipboard were
+already in place).
+
+**Navigation and orientation**
+
+- `ScrollProgressBar` — a violet line above the sticky header showing how much
+  of the page is left. Mounted once inside `HeaderBar`, so every page that
+  renders the global header gets it. It writes `scaleX` straight to the DOM in
+  a rAF callback instead of through React state, and is `aria-hidden` (a screen
+  reader announcing scroll percentages would be noise, not navigation).
+- `FloatingUtilities` — back-to-top (appears after 600px, honours
+  `prefers-reduced-motion`, returns focus to the content) and an expandable
+  contact button offering WhatsApp and email. Both are `print:hidden` and are
+  deliberately absent from `/e/[code]`, where the guest action bar owns the
+  bottom of the screen.
+- Contact destinations come from `NEXT_PUBLIC_CONTACT_EMAIL` and
+  `NEXT_PUBLIC_CONTACT_WHATSAPP`. **WhatsApp is hidden entirely until a number
+  is set**, so no placeholder can ship as a link to an empty chat.
+- `SkipLink` on every surface that has a main region: landing, auth, dashboard,
+  admin, client portal, guest flow, shared gallery, privacy and terms. Each
+  target carries `id="main"` (or `auth-main`) plus `tabIndex={-1}` — without the
+  tabindex the browser only scrolls, it does not move focus.
+
+**Feedback and safety**
+
+- `ConfirmDialog` — the first real modal in the app (portal, focus trap, Escape
+  and backdrop cancel, *cancel* focused first so a stray Enter cannot delete,
+  focus restoration, scroll lock, `aria-modal`). `PhotoLightbox` now uses it
+  instead of `window.confirm()`, reports failures inline instead of `alert()`,
+  and suspends its arrow/Escape shortcuts while the dialog is open.
+- `PasswordInput` — show/hide toggle on every password field (login, signup,
+  admin login, both reset-password fields), with `aria-pressed` and a label that
+  flips between "Show password" and "Hide password".
+- `CookieNotice` — a notice, not a consent gate: the site sets only essential
+  cookies (auth session, anonymous guest session) and there is no tracking, so
+  the copy says that and the button acknowledges it. Dismissal is remembered in
+  `localStorage`, never in a cookie. While it is up, the floating utilities step
+  aside on small screens so the two bottom overlays cannot cover each other.
+- Hover + focus-visible states on the 22 one-off buttons that had neither (the
+  guest upload flow, the gallery toolbar and lightbox, the admin console). The
+  design-system `Button` already had them; these were the hand-rolled ones.
+- `copyTextToClipboard()` (`src/lib/clipboard.ts`) with a fallback for
+  non-secure contexts, wired into `CopyLinkButton` and `ShareEventButton`, which
+  now report a failed copy instead of claiming "Copied ✓" over an empty
+  clipboard.
+
+**Loading and printing**
+
+- Route-level skeletons for the pages that were missing them: the shared gallery
+  (the one guests see most), `/dashboard/events/[code]`, `/admin`,
+  `/admin/events/[code]`, `/admin/events/new` and `/client`. The auth pages and
+  the legal pages are statically prerendered, so a `loading.tsx` there would
+  never render.
+- A real `@media print` block in `globals.css`: the product is dark-only by
+  design, which is right on screen and wrong on paper, so print flattens every
+  surface to ink on white, drops nav/footers/asides and the floating widgets,
+  prints external link targets, and avoids slicing cards across page breaks. It
+  also fixes the QR poster, which was rendering its headline white on white.
+
+**Search (hosts only)**
+
+- `/api/search` + `GlobalSearch` in the header (and the mobile sheet, and ⌘K).
+  Finds the host's own events by name, code or date, and photos by original
+  filename. It reads through the session-bound Supabase client, so
+  `events_select_authenticated` decides what is searchable — and photo results
+  are additionally constrained to the caller's own events, because
+  `photos_select_shared_or_public` would otherwise surface a stranger's shared
+  gallery in "my search". The `q` parameter is stripped of the characters that
+  are structural in a PostgREST `or()` filter, and requests are debounced and
+  aborted so a fast typist never sees stale results.
+
+**Deliberately not done**
+
+- **Dark mode toggle.** The app is dark-only by design
+  (`tailwind.config.ts`, `globals.css`); a toggle means inventing a second
+  palette for ~60 components. Skipped by decision, not by omission.
+- **UTM tracking.** No analytics provider is installed, so tags would go
+  nowhere. Deferred until one is chosen.
+
 ## Deployment (Netlify or Vercel)
 
 Both are straightforward since this is a standard Next.js App Router

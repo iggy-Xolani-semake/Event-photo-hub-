@@ -25,7 +25,7 @@ export function PrintablePoster({ eventName, url }: Props) {
     <div>
       <button
         onClick={handlePrint}
-        className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2 mb-4 print:hidden"
+        className="mb-4 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm font-medium text-slate-200 print:hidden transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
       >
         Print Poster
       </button>

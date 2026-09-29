@@ -35,14 +35,14 @@ export function ShareConsentScreen({ onConfirm, onBack }: Props) {
           <button
             type="button"
             onClick={onConfirm}
-            className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-transform active:scale-[0.98]"
+            className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
           >
             I understand
           </button>
           <button
             type="button"
             onClick={onBack}
-            className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400"
+            className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
           >
             Back
           </button>

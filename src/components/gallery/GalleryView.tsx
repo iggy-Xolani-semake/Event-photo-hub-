@@ -104,7 +104,7 @@ export function GalleryView({
   }
 
   return (
-    <main className="min-h-screen pb-24">
+    <main id="main" tabIndex={-1} className="min-h-screen pb-24 focus:outline-none">
       <GalleryToolbar
         eventName={eventName}
         eventDate={eventDate}

@@ -3,6 +3,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { isValidEventCodeFormat } from "@/lib/eventCode";
 import { AppFooter } from "@/components/layout/AppFooter";
+import { CookieNotice } from "@/components/layout/CookieNotice";
+import { FloatingUtilities } from "@/components/layout/FloatingUtilities";
+import { SkipLink } from "@/components/ui/SkipLink";
 import { Clock, Lock } from "lucide-react";
 import { EventNotFoundNotice } from "@/components/guest/EventNotFoundNotice";
 import { GalleryView } from "@/components/gallery/GalleryView";
@@ -140,6 +143,7 @@ export default async function GalleryPage({ params }: PageProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <SkipLink />
       <GalleryView
         eventCode={eventCode}
         eventName={event.event_name}
@@ -154,6 +158,8 @@ export default async function GalleryPage({ params }: PageProps) {
         canViewEnlarged={entitlement.allowed}
       />
       <AppFooter />
+      <FloatingUtilities />
+      <CookieNotice />
     </div>
   );
 }

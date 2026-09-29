@@ -18,6 +18,8 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { parseEventCodeOrLink } from "@/lib/eventCode";
 import { Button, ButtonLink, IconButton } from "@/components/ui/Button";
 import { SignOutButton } from "@/components/ui/SignOutButton";
+import { GlobalSearch } from "./GlobalSearch";
+import { ScrollProgressBar } from "./ScrollProgressBar";
 
 export interface HeaderUser {
   email: string;
@@ -69,6 +71,10 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md">
+      {/* Reading progress for the long marketing scroll; sits above the header
+          so it reads as part of the page, not the bar. */}
+      <ScrollProgressBar />
+
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
@@ -95,6 +101,12 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {/* Host search: only useful to someone who owns events, and only
+                  they can call the API behind it. */}
+              <div className="hidden sm:block">
+                <GlobalSearch />
+              </div>
+
               <div className="hidden md:block">
                 <EventSwitcher events={events} />
               </div>
@@ -166,6 +178,7 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
 
           {user ? (
             <div className="space-y-3 border-t border-slate-800 pt-4">
+              <GlobalSearch fullWidth />
               <EventSwitcher events={events} />
               <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5">
                 <Avatar user={user} />

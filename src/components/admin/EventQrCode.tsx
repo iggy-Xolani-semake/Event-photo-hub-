@@ -50,14 +50,14 @@ export function EventQrCode({ url, size = 280 }: Props) {
       <div className="flex gap-2 mt-4">
         <button
           onClick={downloadPng}
-          className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2"
+          className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           Download PNG
         </button>
         <button
           onClick={downloadSvg}
           disabled={!svgString}
-          className="text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2 disabled:opacity-50"
+          className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm font-medium text-slate-200 disabled:opacity-50 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           Download SVG
         </button>

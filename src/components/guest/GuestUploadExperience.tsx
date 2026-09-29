@@ -196,7 +196,7 @@ export function GuestUploadExperience({
         <button
           type="button"
           onClick={onBack}
-          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-slate-400"
+          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           <span aria-hidden="true">←</span> Back
         </button>

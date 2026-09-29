@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/admin/SignOutButton";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 // A deliberately different shell from /admin's layout — no "+ Create
 // Event", no cross-event platform stats, no admin-only nav. This is the
@@ -16,6 +17,7 @@ export default async function ClientLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen bg-canvas text-white">
+      <SkipLink />
       <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <Link href="/client" className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
           Your Events

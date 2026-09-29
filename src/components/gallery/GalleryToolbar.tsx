@@ -135,7 +135,7 @@ export function GalleryToolbar({
         </div>
         <button
           onClick={onToggleSelectMode}
-          className="shrink-0 rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-400"
+          className="shrink-0 rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           {selectMode ? "Cancel" : "Select"}
         </button>

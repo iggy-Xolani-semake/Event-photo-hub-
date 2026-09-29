@@ -6,7 +6,7 @@ import { useState } from "react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
-import { Input } from "@/components/ui/Input";
+import { Input, PasswordInput } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
@@ -58,10 +58,9 @@ export default function LoginPage() {
           placeholder="you@example.com"
         />
 
-        <Input
+        <PasswordInput
           label="Password"
           required
-          type="password"
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}

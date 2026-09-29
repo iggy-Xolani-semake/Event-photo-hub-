@@ -35,7 +35,7 @@ export default async function ClientHomePage() {
   const myEvents = events ?? [];
 
   return (
-    <main className="p-6 md:p-10 max-w-3xl mx-auto">
+    <main id="main" tabIndex={-1} className="p-6 md:p-10 max-w-3xl mx-auto focus:outline-none">
       <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
         {firstName ? `Welcome, ${firstName}` : "Welcome"}
       </h1>

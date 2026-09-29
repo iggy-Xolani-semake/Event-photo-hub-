@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { CookieNotice } from "@/components/layout/CookieNotice";
+import { FloatingUtilities } from "@/components/layout/FloatingUtilities";
+import { SkipLink } from "@/components/ui/SkipLink";
 import { Faq } from "@/components/landing/Faq";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { FooterCta } from "@/components/landing/FooterCta";
@@ -40,23 +43,19 @@ export const metadata: Metadata = {
 
 /**
  * Marketing landing page, composed from the global header/footer and the
- * shared design-system primitives. Server component end to end except five
+ * shared design-system primitives. Server component end to end except a few
  * small client islands (header chrome, demo trigger, animated showcase, FAQ
- * accordion, scroll reveals), so the entire pitch ships in the first HTML.
+ * accordion, scroll reveals, the floating utilities and the cookie notice), so
+ * the entire pitch ships in the first HTML.
  */
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-canvas">
-      <a
-        href="#main"
-        className="sr-only z-[90] rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
-      >
-        Skip to content
-      </a>
+      <SkipLink />
 
       <AppHeader />
 
-      <main id="main">
+      <main id="main" tabIndex={-1} className="focus:outline-none">
         <Hero />
         <TrustBar />
         <HowItWorks />
@@ -67,6 +66,9 @@ export default function HomePage() {
       </main>
 
       <AppFooter />
+
+      <FloatingUtilities />
+      <CookieNotice />
     </div>
   );
 }

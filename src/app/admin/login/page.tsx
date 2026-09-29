@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isApprovedAdminEmail } from "@/lib/auth/adminAllowlist";
+import { PasswordInput } from "@/components/ui/Input";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -71,19 +72,21 @@ export default function AdminLoginPage() {
           className="w-full bg-slate-800/40 border border-slate-700 rounded-xl px-4 py-3 mb-4 outline-none focus:border-indigo-500"
         />
 
-        <label className="block text-sm text-slate-400 mb-1.5">Password</label>
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-slate-800/40 border border-slate-700 rounded-xl px-4 py-3 mb-6 outline-none focus:border-indigo-500"
-        />
+        <div className="mb-6">
+          <PasswordInput
+            label="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            placeholder="••••••••"
+          />
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="tap-target w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl px-6 py-3 disabled:opacity-60"
+          className="tap-target w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl px-6 py-3 disabled:opacity-60 transition-all hover:from-violet-500 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           {loading ? "Signing in…" : "Sign In"}
         </button>
