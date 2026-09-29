@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BRAND_OPTIONS, BrandMark } from "@/components/marketing/logoOptions";
+import { MemoraMark } from "@/components/marketing/MemoraMark";
 
 export const metadata: Metadata = {
   title: "Brand marks — Memora",
@@ -28,11 +29,43 @@ export default function BrandPreviewPage() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">Brand marks</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
           Three directions, shown at the sizes the app actually uses. All three sit on the same
-          40×40 grid and use the existing brand gradient (#7C3AED → #6366F1), so swapping one in is
-          a single import change in the header and footer.
+          40×40 grid and use the existing brand gradient (#7C3AED → #6366F1).
         </p>
 
-        <div className="mt-12 space-y-6">
+        {/* Shipped. Keep this block first so the page answers its own question:
+            which mark is live, and where. */}
+        <section className="mt-8 rounded-2xl border border-indigo-500/40 bg-indigo-500/10 p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+            Chosen · Option 2
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-8">
+            <div className="flex items-end gap-4">
+              <MemoraMark size={96} />
+              <MemoraMark size={36} />
+              <MemoraMark size={32} />
+              <MemoraMark size={16} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5">
+                <MemoraMark size={36} />
+                <span className="text-lg font-bold tracking-tight text-white">Memora</span>
+              </div>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-300">
+                Live in the header and footer, as the browser-tab icon
+                (<code className="text-slate-400">src/app/icon.svg</code>), the Apple touch icon
+                (<code className="text-slate-400">src/app/apple-icon.png</code>) and the social card
+                (<code className="text-slate-400">src/app/opengraph-image.tsx</code>). Source of
+                truth: <code className="text-slate-400">src/components/marketing/MemoraMark.tsx</code>
+                — the SVG copies are generated from that geometry, never redrawn.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <h2 className="mt-12 text-lg font-semibold tracking-tight text-white">
+          The other two directions
+        </h2>
+        <div className="mt-6 space-y-6">
           {BRAND_OPTIONS.map((option, index) => (
             <section
               key={option.id}

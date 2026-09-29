@@ -38,23 +38,24 @@ export default function OpengraphImage() {
           color: "#ffffff",
         }}
       >
-        {/* brand row */}
+        {/* brand row — the real mark, drawn as an inline SVG so the social card
+            cannot drift from the app. Satori renders SVG children directly, so
+            no extra font or image fetch is involved. */}
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #6366f1, #a855f7)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 30,
-              fontWeight: 800,
-            }}
-          >
-            M
-          </div>
+          <svg width="56" height="56" viewBox="0 0 40 40">
+            <defs>
+              <linearGradient id="brand" x1="5" y1="5" x2="35" y2="35" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#7C3AED" />
+                <stop offset="1" stopColor="#6366F1" />
+              </linearGradient>
+            </defs>
+            <rect x="4.5" y="4.5" width="31" height="31" rx="10" fill="url(#brand)" />
+            <path
+              d="M20 7.4c1.5 7.6 4.9 11 12.5 12.5-7.6 1.5-11 4.9-12.5 12.5-1.5-7.6-4.9-11-12.5-12.5C15.1 18.4 18.5 15 20 7.4Z"
+              fill="#fff"
+            />
+            <circle cx="27.6" cy="28.4" r="1.7" fill="#fff" opacity="0.75" />
+          </svg>
           <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: -1 }}>
             Memora
           </div>

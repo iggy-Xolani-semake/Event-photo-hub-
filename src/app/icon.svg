@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="Memora">
+  <defs>
+    <linearGradient id="brand" x1="1" y1="1" x2="39" y2="39" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed tile, not the header mark's inset one: at 16px the tab icon
+       cannot afford the 4.5/40 padding the in-app mark carries. Corners are
+       still rounded (9/40) because browsers paint favicons as-is, and a hard
+       square reads as a broken image.
+       The sparkle is the header mark's own shape, scaled by 40/31 about the
+       centre so it keeps the same proportion of the tile. -->
+  <rect x="0" y="0" width="40" height="40" rx="9" fill="url(#brand)"/>
+  <g transform="translate(20 20) scale(1.29) translate(-20 -20)">
+    <path d="M20 7.4c1.5 7.6 4.9 11 12.5 12.5-7.6 1.5-11 4.9-12.5 12.5-1.5-7.6-4.9-11-12.5-12.5C15.1 18.4 18.5 15 20 7.4Z" fill="#fff"/>
+    <circle cx="27.6" cy="28.4" r="1.7" fill="#fff" opacity="0.75"/>
+  </g>
+</svg>

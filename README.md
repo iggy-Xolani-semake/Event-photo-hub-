@@ -222,6 +222,29 @@ To re-shoot the set, drop new frames in `public/images/demo/`, then regenerate
 the blur placeholders with the command in the header of
 `src/components/landing/mockup/demoPhotoBlur.ts`.
 
+### The brand mark
+
+The Memora mark is a sparkle — the moment caught — with a small glint beside
+it, white on the app's own gradient tile (`#7C3AED → #6366F1` at 135°, the same
+stops as the `brand-gradient` utility).
+
+`src/components/marketing/MemoraMark.tsx` is the source of truth: one component,
+a 40×40 grid, `useId()` for the gradient so the header and footer instances
+don't collide. Everything else is that geometry, copied:
+
+| surface | file | notes |
+| --- | --- | --- |
+| Header, footer | `MemoraMark` at 36px | the surrounding tile is gone; the mark carries its own gradient, and the old indigo box-shadow is now a `drop-shadow` so it follows the rounded silhouette |
+| Browser tab | `src/app/icon.svg` | full-bleed tile — at 16px the mark cannot afford the 4.5/40 padding the in-app version has — with the sparkle scaled 40/31 about the centre to keep the same proportion |
+| iOS home screen | `src/app/apple-icon.png` (180×180) | opaque, full-bleed: iOS applies its own corner mask |
+| Social card | `src/app/opengraph-image.tsx` | inline SVG inside the Satori tree; no font or image fetch involved |
+
+`/brand-preview` (development only — it 404s in a production build) renders the
+live mark and the two directions that were not chosen, at 16/24/32/36/96px. The
+candidate marks live in `src/components/marketing/logoOptions.tsx`. Nothing in
+the app imports those two files; they exist so a future change can be judged
+against the alternatives rather than in isolation.
+
 ### Site chrome: the small things that were missing
 
 A pass over the finishing touches, after an audit of what already existed
