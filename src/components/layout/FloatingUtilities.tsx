@@ -27,23 +27,78 @@ import { useBottomNoticeVisible } from "./noticeStore";
  */
 
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "nsxincorporated@gmail.com";
-const CONTACT_WHATSAPP = process.env.NEXT_PUBLIC_CONTACT_WHATSAPP ?? "+27 76 088 3485";
+const CONTACT_WHATSAPP = process.env.NEXT_PUBLIC_CONTACT_WHATSAPP ?? "+27 79 126 9814";
 
-/** Digits only — wa.me rejects spaces, plus signs and brackets. */
-function whatsappHref(raw: string): string {
+/**
+ * Normalise whatever form the number was configured in into `wa.me` digits.
+ *
+ * `wa.me` needs the full international number with no punctuation, and getting
+ * it wrong fails silently — the button opens a chat with a number that does not
+ * exist. Stripping non-digits is not enough, because the forms someone is
+ * likely to type all look different once stripped:
+ *
+ *   "079 126 9814"     -> 0791269814    (local: needs the 27 prefix, or the
+ *                                        link points at a number no network owns)
+ *   "+27 79 126 9814"  -> 27791269814   (correct as-is)
+ *   "0027 79 126 9814" -> 0027791269814 (international prefix: trim it)
+ *   "27 79 126 9814"   -> 27791269814   (no plus, already international)
+ */
+export function normaliseWhatsApp(raw: string): string {
   const digits = raw.replace(/[^\d]/g, "");
+
+  if (digits.startsWith("0027")) return digits.slice(2);
+  if (digits.startsWith("27")) return digits;
+  if (digits.startsWith("0")) return `27${digits.slice(1)}`;
+  return digits;
+}
+
+/** The shapes wa.me accepts: E.164-ish, 8–15 digits, no leading zero. */
+function isDialable(digits: string): boolean {
+  return digits.length >= 8 && digits.length <= 15 && !digits.startsWith("0");
+}
+
+/**
+ * A number that starts with South Africa's country code and still has the wrong
+ * length is almost certainly a typo — a real SA mobile is `27` plus nine digits.
+ * This is the mistake to watch for: `+27 79 612 698 14` (one digit too many)
+ * and `+27 79 126 981` (one too few) both still *look* like phone numbers, and
+ * `wa.me` would either reject them or dial a stranger.
+ */
+function looksLikeTypoSouthAfricanNumber(digits: string): boolean {
+  return digits.startsWith("27") && digits.length !== 11;
+}
+
+// A number that cannot be dialled is a silent failure — the button renders
+// fine and reaches nobody — so say so where a developer will see it. Development
+// only: a console warning in production helps nobody.
+if (process.env.NODE_ENV === "development" && CONTACT_WHATSAPP) {
+  const normalised = normaliseWhatsApp(CONTACT_WHATSAPP);
+  const suspect = looksLikeTypoSouthAfricanNumber(normalised) || !isDialable(normalised);
+
+  if (suspect) {
+    console.warn(
+      `[contact] NEXT_PUBLIC_CONTACT_WHATSAPP="${CONTACT_WHATSAPP}" normalises to "${normalised}" ` +
+        `(${normalised.length} digits), which ${looksLikeTypoSouthAfricanNumber(normalised) ? "is not a valid South African number — it should be 27 plus 9 digits" : "wa.me will not accept"}. ` +
+        "Expected something like +27 79 126 9814."
+    );
+  }
+}
+
+/** The wa.me URL for the configured number, with a pre-filled question. */
+function whatsappHref(raw: string): string {
+  const digits = normaliseWhatsApp(raw);
   const message = encodeURIComponent("Hi Memora — I have a question about an event.");
   return `https://wa.me/${digits}?text=${message}`;
 }
 
 /**
  * Human-readable form of the number for the panel, so a host can save it to
- * their contacts before the chat opens. South African mobile numbers get the
+ * their contacts before the chat opens. South African numbers get the
  * +27 XX XXX XXXX grouping; anything else is shown as typed rather than
  * mangled by a formatter that only knows one country.
  */
 function whatsappLabel(raw: string): string {
-  const digits = raw.replace(/[^\d]/g, "");
+  const digits = normaliseWhatsApp(raw);
   const match = /^27(\d{2})(\d{3})(\d{4})$/.exec(digits);
   if (match) return `+27 ${match[1]} ${match[2]} ${match[3]}`;
   return raw.trim();

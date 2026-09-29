@@ -242,11 +242,12 @@ already in place).
   bottom of the screen.
 - Contact destinations come from `NEXT_PUBLIC_CONTACT_EMAIL` (default
   `nsxincorporated@gmail.com`) and `NEXT_PUBLIC_CONTACT_WHATSAPP` (default
-  `+27 76 088 3485`). Both default to the operator's real details in code, so an
+  `+27 79 126 9814`). Both default to the operator's real details in code, so an
   unset env var on a fresh deployment cannot silently remove the only way for a
   client to reach a human; set them to point a deployment somewhere else. The
-  WhatsApp link is `wa.me` with the number stripped to digits, and the panel
-  prints the number so a host can save it before the chat opens.
+  number may be written in any readable form — `+27 79 126 9814`,
+  `079 126 9814` or `0027 79 126 9814` all normalise to the same `wa.me` link —
+  and the panel prints it so a host can save it before the chat opens.
 - `SkipLink` on every surface that has a main region: landing, auth, dashboard,
   admin, client portal, guest flow, shared gallery, privacy and terms. Each
   target carries `id="main"` (or `auth-main`) plus `tabIndex={-1}` — without the
