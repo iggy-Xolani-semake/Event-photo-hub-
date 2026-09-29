@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { galleryPhoto } from "./demoPhotos";
 import { PhotoTile } from "./PhotoTile";
 
 interface DesktopMockupProps {
@@ -122,7 +123,11 @@ export function DesktopMockup({
           return (
             <PhotoTile
               key={isNew ? `${cycle}-${index}` : index}
-              seed={index + 1}
+              photo={galleryPhoto(index)}
+              // Above the fold on desktop; the first row is worth preloading,
+              // the rest of the grid is not.
+              priority={index < 4}
+              sizes="(min-width: 640px) 130px, 30vw"
               className={clsx(
                 "aspect-square w-full",
                 isNew && addedThisCycle > 0 && "animate-pop-in shadow-glow ring-2 ring-indigo-500/70"

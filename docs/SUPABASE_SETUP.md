@@ -51,6 +51,11 @@ This runs, in order:
   comment at the top of that file for how to remove it before production)
 - `0013_distributed_rate_limits.sql` — shared upload rate-limit buckets used
    by the Next.js API across serverless instances
+- …and the rest of `supabase/migrations/` in numeric order. Two of them are
+  load-bearing and documented in the main README: `0011_lock_service_functions.sql`
+  (a missing revoke lets a signed-in client mark their own event paid) and
+  `0023_client_profile_updates.sql` (without it, Account Settings reports a
+  successful save and stores nothing).
 
 If you don't want to install the CLI, paste each file's contents into the
 Supabase Dashboard's SQL Editor and run them in the same order (0001 →

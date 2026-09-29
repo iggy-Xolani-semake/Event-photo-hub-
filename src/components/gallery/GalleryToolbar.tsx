@@ -4,6 +4,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatEventDate } from "@/lib/format";
+import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
 import { downloadZipPart, type ZipProgress } from "@/lib/download/streamZip";
 import type { DownloadManifestPart } from "@/lib/download/types";
 
@@ -135,7 +136,7 @@ export function GalleryToolbar({
         </div>
         <button
           onClick={onToggleSelectMode}
-          className="shrink-0 rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-400"
+          className="shrink-0 rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           {selectMode ? "Cancel" : "Select"}
         </button>
@@ -159,7 +160,9 @@ export function GalleryToolbar({
 
       {!canDownload && (
         <p className="mb-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400">
-          Preview gallery — full-size viewing and downloads unlock after the event package is paid.
+          {canManage
+            ? "Preview gallery — full-size viewing and downloads unlock after the event package is paid."
+            : GUEST_CANNOT_DOWNLOAD_NOTE}
         </p>
       )}
 

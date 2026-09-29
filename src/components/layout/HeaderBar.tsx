@@ -3,7 +3,6 @@
 import clsx from "clsx";
 import {
   Bell,
-  Camera,
   ChevronDown,
   Images,
   LayoutGrid,
@@ -16,8 +15,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { parseEventCodeOrLink } from "@/lib/eventCode";
+import { MemoraMark } from "@/components/marketing/MemoraMark";
 import { Button, ButtonLink, IconButton } from "@/components/ui/Button";
 import { SignOutButton } from "@/components/ui/SignOutButton";
+import { GlobalSearch } from "./GlobalSearch";
+import { ScrollProgressBar } from "./ScrollProgressBar";
 
 export interface HeaderUser {
   email: string;
@@ -69,14 +71,19 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md">
+      {/* Reading progress for the long marketing scroll; sits above the header
+          so it reads as part of the page, not the bar. */}
+      <ScrollProgressBar />
+
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
-          <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl shadow-lg shadow-indigo-500/25">
-            <Camera className="h-5 w-5 text-white" strokeWidth={2.4} />
-          </span>
+          {/* The mark carries its own gradient tile, so the glow is a
+              drop-shadow (it follows the tile's rounded silhouette) rather
+              than a box-shadow, which would square off the corners. */}
+          <MemoraMark size={36} className="drop-shadow-[0_6px_16px_rgba(99,102,241,0.35)]" />
           <span className="text-lg font-bold tracking-tight text-white">Memora</span>
         </Link>
 
@@ -95,6 +102,12 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {/* Host search: only useful to someone who owns events, and only
+                  they can call the API behind it. */}
+              <div className="hidden sm:block">
+                <GlobalSearch />
+              </div>
+
               <div className="hidden md:block">
                 <EventSwitcher events={events} />
               </div>
@@ -166,6 +179,7 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
 
           {user ? (
             <div className="space-y-3 border-t border-slate-800 pt-4">
+              <GlobalSearch fullWidth />
               <EventSwitcher events={events} />
               <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5">
                 <Avatar user={user} />

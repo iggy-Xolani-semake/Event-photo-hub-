@@ -177,7 +177,7 @@ export function EventSettingsForm({
       <button
         onClick={handleSave}
         disabled={saving}
-        className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60"
+        className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg px-5 py-2.5 text-sm disabled:opacity-60 transition-all hover:from-violet-500 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
       >
         {saving ? "Saving…" : saved ? "Saved ✓" : "Save Settings"}
       </button>

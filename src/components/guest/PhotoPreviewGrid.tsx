@@ -120,7 +120,7 @@ export function PhotoPreviewGrid({
                 <button
                   type="button"
                   onClick={onRetryFailed}
-                  className="tap-target w-full rounded-2xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-base font-semibold text-amber-100"
+                  className="tap-target w-full rounded-2xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-base font-semibold text-amber-100 transition-colors hover:border-amber-400/60 hover:bg-amber-400/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
                   Retry the {errorCount} that failed
                 </button>
@@ -132,7 +132,7 @@ export function PhotoPreviewGrid({
                 type="button"
                 onClick={onUpload}
                 disabled={isUploading}
-                className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
+                className="tap-target w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 text-lg font-semibold text-white disabled:opacity-60 transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
               >
                 {isUploading
                   ? "Uploading…"
@@ -142,7 +142,7 @@ export function PhotoPreviewGrid({
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400"
+                  className="tap-target w-full rounded-2xl px-6 py-3 text-base font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
                   Cancel
                 </button>

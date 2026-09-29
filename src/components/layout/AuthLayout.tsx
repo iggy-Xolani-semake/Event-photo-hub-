@@ -1,7 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CookieNotice } from "./CookieNotice";
+import { FloatingUtilities } from "./FloatingUtilities";
 import { HeaderBar } from "./HeaderBar";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 /**
  * Shared shell for the auth family (sign in, sign up, recovery): global
@@ -23,9 +26,14 @@ export function AuthLayout({
 }) {
   return (
     <div className="min-h-screen bg-canvas">
+      <SkipLink targetId="auth-main" />
       <HeaderBar user={null} events={[]} />
 
-      <main className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6">
+      <main
+        id="auth-main"
+        tabIndex={-1}
+        className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 focus:outline-none sm:px-6"
+      >
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-[radial-gradient(ellipse_50%_60%_at_50%_40%,rgba(124,58,237,0.16),transparent_70%)]"
           aria-hidden="true"
@@ -42,6 +50,9 @@ export function AuthLayout({
           </div>
         </div>
       </main>
+
+      <FloatingUtilities />
+      <CookieNotice />
     </div>
   );
 }

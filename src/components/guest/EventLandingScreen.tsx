@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Camera, Images, Plus } from "lucide-react";
+import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
 import { formatEventDate } from "@/lib/format";
 
 export interface LandingTeaser {
@@ -114,7 +115,7 @@ export function EventLandingScreen({
           {showGallery && (
             <Link
               href={galleryHref}
-              className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
+              className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-all active:scale-[0.98] ${
                 galleryIsPrimary
                   ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
                   : "border border-slate-700 bg-slate-800/60 text-white"
@@ -130,10 +131,10 @@ export function EventLandingScreen({
           <button
             type="button"
             onClick={onAddPhotos}
-            className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
+            className={`tap-target flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-lg font-semibold transition-all active:scale-[0.98] ${
               galleryIsPrimary
-                ? "border border-slate-700 bg-slate-800/60 text-white"
-                : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                ? "border border-slate-700 bg-slate-800/60 text-white hover:border-slate-600 hover:bg-slate-800"
+                : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:from-violet-500 hover:to-indigo-500"
             }`}
           >
             <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center">
@@ -145,6 +146,7 @@ export function EventLandingScreen({
 
         <div className="mt-auto pt-10 text-center">
           <p className="text-xs text-slate-500">No account needed · Free to share</p>
+          <p className="mt-2 text-xs text-slate-500">{GUEST_CANNOT_DOWNLOAD_NOTE}</p>
           <p className="mt-2 text-xs text-white/25">
             <a href="/privacy" className="underline">
               How we handle your memories

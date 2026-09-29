@@ -60,7 +60,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      <main className="min-w-0 flex-1">{children}</main>
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">
+        {children}
+      </main>
     </div>
   );
 }

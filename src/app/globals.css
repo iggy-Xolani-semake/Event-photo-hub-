@@ -98,3 +98,100 @@ section[id] {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================================
+   Print
+   ============================================================================
+   The product is dark-only by design, which is right on screen and wrong on
+   paper: printing a dashboard today gives a full-bleed near-black page that
+   most printers flood with toner. These rules force the sheets back to ink on
+   paper and drop the things that mean nothing once printed — nav, footers,
+   floating widgets, the scroll progress line.
+
+   The QR poster (PrintablePoster) is the one surface that must survive, and it
+   improves here: flattening backgrounds keeps its sheet white, and forcing
+   dark text fixes the white-on-white headline it had (`bg-white text-white`).
+*/
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+
+  /* Flatten every dark surface: no gradients, no glass, no glows. */
+  *,
+  *::before,
+  *::after {
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Chrome that carries no meaning on a sheet of A4. */
+  header,
+  footer,
+  nav,
+  aside,
+  [data-print="hide"],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  /* On paper a link is only useful if you can read where it went. External
+     destinations are printed after the link text; internal ones are skipped
+     because they resolve against a host the reader cannot reach. */
+  main a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+    word-break: break-all;
+  }
+
+  img,
+  svg,
+  canvas {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  section,
+  article,
+  figure,
+  li,
+  tr,
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}

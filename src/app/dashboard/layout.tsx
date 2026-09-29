@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ToastProvider } from "@/components/ui/Toast";
+import { SkipLink } from "@/components/ui/SkipLink";
 import { requireUser } from "@/lib/auth/requireUser";
 
 /**
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <ToastProvider>
       <div className="min-h-screen bg-canvas">
+        <SkipLink />
         <AppHeader />
         <DashboardShell>{children}</DashboardShell>
       </div>

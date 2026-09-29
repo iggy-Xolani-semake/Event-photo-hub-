@@ -86,6 +86,36 @@ Trigger functions are deliberately *not* revoked: Postgres requires the role
 that fires a trigger to hold EXECUTE on its function, so revoking from
 anon/authenticated would break guest uploads and client event edits.
 
+### 0023 — editing your host profile actually saves (do not skip this one either)
+
+Report: a host changes "Your name" in Dashboard → Account Settings, the form
+says it saved, and the name is unchanged — in the form and in the header.
+
+Cause: `POST /api/account` posted the new name into `create_own_client_profile()`,
+which is an *ensure* function. For a caller who already has a `clients` row it
+returns early — `if found then return v_existing; end if;` — so `p_name` and
+`p_phone` were discarded by design. The settings screen was writing into the
+signup code path.
+
+`0023_client_profile_updates.sql` adds `update_own_client_profile(p_name, p_phone)`
+for the edit path and leaves the create function alone:
+
+- it targets the caller's own row by `auth.uid()` — there is no id parameter,
+  so a forged body cannot reach another account;
+- `NULL` means "leave this field alone", `''` means "clear it", so emptying the
+  phone field removes the number instead of being ignored;
+- a blank name raises `NAME_REQUIRED`, names cap at 120 characters and phones
+  at 32, enforced in Postgres rather than only in the form;
+- it returns the stored `{id, name, phone}` so the client renders what the
+  database holds.
+
+`/api/account` calls it, and falls back to `create_own_client_profile()` for a
+signed-in user with no row yet (an account created before the signup trigger
+existed). The form then calls `router.refresh()` so the header — which reads
+the name on the server — re-renders with the new value.
+`npm run verify:profile` reproduces the whole thing against real Postgres,
+including that one host still cannot write (or even read) another's row.
+
 ### V2 Sprint 3 — packages, payment, download entitlement
 
 Two things that used to be one are now separate:
@@ -170,6 +200,138 @@ npm run lint
 npm run build        # production build
 ```
 
+### Landing page photography
+
+The hero mockups (phone + host gallery) and the feature cards render real event
+photographs, not gradient placeholder blocks. They live in
+`public/images/demo/*.webp` (10 frames, ~90 KB each, 1080 px wide) and are
+mapped to tiles in `src/components/landing/mockup/demoPhotos.ts`: which photo
+goes in which gallery slot, how each one is cropped for a square tile, and the
+16 px blur placeholder shown while it decodes.
+
+Files were chosen over remote URLs on purpose. `next/image` optimizes on the
+server, so pointing the tiles at images.unsplash.com would make every landing
+page depend on a third-party host being reachable from wherever the server
+runs — an offline or locked-down environment then renders broken images.
+Local files go through the same optimizer with nothing to fetch and no
+hotlinking or rate limits. Swapping to Unsplash URLs later means editing `src`
+in that one file (`images.remotePatterns` in `next.config.ts` already allows
+`images.unsplash.com`); the tile component itself does not change.
+
+To re-shoot the set, drop new frames in `public/images/demo/`, then regenerate
+the blur placeholders with the command in the header of
+`src/components/landing/mockup/demoPhotoBlur.ts`.
+
+### The brand mark
+
+The Memora mark is a sparkle — the moment caught — with a small glint beside
+it, white on the app's own gradient tile (`#7C3AED → #6366F1` at 135°, the same
+stops as the `brand-gradient` utility).
+
+`src/components/marketing/MemoraMark.tsx` is the source of truth: one component,
+a 40×40 grid, `useId()` for the gradient so the header and footer instances
+don't collide. Everything else is that geometry, copied:
+
+| surface | file | notes |
+| --- | --- | --- |
+| Header, footer | `MemoraMark` at 36px | the surrounding tile is gone; the mark carries its own gradient, and the old indigo box-shadow is now a `drop-shadow` so it follows the rounded silhouette |
+| Browser tab | `src/app/icon.svg` | full-bleed tile — at 16px the mark cannot afford the 4.5/40 padding the in-app version has — with the sparkle scaled 40/31 about the centre to keep the same proportion |
+| iOS home screen | `src/app/apple-icon.png` (180×180) | opaque, full-bleed: iOS applies its own corner mask |
+| Social card | `src/app/opengraph-image.tsx` | inline SVG inside the Satori tree; no font or image fetch involved |
+
+`/brand-preview` (development only — it 404s in a production build) renders the
+live mark and the two directions that were not chosen, at 16/24/32/36/96px. The
+candidate marks live in `src/components/marketing/logoOptions.tsx`. Nothing in
+the app imports those two files; they exist so a future change can be judged
+against the alternatives rather than in isolation.
+
+### Site chrome: the small things that were missing
+
+A pass over the finishing touches, after an audit of what already existed
+(sticky header, mobile menu, FAQ accordion, 404 page and copy-to-clipboard were
+already in place).
+
+**Navigation and orientation**
+
+- `ScrollProgressBar` — a violet line above the sticky header showing how much
+  of the page is left. Mounted once inside `HeaderBar`, so every page that
+  renders the global header gets it. It writes `scaleX` straight to the DOM in
+  a rAF callback instead of through React state, and is `aria-hidden` (a screen
+  reader announcing scroll percentages would be noise, not navigation).
+- `FloatingUtilities` — back-to-top (appears after 600px, honours
+  `prefers-reduced-motion`, returns focus to the content) and an expandable
+  contact button offering WhatsApp and email. Both are `print:hidden` and are
+  deliberately absent from `/e/[code]`, where the guest action bar owns the
+  bottom of the screen.
+- Contact destinations come from `NEXT_PUBLIC_CONTACT_EMAIL` (default
+  `nsxincorporated@gmail.com`) and `NEXT_PUBLIC_CONTACT_WHATSAPP` (default
+  `+27 79 126 9814`). Both default to the operator's real details in code, so an
+  unset env var on a fresh deployment cannot silently remove the only way for a
+  client to reach a human; set them to point a deployment somewhere else. The
+  number may be written in any readable form — `+27 79 126 9814`,
+  `079 126 9814` or `0027 79 126 9814` all normalise to the same `wa.me` link —
+  and the panel prints it so a host can save it before the chat opens.
+- `SkipLink` on every surface that has a main region: landing, auth, dashboard,
+  admin, client portal, guest flow, shared gallery, privacy and terms. Each
+  target carries `id="main"` (or `auth-main`) plus `tabIndex={-1}` — without the
+  tabindex the browser only scrolls, it does not move focus.
+
+**Feedback and safety**
+
+- `ConfirmDialog` — the first real modal in the app (portal, focus trap, Escape
+  and backdrop cancel, *cancel* focused first so a stray Enter cannot delete,
+  focus restoration, scroll lock, `aria-modal`). `PhotoLightbox` now uses it
+  instead of `window.confirm()`, reports failures inline instead of `alert()`,
+  and suspends its arrow/Escape shortcuts while the dialog is open.
+- `PasswordInput` — show/hide toggle on every password field (login, signup,
+  admin login, both reset-password fields), with `aria-pressed` and a label that
+  flips between "Show password" and "Hide password".
+- `CookieNotice` — a notice, not a consent gate: the site sets only essential
+  cookies (auth session, anonymous guest session) and there is no tracking, so
+  the copy says that and the button acknowledges it. Dismissal is remembered in
+  `localStorage`, never in a cookie. While it is up, the floating utilities step
+  aside on small screens so the two bottom overlays cannot cover each other.
+- Hover + focus-visible states on the 22 one-off buttons that had neither (the
+  guest upload flow, the gallery toolbar and lightbox, the admin console). The
+  design-system `Button` already had them; these were the hand-rolled ones.
+- `copyTextToClipboard()` (`src/lib/clipboard.ts`) with a fallback for
+  non-secure contexts, wired into `CopyLinkButton` and `ShareEventButton`, which
+  now report a failed copy instead of claiming "Copied ✓" over an empty
+  clipboard.
+
+**Loading and printing**
+
+- Route-level skeletons for the pages that were missing them: the shared gallery
+  (the one guests see most), `/dashboard/events/[code]`, `/admin`,
+  `/admin/events/[code]`, `/admin/events/new` and `/client`. The auth pages and
+  the legal pages are statically prerendered, so a `loading.tsx` there would
+  never render.
+- A real `@media print` block in `globals.css`: the product is dark-only by
+  design, which is right on screen and wrong on paper, so print flattens every
+  surface to ink on white, drops nav/footers/asides and the floating widgets,
+  prints external link targets, and avoids slicing cards across page breaks. It
+  also fixes the QR poster, which was rendering its headline white on white.
+
+**Search (hosts only)**
+
+- `/api/search` + `GlobalSearch` in the header (and the mobile sheet, and ⌘K).
+  Finds the host's own events by name, code or date, and photos by original
+  filename. It reads through the session-bound Supabase client, so
+  `events_select_authenticated` decides what is searchable — and photo results
+  are additionally constrained to the caller's own events, because
+  `photos_select_shared_or_public` would otherwise surface a stranger's shared
+  gallery in "my search". The `q` parameter is stripped of the characters that
+  are structural in a PostgREST `or()` filter, and requests are debounced and
+  aborted so a fast typist never sees stale results.
+
+**Deliberately not done**
+
+- **Dark mode toggle.** The app is dark-only by design
+  (`tailwind.config.ts`, `globals.css`); a toggle means inventing a second
+  palette for ~60 components. Skipped by decision, not by omission.
+- **UTM tracking.** No analytics provider is installed, so tags would go
+  nowhere. Deferred until one is chosen.
+
 ## Deployment (Netlify or Vercel)
 
 Both are straightforward since this is a standard Next.js App Router
@@ -241,6 +403,39 @@ never waits for this — they see their upload confirmation immediately,
 and the photo appears in the gallery a few seconds later once processing
 completes.
 
+### Keeping your own copy (the guest side)
+
+Two facts that surprise people, and which the guest UI is built around:
+
+- **Taking a photo in the app does not reliably put it in the phone's camera
+  roll.** On iOS Safari, `<input capture="environment">` opens the camera and
+  hands the shot straight to the page — there is no copy in Photos. Android
+  usually keeps one, because the camera app saves to the gallery itself, but
+  that is the camera app's behaviour, not the web platform's.
+- **A guest cannot download the originals from the gallery.** That is enforced
+  server-side by `decideDownloadEntitlement()` (`src/lib/auth/downloadEntitlement.ts`)
+  and the only route that mints a presigned original URL, `GET
+  /api/photos/[id]/download`, answers a guest with `403`. So after uploading, a
+  guest's originals exist on our storage and nowhere on their device.
+
+The success screen therefore ends with **"Save photos to my phone"**
+(`SavePhotosButton` → `src/lib/guest/saveToPhone.ts`), which hands the guest the
+untouched `File` objects `useGuestUploader` keeps in memory. Note `UploadItem.file`
+is the *original*: `lightlyOptimizeJpeg()` only swaps the bytes sent to R2. Two
+routes, in the order they work on phones:
+
+1. **Web Share Level 2** (`navigator.share({ files })`) — on iOS the share sheet
+   is the only reliable way into Photos ("Save Image"). A batch gets one sheet;
+   if the platform only accepts a single file it gets one sheet per file.
+2. **Anchor download per file** — fine on desktop and Android Chrome; iOS Safari
+   ignores the `download` attribute and opens the image instead, so the status
+   message says to long-press it.
+
+`npm run verify:save` asserts that decision matrix. The guest-facing copy that
+goes with it ("only the event creator can download the originals") lives in
+`src/lib/guest/photoRights.ts` so the landing screen, the upload screens and the
+gallery toolbar cannot drift apart.
+
 ## How event isolation works
 
 "Event A's guest must never be able to upload into Event B" is enforced
@@ -287,7 +482,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran all nine migrations in order (0001–0006, 0009–0011); if one reported an object already
+- [ ] Ran every file in `supabase/migrations/` in numeric order (0001 … 0023); if one reported an object already
       existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
       (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
@@ -379,7 +574,8 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               0001-0006 + 0009-0011, run in order
+  migrations/               run in numeric order — 0023_client_profile_updates is
+                            the newest; see the 0023 note above
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list

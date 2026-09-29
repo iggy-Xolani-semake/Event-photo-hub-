@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -151,9 +151,8 @@ export default function ResetPasswordPage() {
         )}
         {error && <ErrorAlert title="Check the details below">{error}</ErrorAlert>}
 
-        <Input
+        <PasswordInput
           label="New password"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
@@ -161,9 +160,8 @@ export default function ResetPasswordPage() {
           onChange={(event) => setPassword(event.target.value)}
         />
 
-        <Input
+        <PasswordInput
           label="Confirm new password"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"

@@ -1,6 +1,7 @@
 import { Camera, Images, Upload } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 /**
  * The guest viewport shell: an ultra-clean, single-hand mobile layout.
@@ -33,6 +34,7 @@ export function GuestShell({ eventName, brandCompanyName, children, actionBar }:
 
   return (
     <div className="min-h-screen bg-canvas">
+      <SkipLink />
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md">
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
           <span className="brand-gradient flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-lg shadow-indigo-500/25">
@@ -47,7 +49,7 @@ export function GuestShell({ eventName, brandCompanyName, children, actionBar }:
         </div>
       </header>
 
-      <main className={actionBar ? "pb-32" : "pb-10"}>{children}</main>
+      <main id="main" tabIndex={-1} className={actionBar ? "pb-32 focus:outline-none" : "pb-10 focus:outline-none"}>{children}</main>
 
       {actionBar}
     </div>

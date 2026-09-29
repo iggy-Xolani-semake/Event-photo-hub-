@@ -7,7 +7,7 @@ import { useState } from "react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
-import { Input } from "@/components/ui/Input";
+import { Input, PasswordInput } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
@@ -125,10 +125,9 @@ export default function SignupPage() {
           autoComplete="email"
         />
 
-        <Input
+        <PasswordInput
           label="Password"
           required
-          type="password"
           minLength={8}
           value={password}
           onChange={(event) => setPassword(event.target.value)}

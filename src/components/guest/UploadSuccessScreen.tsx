@@ -1,5 +1,8 @@
 "use client";
 
+import { SavePhotosButton } from "./SavePhotosButton";
+import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
+
 interface Props {
   eventName: string;
   successCount: number;
@@ -7,6 +10,13 @@ interface Props {
   galleryHref: string;
   galleryAvailable: boolean;
   galleryCount: number | null;
+  /**
+   * The guest's own originals for everything that uploaded — the last chance
+   * to hand them back before `useGuestUploader.reset()` drops them. iOS Safari
+   * does not put a `capture="environment"` shot in Photos, so without this the
+   * guest leaves with no copy at all.
+   */
+  savedFiles: File[];
   onAddMore: () => void;
   onRetryFailed: () => void;
 }
@@ -23,6 +33,7 @@ export function UploadSuccessScreen({
   galleryHref,
   galleryAvailable,
   galleryCount,
+  savedFiles,
   onAddMore,
   onRetryFailed,
 }: Props) {
@@ -40,7 +51,7 @@ export function UploadSuccessScreen({
         <button
           type="button"
           onClick={onRetryFailed}
-          className="tap-target rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-10 py-4 text-lg font-semibold text-white transition-transform active:scale-[0.98]"
+          className="tap-target rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-10 py-4 text-lg font-semibold text-white transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           Try again
         </button>
@@ -64,6 +75,10 @@ export function UploadSuccessScreen({
         </p>
       )}
 
+      <p className="mt-6 max-w-sm text-xs leading-relaxed text-slate-500">
+        {GUEST_CANNOT_DOWNLOAD_NOTE}
+      </p>
+
       <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
         {galleryAvailable && (
           <a
@@ -78,19 +93,24 @@ export function UploadSuccessScreen({
           <button
             type="button"
             onClick={onRetryFailed}
-            className="tap-target w-full rounded-2xl border border-amber-400/40 bg-amber-400/10 px-6 py-4 text-base font-semibold text-amber-100"
+            className="tap-target w-full rounded-2xl border border-amber-400/40 bg-amber-400/10 px-6 py-4 text-base font-semibold text-amber-100 transition-colors hover:border-amber-400/60 hover:bg-amber-400/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
           >
             Retry the {failedCount} that failed
           </button>
         )}
+
+        {/* Their photos, back in their hands. The server never lets a guest
+            download an original, so this button is the guest's only way to
+            keep what they just contributed. */}
+        <SavePhotosButton files={savedFiles} eventName={eventName} />
 
         <button
           type="button"
           onClick={onAddMore}
           className={`tap-target w-full rounded-2xl px-6 py-4 text-lg font-semibold transition-transform active:scale-[0.98] ${
             galleryAvailable
-              ? "border border-slate-700 bg-slate-800/60 text-white"
-              : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+              ? "border border-slate-700 bg-slate-800/60 text-white hover:border-slate-600 hover:bg-slate-800"
+              : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:from-violet-500 hover:to-indigo-500"
           }`}
         >
           Add more photos

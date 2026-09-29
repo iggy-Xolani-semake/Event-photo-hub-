@@ -6,6 +6,11 @@ import { useGuestUploader } from "./useGuestUploader";
 import { validateFile, validateBatchSize } from "@/lib/validation/fileValidation";
 import { PhotoPreviewGrid } from "./PhotoPreviewGrid";
 import { UploadSuccessScreen } from "./UploadSuccessScreen";
+import {
+  GUEST_CANNOT_DOWNLOAD_NOTE,
+  GUEST_KEEP_COPY_NOTE,
+  PHOTO_RIGHTS_HEADING,
+} from "@/lib/guest/photoRights";
 
 /** File-picker triggers the guest shell's bottom action bar can call. */
 export interface GuestUploadActions {
@@ -149,6 +154,10 @@ export function GuestUploadExperience({
         galleryHref={galleryHref}
         galleryAvailable={galleryAvailable}
         galleryCount={galleryCount}
+        // `item.file` is the untouched original: `lightlyOptimizeJpeg` only
+        // swaps the bytes that go to R2, never the item. So this is the
+        // best-quality copy the guest started with, not the optimized upload.
+        savedFiles={items.filter((item) => item.status === "success").map((item) => item.file)}
         onAddMore={handleAddMore}
         onRetryFailed={handleRetryFailed}
       />
@@ -196,7 +205,7 @@ export function GuestUploadExperience({
         <button
           type="button"
           onClick={onBack}
-          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-slate-400"
+          className="-ml-2 mb-8 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           <span aria-hidden="true">←</span> Back
         </button>
@@ -211,6 +220,34 @@ export function GuestUploadExperience({
           <p className="mt-3 text-base leading-relaxed text-slate-400">
             Add up to {maxFilesPerUpload} photos from your phone to {eventName}.
           </p>
+
+          <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              {PHOTO_RIGHTS_HEADING}
+            </h2>
+            <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-400">
+              <li className="flex gap-2">
+                <span aria-hidden="true" className="text-slate-600">
+                  •
+                </span>
+                <span>
+                  They appear in the shared gallery for everyone at {eventName}, right away.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span aria-hidden="true" className="text-slate-600">
+                  •
+                </span>
+                <span>{GUEST_CANNOT_DOWNLOAD_NOTE}</span>
+              </li>
+              <li className="flex gap-2">
+                <span aria-hidden="true" className="text-slate-600">
+                  •
+                </span>
+                <span>{GUEST_KEEP_COPY_NOTE}</span>
+              </li>
+            </ul>
+          </div>
 
           {validationError && (
             <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">

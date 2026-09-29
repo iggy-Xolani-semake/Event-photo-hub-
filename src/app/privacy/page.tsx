@@ -1,5 +1,8 @@
 import { AppFooter } from "@/components/layout/AppFooter";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { CookieNotice } from "@/components/layout/CookieNotice";
+import { FloatingUtilities } from "@/components/layout/FloatingUtilities";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 export const metadata = { title: "Privacy Policy — Memora" };
 
@@ -10,8 +13,13 @@ export const metadata = { title: "Privacy Policy — Memora" };
 export default function PrivacyPolicyPage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <SkipLink />
       <AppHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12 leading-relaxed text-slate-400">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-2xl flex-1 px-6 py-12 leading-relaxed text-slate-400 focus:outline-none"
+      >
 
       <h1 className="mt-2 mb-2 text-3xl font-bold tracking-tight text-white md:text-4xl">Privacy Policy</h1>
       <p className="text-slate-500 text-sm mb-10">Last updated: 1 September 2026</p>
@@ -122,6 +130,8 @@ export default function PrivacyPolicyPage() {
       </p>
     </main>
       <AppFooter />
+      <FloatingUtilities />
+      <CookieNotice />
     </div>
   );
 }
