@@ -1,6 +1,7 @@
-import { Images } from "lucide-react";
+import { ArrowRight, Images, Share2 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ShareEventButton } from "@/components/admin/ShareEventButton";
 import { CreateEventForm } from "@/components/dashboard/CreateEventForm";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
@@ -20,6 +21,10 @@ const STATUS_TONE: Record<EventStatus, BadgeTone> = {
   closed: "processing",
   archived: "neutral",
 };
+
+function resolveBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+}
 
 export default async function ClientDashboardPage() {
   const user = await requireUser();
@@ -47,6 +52,11 @@ export default async function ClientDashboardPage() {
   const allEvents = events ?? [];
   const activeEvents = allEvents.filter((event) => event.status === "active");
   const totalPhotos = allEvents.reduce((sum, event) => sum + event.photo_count, 0);
+  const nextEvent = activeEvents[0] ?? allEvents[0] ?? null;
+  const nextEventUrl = nextEvent ? `${resolveBaseUrl()}/e/${nextEvent.event_code}` : null;
+  const nextEventPercent = nextEvent
+    ? Math.min(100, Math.round((nextEvent.photo_count / Math.max(1, nextEvent.upload_limit)) * 100))
+    : 0;
 
   return (
     <div className="space-y-10">
@@ -82,6 +92,38 @@ export default async function ClientDashboardPage() {
         <Stat label="Active" value={activeEvents.length.toLocaleString()} />
         <Stat label="Photos collected" value={totalPhotos.toLocaleString()} />
       </div>
+
+      {nextEvent && nextEventUrl && (
+        <section className="overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-indigo-700">
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+                Your next best step
+              </div>
+              <h2 className="truncate text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+                Share {nextEvent.event_name}
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
+                Guests can scan the QR code or open the link. Their memories will appear here as they arrive.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
+                <span>{nextEvent.photo_count.toLocaleString()} memories so far</span>
+                <span>{nextEventPercent}% of the photo allowance used</span>
+                <Badge tone={STATUS_TONE[nextEvent.status]} dot={nextEvent.status === "active"}>
+                  {nextEvent.status}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <ShareEventButton url={nextEventUrl} title={nextEvent.event_name} />
+              <ButtonLink href={`/dashboard/events/${nextEvent.event_code}`} variant="secondary" size="sm">
+                Open event <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </ButtonLink>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div id="new-event" className="scroll-mt-24">
         <CreateEventForm />

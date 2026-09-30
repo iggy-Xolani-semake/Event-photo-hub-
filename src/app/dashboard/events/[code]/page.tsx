@@ -4,6 +4,7 @@ import { EventQrCode } from "@/components/admin/EventQrCode";
 import { EventSettingsForm } from "@/components/admin/EventSettingsForm";
 import { EventStatusControls } from "@/components/admin/EventStatusControls";
 import { PrintablePoster } from "@/components/admin/PrintablePoster";
+import { ShareEventButton } from "@/components/admin/ShareEventButton";
 import { UnlockDownloadsPanel } from "@/components/dashboard/UnlockDownloadsPanel";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -96,10 +97,14 @@ export default async function ClientEventPage({ params }: PageProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader
-              title="Share with your guests"
-              description="Print the poster, or send the link to the group chat."
-            />
+            <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-indigo-700">Ready to collect memories?</p>
+                <p className="mt-1 text-sm text-slate-600">Send the guest link to your group chat or show the QR code at the venue.</p>
+              </div>
+              <ShareEventButton url={guestUrl} title={event.event_name} />
+            </div>
+            <CardHeader title="Share with your guests" description="Choose the easiest way for your guests to join." />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <CopyLinkButton url={guestUrl} label="Copy Guest Link" />
               <CopyLinkButton url={galleryUrl} label="Copy Memories Link" />
@@ -117,6 +122,11 @@ export default async function ClientEventPage({ params }: PageProps) {
               >
                 See Memories
               </Link>
+            </div>
+            <div className="mt-5 grid gap-3 border-t border-slate-200 pt-5 sm:grid-cols-3">
+              <QuickStat label="Memories" value={`${event.photo_count.toLocaleString()} / ${event.upload_limit.toLocaleString()}`} />
+              <QuickStat label="Gallery status" value={event.status === "active" ? "Collecting" : event.status} />
+              <QuickStat label="Storage used" value={formatStorageSize(event.storage_used_bytes)} />
             </div>
           </Card>
 
@@ -151,6 +161,15 @@ export default async function ClientEventPage({ params }: PageProps) {
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+function QuickStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-slate-50 px-3 py-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
 }
