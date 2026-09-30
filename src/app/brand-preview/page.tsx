@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BRAND_OPTIONS, BrandMark } from "@/components/marketing/logoOptions";
-import { MemoraMark } from "@/components/marketing/MemoraMark";
+import { ShutaMzalaMark } from "@/components/marketing/ShutaMzalaMark";
 
 export const metadata: Metadata = {
-  title: "Brand marks — Memora",
+  title: "Brand marks — shutaMzala",
   // Never index a temporary design review page.
   robots: { index: false, follow: false },
 };
@@ -40,22 +40,22 @@ export default function BrandPreviewPage() {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-8">
             <div className="flex items-end gap-4">
-              <MemoraMark size={96} />
-              <MemoraMark size={36} />
-              <MemoraMark size={32} />
-              <MemoraMark size={16} />
+              <ShutaMzalaMark size={96} />
+              <ShutaMzalaMark size={36} />
+              <ShutaMzalaMark size={32} />
+              <ShutaMzalaMark size={16} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <MemoraMark size={36} />
-                <span className="text-lg font-bold tracking-tight text-white">Memora</span>
+                <ShutaMzalaMark size={36} />
+                <span className="text-lg font-bold tracking-tight text-white">shutaMzala</span>
               </div>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-300">
                 Live in the header and footer, as the browser-tab icon
                 (<code className="text-slate-400">src/app/icon.svg</code>), the Apple touch icon
                 (<code className="text-slate-400">src/app/apple-icon.png</code>) and the social card
                 (<code className="text-slate-400">src/app/opengraph-image.tsx</code>). Source of
-                truth: <code className="text-slate-400">src/components/marketing/MemoraMark.tsx</code>
+                truth: <code className="text-slate-400">src/components/marketing/ShutaMzalaMark.tsx</code>
                 — the SVG copies are generated from that geometry, never redrawn.
               </p>
             </div>
@@ -97,7 +97,7 @@ export default function BrandPreviewPage() {
                   </p>
                   <div className="flex items-center gap-2.5">
                     <BrandMark id={option.id} size={36} />
-                    <span className="text-lg font-bold tracking-tight text-white">Memora</span>
+                    <span className="text-lg font-bold tracking-tight text-white">shutaMzala</span>
                   </div>
                 </div>
 
@@ -108,7 +108,7 @@ export default function BrandPreviewPage() {
                   <div className="flex items-center gap-2.5">
                     <BrandMark id={option.id} size={32} />
                     <div>
-                      <p className="text-sm font-bold tracking-tight text-white">Memora</p>
+                      <p className="text-sm font-bold tracking-tight text-white">shutaMzala</p>
                       <p className="text-[10px] uppercase tracking-wider text-slate-500">
                         Event photo sharing
                       </p>

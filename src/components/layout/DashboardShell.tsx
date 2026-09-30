@@ -26,14 +26,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const linkClass = (href: string, exact: boolean) =>
     clsx(
-      "flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
+      "flex min-h-11 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
       isActive(href, exact)
         ? "bg-slate-800/80 text-white shadow-inner ring-1 ring-slate-700"
         : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
     );
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-4 overflow-x-hidden px-4 py-6 sm:px-6 lg:flex-row lg:gap-8 lg:py-10">
       <aside className="hidden w-60 shrink-0 lg:block">
         <nav aria-label="Dashboard" className="sticky top-24 space-y-1.5">
           {NAV_ITEMS.map((item) => (

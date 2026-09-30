@@ -36,7 +36,7 @@ interface PhoneMockupProps {
 const SELECTED_TILES = 3;
 
 /**
- * The guest side of Memora: a phone held up to a printed QR poster, then the
+ * The guest side of shutaMzala: a phone held up to a printed QR poster, then the
  * whole upload flow, rendered in the app's own dark surface language so what
  * is advertised here is what the product looks like.
  *
@@ -138,7 +138,7 @@ function ScanPhase({ onAdvance }: { onAdvance: () => void }) {
 
         <div className="px-4 pb-6 pt-4">
           <p className="mb-3 text-center text-[10px] font-medium leading-relaxed text-slate-300">
-            memora.app detected · no app install needed
+            shutaMzala.app detected · no app install needed
           </p>
           <PhoneButton onClick={onAdvance} icon={<ScanLine className="h-3.5 w-3.5" />}>
             Open upload page

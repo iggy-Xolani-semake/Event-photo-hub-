@@ -6,7 +6,7 @@ interface Props extends SVGProps<SVGSVGElement> {
 }
 
 /**
- * The Memora mark — a sparkle caught mid-moment, with a glint beside it.
+ * The shutaMzala mark — a sparkle caught mid-moment, with a glint beside it.
  *
  * Drawn on a 40×40 grid so it scales cleanly from the 16px browser tab to the
  * hero, and in the app's own brand gradient (#7C3AED → #6366F1 at 135°, the
@@ -16,11 +16,11 @@ interface Props extends SVGProps<SVGSVGElement> {
  * on a page (header and footer); duplicate SVG ids make every instance resolve
  * to whichever gradient painted first.
  *
- * Decorative by default: it always sits next to the "Memora" wordmark, so
+ * Decorative by default: it always sits next to the "shutaMzala" wordmark, so
  * announcing it again would just repeat the name to a screen reader. Pass
  * `aria-hidden={false}` and a `role="img"` label where it stands alone.
  */
-export function MemoraMark({ size = 36, className, ...props }: Props) {
+export function ShutaMzalaMark({ size = 36, className, ...props }: Props) {
   const id = useId();
   return (
     <svg
@@ -48,4 +48,4 @@ export function MemoraMark({ size = 36, className, ...props }: Props) {
   );
 }
 
-export default MemoraMark;
+export default ShutaMzalaMark;

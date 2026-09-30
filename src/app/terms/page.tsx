@@ -5,7 +5,7 @@ import { CookieNotice } from "@/components/layout/CookieNotice";
 import { FloatingUtilities } from "@/components/layout/FloatingUtilities";
 import { SkipLink } from "@/components/ui/SkipLink";
 
-export const metadata = { title: "Terms of Service — Memora" };
+export const metadata = { title: "Terms of Service — shutaMzala" };
 
 /**
  * Terms of Service.

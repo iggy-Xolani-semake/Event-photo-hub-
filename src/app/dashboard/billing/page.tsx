@@ -61,7 +61,7 @@ export default async function BillingPage() {
           <EmptyState
             icon={<BadgeCheck className="h-6 w-6" strokeWidth={2} />}
             title="No passes on sale yet"
-            description="Packages are configured by the Memora team. Your events keep collecting photos in the meantime."
+            description="Packages are configured by the shutaMzala team. Your events keep collecting photos in the meantime."
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -15,7 +15,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { parseEventCodeOrLink } from "@/lib/eventCode";
-import { MemoraMark } from "@/components/marketing/MemoraMark";
+import { ShutaMzalaMark } from "@/components/marketing/ShutaMzalaMark";
 import { Button, ButtonLink, IconButton } from "@/components/ui/Button";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 import { GlobalSearch } from "./GlobalSearch";
@@ -83,8 +83,8 @@ export function HeaderBar({ user, events }: { user: HeaderUser | null; events: H
           {/* The mark carries its own gradient tile, so the glow is a
               drop-shadow (it follows the tile's rounded silhouette) rather
               than a box-shadow, which would square off the corners. */}
-          <MemoraMark size={36} className="drop-shadow-[0_6px_16px_rgba(99,102,241,0.35)]" />
-          <span className="text-lg font-bold tracking-tight text-white">Memora</span>
+          <ShutaMzalaMark size={36} className="drop-shadow-[0_6px_16px_rgba(99,102,241,0.35)]" />
+          <span className="text-lg font-bold tracking-tight text-white">shutaMzala</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">

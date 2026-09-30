@@ -1,6 +1,6 @@
 import type { Package } from "@/types/database";
 
-/** Formats 5000 as "R50" / "R1 250". Null stays null: unpriced is not free. */
+/** Formats integer prices as localized currency values. Null stays null: unpriced is not free. */
 export function formatPrice(priceCents: number | null, currency = "ZAR"): string | null {
   if (priceCents === null || priceCents === undefined) return null;
   const symbol = currency === "ZAR" ? "R" : `${currency} `;

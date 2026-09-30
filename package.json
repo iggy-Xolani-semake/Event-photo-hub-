@@ -22,6 +22,7 @@
     "@zip.js/zip.js": "^2.18.2",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.48.0",
     "nanoid": "^5.0.9",
     "next": "^15.1.0",

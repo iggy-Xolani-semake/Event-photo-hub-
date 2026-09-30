@@ -91,6 +91,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: claimed, error: claimError } = await admin.rpc("claim_event_downloads", { p_event_id: event.id, p_count: photos.length });
+    if (claimError || claimed !== true) return NextResponse.json({ error: "This event has reached its download limit or expired." }, { status: 429 });
+
     const usedNames = new Set<string>();
     const files: DownloadManifestFile[] = await Promise.all(
       photos.map(async (photo) => {

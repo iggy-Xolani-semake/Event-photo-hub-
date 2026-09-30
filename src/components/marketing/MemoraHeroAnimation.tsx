@@ -41,10 +41,10 @@ function PhotoCard({ color, index }: { color: string; index: number }) {
   );
 }
 
-export default function MemoraHeroAnimation() {
+export default function shutaMzalaHeroAnimation() {
   return (
-    <div className="memora-animation" aria-label="A short animation showing friends taking photos that come together in Memora">
-      <div className="animation-topline"><span>MEMORA</span><i>LIVE EVENT</i></div>
+    <div className="shutaMzala-animation" aria-label="A short animation showing friends taking photos that come together in shutaMzala">
+      <div className="animation-topline"><span>shutaMzala</span><i>LIVE EVENT</i></div>
       <div className="event-stage">
         <span className="stage-spark spark-one" />
         <span className="stage-spark spark-two" />
@@ -61,8 +61,8 @@ export default function MemoraHeroAnimation() {
         <div className="gallery-grid">
           {photos.map((color, index) => <PhotoCard key={`gallery-${color}`} color={color} index={index} />)}
         </div>
-        <div className="memora-mark">
-          <strong>memora</strong>
+        <div className="shutaMzala-mark">
+          <strong>shutaMzala</strong>
           <span>Shared moments. Lasting memories.</span>
           <b>See the memories →</b>
         </div>
@@ -70,7 +70,7 @@ export default function MemoraHeroAnimation() {
         <span className="share-dot share-dot-one" />
         <span className="share-dot share-dot-two" />
       </div>
-      <div className="animation-caption"><span>Everyone has a moment.</span><strong>Memora brings them together.</strong></div>
+      <div className="animation-caption"><span>Everyone has a moment.</span><strong>shutaMzala brings them together.</strong></div>
     </div>
   );
 }

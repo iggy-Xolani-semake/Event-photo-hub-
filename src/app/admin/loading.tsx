@@ -13,7 +13,7 @@ export default function AdminLoading() {
       <Skeleton className="h-8 w-56" />
       <Skeleton className="mt-2 h-4 w-72" />
 
-      <div className="mb-10 mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+      <div className="mb-10 mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="rounded-xl border border-slate-800 bg-slate-800/40 p-5">
             <Skeleton className="h-7 w-20" />

@@ -1,7 +1,7 @@
 import { useId, type SVGProps } from "react";
 
 /**
- * Three candidate brand marks for Memora, built as real SVG so they can be
+ * Three candidate brand marks for shutaMzala, built as real SVG so they can be
  * judged at the size they will actually be seen (36px in the header) rather
  * than as a poster mockup.
  *
@@ -68,7 +68,7 @@ function Tile({ fill }: { fill: string }) {
 export function ApertureM({ size = 40, className, ...props }: MarkProps) {
   const id = useId();
   return (
-    <Svg size={size} className={className} aria-label="Memora aperture mark" {...props}>
+    <Svg size={size} className={className} aria-label="shutaMzala aperture mark" {...props}>
       <BrandGradient id={id} />
       <Tile fill={`url(#${id})`} />
       {/* Thin barrel, then a clear gap of gradient, then the iris. A heavy ring
@@ -98,7 +98,7 @@ export function ApertureM({ size = 40, className, ...props }: MarkProps) {
 export function MomentSpark({ size = 40, className, ...props }: MarkProps) {
   const id = useId();
   return (
-    <Svg size={size} className={className} aria-label="Memora spark mark" {...props}>
+    <Svg size={size} className={className} aria-label="shutaMzala spark mark" {...props}>
       <BrandGradient id={id} />
       <Tile fill={`url(#${id})`} />
       <path
@@ -122,7 +122,7 @@ export function MomentSpark({ size = 40, className, ...props }: MarkProps) {
 export function CollectedFrames({ size = 40, className, ...props }: MarkProps) {
   const id = useId();
   return (
-    <Svg size={size} className={className} aria-label="Memora collected frames mark" {...props}>
+    <Svg size={size} className={className} aria-label="shutaMzala collected frames mark" {...props}>
       <BrandGradient id={id} />
       <Tile fill={`url(#${id})`} />
       {/* Upright, offset cards — a rotated stack turns to mush at 16px. Two

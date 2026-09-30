@@ -13,13 +13,16 @@
 
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   overscroll-behavior-y: none;
   touch-action: manipulation;
-  background: #090d16;
+  background: #f8fafc;
 }
 
 body {
@@ -28,6 +31,16 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* Comfortable touch targets and prevent intrinsic form widths on narrow screens. */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  max-width: 100%;
+}
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    min-height: 44px;
+  }
 }
 
 .tap-target {
@@ -42,6 +55,32 @@ body {
 section[id] {
   scroll-margin-top: 88px;
 }
+
+/* Shared light appearance for every route. These utility-level overrides keep
+   the existing component layouts intact while replacing the former dark palette. */
+.light-theme { color-scheme: light; }
+.light-theme [class*="bg-canvas"] { background-color: #f8fafc !important; }
+.light-theme [class*="bg-slate-950"] { background-color: #f8fafc !important; }
+.light-theme [class*="bg-slate-900"] { background-color: #ffffff !important; }
+.light-theme [class*="bg-slate-800"] { background-color: #f1f5f9 !important; }
+.light-theme [class*="bg-slate-700"] { background-color: #e2e8f0 !important; }
+.light-theme [class*="border-slate-800"],
+.light-theme [class*="border-slate-700"] { border-color: #e2e8f0 !important; }
+.light-theme [class*="text-slate-100"],
+.light-theme [class*="text-slate-200"] { color: #0f172a !important; }
+.light-theme [class*="text-slate-300"] { color: #334155 !important; }
+.light-theme [class*="text-slate-400"] { color: #475569 !important; }
+.light-theme [class*="text-slate-500"] { color: #64748b !important; }
+.light-theme [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #0f172a !important; }
+.light-theme header.sticky { background-color: rgb(255 255 255 / 0.82) !important; border-color: #e2e8f0 !important; }
+.light-theme input:not([type="checkbox"]):not([type="radio"]),
+.light-theme select, .light-theme textarea {
+  background-color: #fff !important; border-color: #cbd5e1 !important; color: #0f172a !important;
+}
+.light-theme input::placeholder, .light-theme textarea::placeholder { color: #94a3b8 !important; }
+.light-theme .brand-text { background-image: linear-gradient(to right,#7c3aed,#4f46e5); }
+.light-theme .surface-grid { opacity: .28; }
+.light-theme :is(article, [class*="rounded-2xl"]) { box-shadow: 0 1px 2px rgb(15 23 42 / .05); }
 
 @layer components {
   /* The one gradient in the system: violet -> electric indigo. Used by the
@@ -192,6 +231,61 @@ section[id] {
   }
 
   @page {
-    margin: 14mm;
+    size: A4 portrait;
+    margin: 0;
   }
+}
+
+/* Dedicated A4 print path: the poster is the only visible application content. */
+@page poster-sheet {
+  size: A4 portrait;
+  margin: 0;
+}
+@media print {
+  html, body {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  body.print-poster-mode * { visibility: hidden !important; }
+  body.print-poster-mode .poster-print-mode,
+  body.print-poster-mode .poster-print-mode * { visibility: visible !important; }
+  body.print-poster-mode .poster-print-mode {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483647 !important;
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+  body.print-poster-mode .poster-controls { display: none !important; }
+  body.print-poster-mode .poster-print-root {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    width: 210mm !important;
+    max-width: none !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 14mm 17mm !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+    page: poster-sheet;
+  }
+  body.print-poster-mode .poster-print-root img { width: 76mm !important; height: 76mm !important; max-width: none !important; }
+  body.print-poster-mode .poster-print-root li { background: #f8fafc !important; }
+  body.print-poster-mode .poster-print-root * { visibility: visible !important; }
 }

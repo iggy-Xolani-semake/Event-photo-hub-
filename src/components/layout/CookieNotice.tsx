@@ -8,7 +8,7 @@ import { setBottomNoticeVisible } from "./noticeStore";
 /**
  * Simple cookie notice.
  *
- * The copy is deliberately narrow because it is accurate: Memora sets exactly
+ * The copy is deliberately narrow because it is accurate: shutaMzala sets exactly
  * two kinds of cookie, both strictly necessary — the Supabase auth session for
  * a signed-in host, and an anonymous, event-scoped guest session token so an
  * upload can be attributed without an account. There are no analytics or
@@ -23,7 +23,7 @@ import { setBottomNoticeVisible } from "./noticeStore";
  * during render would produce different markup on the server and the client.
  */
 
-const STORAGE_KEY = "memora:cookie-notice:v1";
+const STORAGE_KEY = "shutaMzala:cookie-notice:v1";
 
 export function CookieNotice() {
   const [visible, setVisible] = useState(false);

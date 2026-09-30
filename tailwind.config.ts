@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // Memora is a dark-only product surface: the design system specifies a
+  // shutaMzala is a dark-only product surface: the design system specifies a
   // slate/indigo canvas with glassmorphic panels, so there is no light theme
   // to configure and no `dark:` variants should be introduced.
   content: [

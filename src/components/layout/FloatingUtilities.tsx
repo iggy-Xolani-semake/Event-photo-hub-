@@ -87,7 +87,7 @@ if (process.env.NODE_ENV === "development" && CONTACT_WHATSAPP) {
 /** The wa.me URL for the configured number, with a pre-filled question. */
 function whatsappHref(raw: string): string {
   const digits = normaliseWhatsApp(raw);
-  const message = encodeURIComponent("Hi Memora — I have a question about an event.");
+  const message = encodeURIComponent("Hi shutaMzala — I have a question about an event.");
   return `https://wa.me/${digits}?text=${message}`;
 }
 
@@ -204,7 +204,7 @@ export function FloatingUtilities({ className }: { className?: string }) {
             )}
 
             <a
-              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Memora — question about my event")}`}
+              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("shutaMzala — question about my event")}`}
               className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white"
             >
               <Mail className="h-4 w-4 shrink-0 text-indigo-400" strokeWidth={2.2} />

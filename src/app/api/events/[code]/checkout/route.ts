@@ -23,12 +23,22 @@ interface RouteContext {
  * returns the pending payment and the host confirms payment by EFT, which
  * staff mark with POST /api/admin/events/{code}/mark-paid.
  */
-export async function POST(_request: NextRequest, { params }: RouteContext) {
+export async function POST(request: NextRequest, { params }: RouteContext) {
   const user = await requireUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
 
+  const body = await request.json().catch(() => ({}));
+  const currency = typeof body.currency === "string" ? body.currency : "ZAR";
+  const convertedPrice = (base: number, code: string) => {
+    const table: Record<number, Record<string, number>> = {
+      5999: { ZAR: 5999, USD: 349, GBP: 279, EUR: 319, NGN: 550000 },
+      14999: { ZAR: 14999, USD: 849, GBP: 699, EUR: 799, NGN: 1380000 },
+    };
+    return base === 0 ? 0 : (table[base]?.[code] ?? (code === "ZAR" ? base : null));
+  };
+  if (!["ZAR", "USD", "GBP", "EUR", "NGN"].includes(currency)) return NextResponse.json({ error: "Unsupported currency." }, { status: 400 });
   const { code } = await params;
   const event = await findManagedEvent(code);
   if (!event) {
@@ -73,6 +83,9 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
     );
   }
 
+  const checkoutAmount = convertedPrice(pkg.price_cents, currency);
+  if (checkoutAmount === null) return NextResponse.json({ error: "This package is not configured for that currency." }, { status: 400 });
+
   // Written with the service role: clients have no INSERT policy on payments,
   // so "I paid" can never be a request body.
   const { data: payment, error } = await admin
@@ -80,8 +93,8 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
     .insert({
       event_id: event.id,
       package_id: pkg.id,
-      amount_cents: pkg.price_cents,
-      currency: pkg.currency,
+      amount_cents: checkoutAmount,
+      currency,
       provider: null,
       status: "pending",
       metadata: { created_by: user.userId },
@@ -97,8 +110,8 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json({
     status: "awaiting_payment",
     payment,
-    amountCents: pkg.price_cents,
-    currency: pkg.currency,
+    amountCents: checkoutAmount,
+    currency,
     packageName: pkg.name,
     // Null until a provider is configured — the UI shows EFT instructions
     // rather than pretending a card form is on its way.

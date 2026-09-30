@@ -164,7 +164,7 @@ export function GlobalSearch({ fullWidth = false }: { fullWidth?: boolean }) {
       {open && (
         <div
           className={clsx(
-            "absolute right-0 top-full z-50 mt-2 w-[22rem] animate-fade-in overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/95 shadow-xl backdrop-blur-md",
+            "absolute right-0 top-full z-50 mt-2 w-full max-w-[calc(100vw-2rem)] animate-fade-in overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/95 shadow-xl backdrop-blur-md sm:w-[22rem]",
             fullWidth && "static mt-2 w-full"
           )}
         >

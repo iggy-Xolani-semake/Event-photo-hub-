@@ -32,12 +32,12 @@ export function UnlockDownloadsPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function call(url: string) {
+  async function call(url: string, currency?: string) {
     setBusy(true);
     setError(null);
     setMessage(null);
 
-    const res = await fetch(url, { method: "POST" });
+    const res = await fetch(url, currency ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency }) } : { method: "POST" });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
 
@@ -100,7 +100,7 @@ export function UnlockDownloadsPanel({
         {hasPackage && (
           <button
             type="button"
-            onClick={() => call(`/api/events/${eventCode}/checkout`)}
+            onClick={() => call(`/api/events/${eventCode}/checkout`, window.localStorage.getItem("shutamzala-currency") ?? "ZAR")}
             disabled={busy}
             className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
