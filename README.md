@@ -165,6 +165,51 @@ than once — every statement is guarded — so if the SQL editor reported
 Note the behaviour change: **guests lose bulk download**, which is the point —
 the gallery is the free product, the originals are the paid one.
 
+### shutaMzala tiers — Free, Party Pack, Event Pack (`0024`–`0027`)
+
+The catalogue is three tiers, and the entitlements are enforced in Postgres
+rather than in the routes, so a future route or a hand-written SQL edit cannot
+get around them.
+
+| tier | photos | downloads | photos per guest | gallery retention | price |
+| --- | --- | --- | --- | --- | --- |
+| Free | 100 | 10 | 10 | 7 days | R0 |
+| Party Pack | 240 | 100 | 20 | 60 days | R59.99 |
+| Event Pack | 1000 | 500 | 30 | 120 days | R149.99 |
+
+- `0024_shutamzala_tiers.sql` — the catalogue. Deactivates the old per-photo
+  packages and repoints existing events onto the closest tier (a 250-photo
+  event becomes an Event Pack).
+- `0025_tier_enforcement.sql` — `events_package_entitlements` clamps an event to
+  its package, refuses a limit raised above it, and derives the gallery expiry
+  from the package's `retention_days`. Adds `claim_event_downloads()`
+  (service-role only, atomic, one row per original) and
+  `expired_gallery_event_ids()` for cleanup.
+- `0026_tier_retention_on_insert.sql` — **do not skip this one.** Without it
+  every new gallery expires in 30 days whatever tier it is on.
+  `gallery_expires_at` is `NOT NULL` with a 30-day default, and Postgres
+  applies a column default *before* BEFORE ROW triggers run — so the
+  `coalesce(...)` meant to fill it in always found a value already there and
+  kept the default. Party Pack and Event Pack were sold 60 and 120 days and
+  silently given 30.
+- `0027_event_ceiling_matches_top_tier.sql` — **do not skip this one either.**
+  The app-wide photo ceiling was still 500 while Event Pack sells 1000, so
+  creating an Event Pack event failed with `UPLOAD_LIMIT_OUT_OF_RANGE` (shown
+  to the host as "Those limits are outside what this app allows"), and the
+  form's own max capped any workaround at 500. `src/lib/limits.ts` carries the
+  same number and is changed with it — the form and the database have to agree
+  about the same product rule.
+
+`npm run verify:tiers` (also part of `npm run verify:db`) runs all four against
+a database left in the pre-rollout state — legacy events still pointing at
+per-photo packages — and attacks the result.
+
+Retention is a **retroactive** policy change for events created before this
+rollout: `0025` rewrote the expiry of every gallery that had not yet expired
+from the old flat 30 days to the new per-tier retention, which expired
+galleries that were still inside the window they were created under. Decide
+deliberately whether existing events should be grandfathered.
+
 Not yet built (see spec sections 5, 21, 26–31 for the intended shape):
 live gallery mode, AI features, video support, a payment gateway
 (packages and entitlement exist; provider webhooks do not), white-label
@@ -480,7 +525,7 @@ filtering that a route could forget to apply.
 
 Before taking this live with real events and real guest data:
 
-- [ ] Ran every file in `supabase/migrations/` in numeric order (0001 … 0023); if one reported an object already
+- [ ] Ran every file in `supabase/migrations/` in numeric order (0001 … 0027); if one reported an object already
       existing, ran `docs/MIGRATION_0006_STATE_CHECK.sql` QUERY 1 and re-ran it
       (0006 is re-runnable, so this is not destructive) verified RLS is enabled on
       `clients`, `events`, `photos` (`\d+ tablename` in psql shows
@@ -572,8 +617,8 @@ src/
     rateLimit.ts            in-memory rate limiter
   types/database.ts         hand-written types matching the SQL schema
 supabase/
-  migrations/               run in numeric order — 0023_client_profile_updates is
-                            the newest; see the 0023 note above
+  migrations/               run in numeric order — 0027_event_ceiling_matches_top_tier
+                            is the newest; see the tier notes above
   functions/process-image/  Edge Function for gallery/thumb generation
 docs/
   GUEST_UX_SPEC.md      guest journey spec (V2 Sprint 1) + deferred list

@@ -12,6 +12,12 @@
  *      that nothing — a future route, a dashboard edit, a script — can ever
  *      store an absurd value.
  *
+ * `uploadLimit.max` must be at least the largest tier in `packages`
+ * (Event Pack holds 1000), and the trigger's ceiling is kept equal to it by
+ * 0027_event_ceiling_matches_top_tier.sql. Raising one without the other
+ * makes a tier that cannot be delivered: the form would accept a number the
+ * database then rejects.
+ *
  * If you change a number here, the form hints and the server rejection
  * messages follow automatically, because both read this object.
  */
@@ -33,7 +39,7 @@ export const EVENT_LIMIT_CAPS: Record<LimitKey, LimitRule> = {
   uploadLimit: {
     label: "Total photos the gallery can hold",
     min: 10,
-    max: 500,
+    max: 1000,
     fallback: 500,
   },
   maxFileSizeMb: {
