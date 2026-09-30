@@ -1,4 +1,4 @@
-# Memora V1 Product Contract
+# shutaMzala V1 Product Contract
 
 ## Primary customer
 

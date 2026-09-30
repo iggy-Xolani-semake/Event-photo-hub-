@@ -43,7 +43,7 @@ export function GuestShell({ eventName, brandCompanyName, children, actionBar }:
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">{eventName}</p>
             <p className="truncate text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              {brandCompanyName ? `Hosted by ${brandCompanyName}` : "Hosted on Memora"}
+              {brandCompanyName ? `Hosted by ${brandCompanyName}` : "Hosted on shutaMzala"}
             </p>
           </div>
         </div>

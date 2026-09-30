@@ -15,6 +15,7 @@ export interface EntitlementInput {
   unlockedAt: string | null;
   callerIsAdmin: boolean;
   callerOwnsEvent: boolean;
+  isFreeTier?: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export function decideDownloadEntitlement({
   unlockedAt,
   callerIsAdmin,
   callerOwnsEvent,
+  isFreeTier = false,
 }: EntitlementInput): EntitlementDecision {
   // Staff can always retrieve originals — they have to be able to help a host
   // who has paid and lost their files.
@@ -47,7 +49,7 @@ export function decideDownloadEntitlement({
 
   // The owner gets originals only once the event is paid for. That is the
   // paywall: the gallery is free, the originals are the product.
-  if (unlockedAt) {
+  if (unlockedAt || isFreeTier) {
     return { allowed: true, reason: "owner_paid" };
   }
 
@@ -66,9 +68,9 @@ export async function resolveDownloadEntitlement(
   const admin = createSupabaseAdminClient();
   const { data: event } = await admin
     .from("events")
-    .select("download_unlocked_at")
+    .select("download_unlocked_at, package_id")
     .eq("id", eventId)
-    .maybeSingle<{ download_unlocked_at: string | null }>();
+    .maybeSingle<{ download_unlocked_at: string | null; package_id: string | null }>();
 
   if (!event) {
     return { allowed: false, reason: "not_owner" };
@@ -93,9 +95,15 @@ export async function resolveDownloadEntitlement(
     .eq("id", eventId)
     .maybeSingle();
 
+  let isFreeTier = false;
+  if (event.package_id) {
+    const { data: pkg } = await admin.from("packages").select("price_cents").eq("id", event.package_id).maybeSingle<{ price_cents: number | null }>();
+    isFreeTier = pkg?.price_cents === 0;
+  }
   return decideDownloadEntitlement({
     unlockedAt: event.download_unlocked_at,
     callerIsAdmin: isAdmin,
     callerOwnsEvent: Boolean(owned),
+    isFreeTier,
   });
 }

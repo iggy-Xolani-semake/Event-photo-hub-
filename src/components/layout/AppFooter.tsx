@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MemoraMark } from "@/components/marketing/MemoraMark";
+import { ShutaMzalaMark } from "@/components/marketing/ShutaMzalaMark";
 
 const PRODUCT_LINKS = [
   { href: "/#how-it-works", label: "How it works" },
@@ -28,8 +28,8 @@ export function AppFooter() {
         <div className="grid gap-10 md:grid-cols-3">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-              <MemoraMark size={36} className="drop-shadow-[0_6px_16px_rgba(99,102,241,0.35)]" />
-              <span className="text-lg font-bold tracking-tight text-white">Memora</span>
+              <ShutaMzalaMark size={36} className="drop-shadow-[0_6px_16px_rgba(99,102,241,0.35)]" />
+              <span className="text-lg font-bold tracking-tight text-white">shutaMzala</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
               One QR code, every guest photo. Collect the unedited, full-resolution memories from
@@ -74,7 +74,7 @@ export function AppFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-7 sm:flex-row">
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} Memora. All rights reserved.
+            © {new Date().getFullYear()} shutaMzala. All rights reserved.
           </p>
           <p className="text-xs text-slate-600">Capture · Share · Relive</p>
         </div>

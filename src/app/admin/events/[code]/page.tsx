@@ -128,7 +128,7 @@ export default async function EventManagementPage({ params }: PageProps) {
         <div className="md:col-span-2 space-y-6">
           <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-3">Quick actions</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Link
                 href={galleryUrl}
                 target="_blank"

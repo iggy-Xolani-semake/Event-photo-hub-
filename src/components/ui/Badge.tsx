@@ -13,7 +13,7 @@ const TONES: Record<BadgeTone, string> = {
   success: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/30",
   processing: "bg-amber-500/10 text-amber-400 ring-amber-500/30",
   danger: "bg-rose-500/10 text-rose-400 ring-rose-500/30",
-  info: "bg-indigo-500/10 text-indigo-300 ring-indigo-500/30",
+  info: "border border-violet-200/80 bg-violet-100 text-violet-700 ring-violet-500/20",
   neutral: "bg-slate-500/10 text-slate-400 ring-slate-500/30",
 };
 

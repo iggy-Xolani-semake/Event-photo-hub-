@@ -8,7 +8,7 @@ interface Props {
   title?: string;
 }
 
-export function ShareEventButton({ url, title = "Memora" }: Props) {
+export function ShareEventButton({ url, title = "shutaMzala" }: Props) {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const encodedUrl = encodeURIComponent(url);

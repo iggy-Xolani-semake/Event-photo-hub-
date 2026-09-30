@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
         upload_limit: values.uploadLimit,
         max_file_size_bytes: values.maxFileSizeMb * 1024 * 1024,
         max_files_per_upload: values.maxFilesPerUpload,
+        guest_photo_limit: selectedPackage?.guest_photo_limit ?? 10,
         created_by: user.userId,
       })
       .select("*")

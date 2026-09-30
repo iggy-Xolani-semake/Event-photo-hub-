@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Memora — collect every guest photo from your event";
+export const alt = "shutaMzala — collect every guest photo from your event";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -57,7 +57,7 @@ export default function OpengraphImage() {
             <circle cx="27.6" cy="28.4" r="1.7" fill="#fff" opacity="0.75" />
           </svg>
           <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: -1 }}>
-            Memora
+            shutaMzala
           </div>
           <div
             style={{
@@ -140,10 +140,10 @@ export default function OpengraphImage() {
                 fontWeight: 700,
               }}
             >
-              R50 per event
+              Plans from Free
             </div>
             <div style={{ display: "flex", fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
-              Free to create · memora.app
+              Free to create · shutaMzala.app
             </div>
           </div>
         </div>

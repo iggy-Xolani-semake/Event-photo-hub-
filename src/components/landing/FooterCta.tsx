@@ -41,7 +41,7 @@ export function FooterCta() {
               </p>
 
               <ButtonLink href="/signup" size="lg" className="mt-9">
-                Launch Your Memora Gallery Now
+                Launch Your shutaMzala Gallery Now
                 <ArrowRight className="h-4 w-4" strokeWidth={2.6} />
               </ButtonLink>
 

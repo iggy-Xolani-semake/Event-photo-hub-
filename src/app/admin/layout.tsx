@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-slate-800 px-5 py-4 md:py-6 flex md:flex-col justify-between md:justify-start">
         <div>
           <Link href="/admin" className="mb-6 block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
-            Memora
+            shutaMzala
           </Link>
           <nav className="hidden md:flex flex-col gap-1 text-sm">
             <Link href="/admin" className="px-3 py-2 rounded-lg hover:bg-slate-800/40 text-slate-300">

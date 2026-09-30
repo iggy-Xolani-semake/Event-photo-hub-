@@ -41,6 +41,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     );
   }
 
+  const { data: claimed, error: claimError } = await admin.rpc("claim_event_downloads", { p_event_id: photo.event_id, p_count: 1 });
+  if (claimError || claimed !== true) return NextResponse.json({ error: "This event has reached its download limit or expired." }, { status: 429 });
+
   const url = await createPresignedDownloadUrl(photo.storage_path);
   return NextResponse.json({ url });
 }

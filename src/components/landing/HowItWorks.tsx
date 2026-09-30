@@ -16,16 +16,16 @@ const STEPS: Step[] = [
   {
     number: "01",
     icon: <Printer className="h-5 w-5" strokeWidth={2.2} />,
-    title: "Create & Print",
-    body: "Set up your event in seconds, then generate printable QR posters and a custom link you can drop into a WhatsApp group or an invite.",
-    points: ["Printable QR posters", "Custom share link"],
+    title: "Create & Share in Seconds",
+    body: "Set up your event in seconds. Print a custom QR code poster for your tables, or copy your direct event link to drop straight into a WhatsApp group, SMS, or digital invite.",
+    points: ["Printable QR Posters", "Direct WhatsApp & Web Link"],
   },
   {
     number: "02",
     icon: <ScanLine className="h-5 w-5" strokeWidth={2.2} />,
-    title: "Guests Snap & Scan",
-    body: "Guests point their camera at the code and upload straight from the browser. No app store download, no email registration, no password to forget.",
-    points: ["Works in any browser", "Camera or camera roll"],
+    title: "Guests Scan or Click to Upload",
+    body: "Guests simply point their phone camera at the QR code or tap the link in your WhatsApp message. No app to download, no account sign-up required.",
+    points: ["Works on any smartphone browser", "Direct camera & gallery upload"],
   },
   {
     number: "03",
@@ -92,7 +92,7 @@ export function HowItWorks() {
                       key={point}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800/50 px-2.5 py-1.5 text-xs font-medium text-slate-300 ring-1 ring-slate-700/60 transition group-hover:text-indigo-200 group-hover:ring-indigo-500/30"
                     >
-                      <Check className="h-3 w-3 text-emerald-400" strokeWidth={3} />
+                      <Check className="h-3 w-3 text-violet-600" strokeWidth={3} />
                       {point}
                     </li>
                   ))}

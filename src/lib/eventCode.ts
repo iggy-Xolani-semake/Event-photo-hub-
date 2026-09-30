@@ -35,7 +35,7 @@ export function parseEventCodeOrLink(value: string): string | null {
   // Absolute or protocol-relative URL: take the pathname and match on that.
   if (/^https?:\/\//i.test(input) || input.startsWith("/")) {
     try {
-      const parsed = new URL(input, "https://memora.local");
+      const parsed = new URL(input, "https://shutaMzala.local");
       const match = parsed.pathname.match(/^\/(?:e|gallery)\/([^/]+)\/?$/i);
       if (!match?.[1]) return null;
       candidate = match[1];

@@ -12,9 +12,9 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Pricing } from "@/components/landing/Pricing";
 import { TrustBar } from "@/components/landing/TrustBar";
 
-const TITLE = "Memora — Collect Every Guest Photo from Your Event";
+const TITLE = "shutaMzala — Collect Every Guest Photo from Your Event";
 const DESCRIPTION =
-  "No app downloads. No account sign-ups for guests. Just one QR code to capture every unedited, full-resolution memory from your event. R50 per event.";
+  "No app downloads. No account sign-ups for guests. Just one QR code to capture every unedited, full-resolution memory from your event. Choose the package that fits your event.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -25,13 +25,13 @@ export const metadata: Metadata = {
     "guest photo upload",
     "event gallery",
     "shared photo album",
-    "Memora",
+    "shutaMzala",
   ],
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
     type: "website",
-    siteName: "Memora",
+    siteName: "shutaMzala",
     locale: "en_ZA",
   },
   twitter: {

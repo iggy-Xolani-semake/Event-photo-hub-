@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
     if (!requestedPhotoId || !storagePath || !fileSize || !mimeType) {
       return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
     }
+    if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > 15 * 1024 * 1024) {
+      return NextResponse.json({ error: "Each photo must be 15 MB or smaller." }, { status: 413 });
+    }
     // The session token is HttpOnly and event-scoped. Never accept it from the
     // request body, where a browser could replace it with a fresh identity.
     const guestSessionToken = request.cookies.get(guestSessionCookieName(eventCode))?.value;

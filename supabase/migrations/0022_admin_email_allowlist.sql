@@ -18,4 +18,4 @@ as $$
 $$;
 
 comment on function public.is_admin() is
-  'Global Memora admin access: only the two approved owner emails with the admin claim.';
+  'Global shutaMzala admin access: only the two approved owner emails with the admin claim.';

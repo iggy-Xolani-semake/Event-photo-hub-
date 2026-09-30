@@ -4,7 +4,7 @@ import { CookieNotice } from "@/components/layout/CookieNotice";
 import { FloatingUtilities } from "@/components/layout/FloatingUtilities";
 import { SkipLink } from "@/components/ui/SkipLink";
 
-export const metadata = { title: "Privacy Policy — Memora" };
+export const metadata = { title: "Privacy Policy — shutaMzala" };
 
 // Content lives in a plain component (not fetched from a CMS) so it's
 // easy for a lawyer or the site owner to edit directly — see the

@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error: sessionError } = await admin
       .from("guest_sessions")
-      .select("id")
+      .select("id, upload_count, guest_photo_limit")
       .eq("event_id", eventInfo.event_id)
       .eq("session_token", sessionToken)
       .maybeSingle();
@@ -125,7 +125,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const maxFileSize = eventInfo.max_file_size_bytes ?? 15 * 1024 * 1024;
+    const { data: limits, error: limitsError } = await admin.from("events")
+      .select("photo_count, upload_limit, guest_photo_limit, gallery_expires_at")
+      .eq("id", eventInfo.event_id).maybeSingle();
+    if (limitsError || !limits) return NextResponse.json({ error: "Event limits could not be checked." }, { status: 503 });
+    if (new Date(limits.gallery_expires_at).getTime() <= Date.now()) return NextResponse.json({ error: "This gallery has expired." }, { status: 403 });
+    if (limits.photo_count >= limits.upload_limit) return NextResponse.json({ error: "This event has reached its photo limit." }, { status: 403 });
+    if (session.upload_count >= limits.guest_photo_limit) return NextResponse.json({ error: "Your guest upload limit has been reached." }, { status: 429 });
+
+    const hardFileCap = 15 * 1024 * 1024;
+    const maxFileSize = Math.min(eventInfo.max_file_size_bytes ?? hardFileCap, hardFileCap);
     const fileValidation = validateFile({ size: fileSize, type: mimeType }, maxFileSize);
     if (!fileValidation.valid) {
       return NextResponse.json({ error: fileValidation.message }, { status: 400 });

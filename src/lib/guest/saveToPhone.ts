@@ -114,7 +114,7 @@ export function downloadFiles(files: File[]): number {
     const url = URL.createObjectURL(file);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = file.name || "memora-photo.jpg";
+    anchor.download = file.name || "shutaMzala-photo.jpg";
     anchor.rel = "noopener";
     document.body.appendChild(anchor);
     anchor.click();

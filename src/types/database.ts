@@ -75,6 +75,9 @@ export interface Package {
   photo_limit: number;
   max_file_size_bytes: number;
   max_files_per_upload: number;
+  download_limit: number;
+  guest_photo_limit: number;
+  retention_days: number;
   /** Null means "not for sale yet" — never treat it as free. */
   price_cents: number | null;
   currency: string;

@@ -1,4 +1,4 @@
-# Memora
+# shutaMzala
 
 A mobile-first event photo sharing platform. Guests scan a QR code, take or
 choose a photo, and upload it to a cloud-hosted event gallery — no app, no
@@ -128,10 +128,8 @@ Two things that used to be one are now separate:
 Before this, both download routes gated on visibility alone — so any guest
 holding a shared event link could download every original.
 
-- **`packages` table** with five tiers (50/100/250/500/1000). Only the 50-photo
-  tier carries the R50 that has actually been stated; the rest are
-  `price_cents = null`, which the app reads as "not for sale yet" and refuses
-  to charge for. Repricing is a data change, not a code change.
+- **`packages` table** is finalized by the shutaMzala tier migration with Free,
+  Party Pack, and Event Pack. Prices and entitlements are stored in the package catalogue.
 - **`payments` table** and `mark_event_paid()` — the only function that can set
   `download_unlocked_at`. Service role only, idempotent, so a repeated webhook
   can't double-count revenue.
@@ -224,17 +222,17 @@ the blur placeholders with the command in the header of
 
 ### The brand mark
 
-The Memora mark is a sparkle — the moment caught — with a small glint beside
+The shutaMzala mark is a sparkle — the moment caught — with a small glint beside
 it, white on the app's own gradient tile (`#7C3AED → #6366F1` at 135°, the same
 stops as the `brand-gradient` utility).
 
-`src/components/marketing/MemoraMark.tsx` is the source of truth: one component,
+`src/components/marketing/shutaMzalaMark.tsx` is the source of truth: one component,
 a 40×40 grid, `useId()` for the gradient so the header and footer instances
 don't collide. Everything else is that geometry, copied:
 
 | surface | file | notes |
 | --- | --- | --- |
-| Header, footer | `MemoraMark` at 36px | the surrounding tile is gone; the mark carries its own gradient, and the old indigo box-shadow is now a `drop-shadow` so it follows the rounded silhouette |
+| Header, footer | `shutaMzalaMark` at 36px | the surrounding tile is gone; the mark carries its own gradient, and the old indigo box-shadow is now a `drop-shadow` so it follows the rounded silhouette |
 | Browser tab | `src/app/icon.svg` | full-bleed tile — at 16px the mark cannot afford the 4.5/40 padding the in-app version has — with the sparkle scaled 40/31 about the centre to keep the same proportion |
 | iOS home screen | `src/app/apple-icon.png` (180×180) | opaque, full-bleed: iOS applies its own corner mask |
 | Social card | `src/app/opengraph-image.tsx` | inline SVG inside the Satori tree; no font or image fetch involved |

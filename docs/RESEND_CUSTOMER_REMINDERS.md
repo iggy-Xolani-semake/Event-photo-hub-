@@ -1,6 +1,6 @@
 # Customer expiry reminders
 
-Memora sends customer reminders to the event client's email address before the event gallery expires. The scheduled function runs daily at **06:00 UTC** and currently sends reminders at **7 days** and **2 days** before `events.gallery_expires_at`.
+shutaMzala sends customer reminders to the event client's email address before the event gallery expires. The scheduled function runs daily at **06:00 UTC** and currently sends reminders at **7 days** and **2 days** before `events.gallery_expires_at`.
 
 The reminder includes the exact gallery expiry date, a direct gallery link, and a warning that deletion is permanent. Delivery stages are stored in `events.reminder_stages_sent`, so a successfully accepted reminder is not sent again. If Resend returns an error, the stage is not recorded and a later scheduled run can retry it.
 
@@ -13,7 +13,7 @@ Set these as server-only Netlify environment variables:
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side database access; never expose it to the browser |
 | `RESEND_API_KEY` | Resend sending key |
-| `RESEND_FROM_EMAIL` | A `From` address on a verified Resend domain, for example `Memora <reminders@mail.example.com>` |
+| `RESEND_FROM_EMAIL` | A `From` address on a verified Resend domain, for example `shutaMzala <reminders@mail.example.com>` |
 | `NEXT_PUBLIC_APP_URL` | Production application URL used in reminder links |
 
 The Resend connector currently uses a **send-only restricted key**, so domain listing and verification cannot be inspected through the connector. Confirm that the configured `RESEND_FROM_EMAIL` domain is verified in Resend before publishing.

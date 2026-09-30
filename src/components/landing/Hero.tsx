@@ -6,7 +6,7 @@ import { HeroShowcase } from "./HeroShowcase";
 
 const ASSURANCES = [
   "Free to create your event",
-  "One R50 pass, no subscription",
+  "Packages for every event",
   "Guests never make an account",
 ] as const;
 
@@ -20,7 +20,7 @@ export function Hero() {
     <section className="relative overflow-hidden pb-16 pt-14 lg:pb-24 lg:pt-20">
       <div className="surface-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
       <div
-        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[420px] bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(124,58,237,0.22),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100/60 via-slate-50 to-slate-50"
         aria-hidden="true"
       />
 

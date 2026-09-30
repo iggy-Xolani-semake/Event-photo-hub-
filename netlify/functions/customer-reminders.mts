@@ -66,7 +66,7 @@ export default async function customerReminders(): Promise<void> {
       text: [
         `Hi ${event.client?.name || "there"},`,
         "",
-        `Your Memora gallery for ${event.event_name} expires on ${deletionDate}.`,
+        `Your shutaMzala gallery for ${event.event_name} expires on ${deletionDate}.`,
         "After that date, the gallery and stored photos are permanently deleted.",
         "",
         `Open your gallery: ${galleryUrl}`,
@@ -75,7 +75,7 @@ export default async function customerReminders(): Promise<void> {
       ].join("\n"),
       html: `
         <p>Hi ${escapeHtml(event.client?.name || "there")},</p>
-        <p>Your Memora gallery for <strong>${escapeHtml(event.event_name)}</strong> expires on <strong>${escapeHtml(deletionDate)}</strong>.</p>
+        <p>Your shutaMzala gallery for <strong>${escapeHtml(event.event_name)}</strong> expires on <strong>${escapeHtml(deletionDate)}</strong>.</p>
         <p>After that date, the gallery and stored photos are permanently deleted.</p>
         <p><a href="${escapeHtml(galleryUrl)}">Open your gallery</a></p>
         <p>Please download anything you want to keep before the expiry date.</p>

@@ -24,10 +24,10 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="p-6 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Memora</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-white mb-1">shutaMzala</h1>
       <p className="text-slate-500 text-sm mb-8">Dashboard overview</p>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         <StatCard label="Active Events" value={activeEvents.length.toLocaleString()} />
         <StatCard label="Total Memories" value={totalPhotos.toLocaleString()} />
         <StatCard label="Storage Used" value={formatStorageSize(totalStorage)} />
@@ -74,7 +74,7 @@ function EventRow({ event }: { event: Event }) {
   return (
     <Link
       href={`/admin/events/${event.event_code}`}
-      className="flex items-center justify-between bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded-xl px-5 py-4 transition-colors"
+      className="flex min-w-0 flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-4 transition-colors hover:border-slate-700 sm:flex-row sm:items-center sm:justify-between sm:px-5"
     >
       <div>
         <p className="font-medium">{event.event_name}</p>

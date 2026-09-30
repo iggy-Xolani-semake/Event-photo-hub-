@@ -57,7 +57,7 @@ export function DesktopMockup({
         <div className="flex min-w-0 flex-1 items-center justify-center">
           <span className="flex max-w-[260px] items-center gap-1.5 truncate rounded-md border border-slate-800 bg-slate-950 px-2.5 py-1 text-[9px] font-medium text-slate-500">
             <Lock className="h-2.5 w-2.5 shrink-0 text-emerald-400" strokeWidth={2.5} />
-            <span className="truncate">memora.app/g/AMR8THBQ</span>
+            <span className="truncate">shutaMzala.app/g/AMR8THBQ</span>
           </span>
         </div>
         <Grid2x2 className="hidden h-3 w-3 text-slate-500 sm:block" strokeWidth={2.5} />
@@ -193,7 +193,7 @@ export function DesktopMockup({
           ) : (
             <>
               <FileArchive className="h-3 w-3" strokeWidth={2.5} />
-              Unlock originals · R50
+              Download original photos
             </>
           )}
         </span>

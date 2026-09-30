@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-canvas px-6 text-white">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold tracking-tight text-white mb-1 text-center">Memora</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white mb-1 text-center">shutaMzala</h1>
         <p className="text-slate-500 text-sm text-center mb-8">Sign in</p>
 
         {error && (
