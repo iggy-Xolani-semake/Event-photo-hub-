@@ -153,7 +153,6 @@ export async function POST(request: NextRequest) {
     const { uploadUrl } = await createPresignedUploadUrl({
       key,
       contentType: mimeType,
-      contentLength: fileSize,
     });
 
     return NextResponse.json({
