@@ -51,6 +51,24 @@ export function UnlockDownloadsPanel({
       return;
     }
 
+    if (body.checkoutUrl && body.checkoutFields) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = body.checkoutUrl;
+      form.style.display = "none";
+      for (const [name, value] of Object.entries(body.checkoutFields as Record<string, unknown>)) {
+        if (typeof value !== "string") continue;
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+
     setMessage(body.message ?? "Payment started.");
     router.refresh();
   }

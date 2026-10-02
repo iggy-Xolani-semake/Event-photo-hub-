@@ -142,11 +142,12 @@ holding a shared event link could download every original.
   the single place that answers "may this caller take files": admins always,
   owners once paid, guests never. Both download routes and the gallery toolbar
   read it.
-- **`/api/events/{code}/checkout`** creates a pending payment;
-  **`/api/admin/events/{code}/mark-paid`** lets staff confirm an EFT. No
-  gateway is wired up — provider choice and webhook signature verification are
-  deliberately not guessed at, so EFT-plus-staff-confirmation is the working
-  revenue path until one is.
+- **`/api/events/{code}/checkout`** creates a PayFast pending payment and
+  returns a signed hosted-checkout form for the ZAR sandbox/live endpoint;
+  **`/api/payfast/itn`** verifies the PayFast signature, source, amount,
+  merchant, and PayFast server confirmation before calling `mark_event_paid()`.
+  **`/api/admin/events/{code}/mark-paid`** remains available for EFT or other
+  manually confirmed payments.
 - Guests no longer see download buttons, and the routes return 403 (or 402 for
   an unpaid host) if called directly.
 

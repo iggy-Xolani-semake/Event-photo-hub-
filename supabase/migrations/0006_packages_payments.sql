@@ -118,7 +118,7 @@ create table if not exists public.payments (
   package_id uuid references public.packages (id) on delete set null,
   amount_cents integer not null,
   currency text not null default 'ZAR',
-  -- 'paystack' | 'yoco' | 'manual' (EFT confirmed by staff) | ...
+  -- 'payfast' | 'paystack' | 'yoco' | 'manual' (EFT confirmed by staff) | ...
   provider text,
   provider_reference text,
   status public.payment_status not null default 'pending',
