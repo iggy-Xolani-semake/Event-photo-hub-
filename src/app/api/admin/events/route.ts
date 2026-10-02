@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireApprovedAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { generateEventCode } from "@/lib/eventCode";
 
@@ -11,7 +11,7 @@ import { generateEventCode } from "@/lib/eventCode";
  * point where elevated privileges matter.
  */
 export async function POST(request: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireApprovedAdmin();
   if (!admin) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }

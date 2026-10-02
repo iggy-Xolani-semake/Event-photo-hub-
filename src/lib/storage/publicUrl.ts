@@ -18,6 +18,12 @@
  */
 export function publicImageUrl(storagePath: string | null): string | null {
   if (!storagePath) return null;
+  // Bucket-level public access cannot be scoped to a prefix. Never construct
+  // a public URL for an original, even if a caller accidentally passes one.
+  if (!/^events\/[A-Z0-9]{6,12}\/(?:gallery|thumb)\/[^/]+\.webp$/i.test(storagePath)) {
+    console.error("Refusing to construct a public URL for a non-derivative object.");
+    return null;
+  }
   const host = process.env.NEXT_PUBLIC_R2_PUBLIC_HOST;
   if (!host) {
     console.warn("NEXT_PUBLIC_R2_PUBLIC_HOST is not configured — gallery images will not load.");
