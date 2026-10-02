@@ -1,17 +1,19 @@
 # Cloudflare R2 Setup
 
-> **Status for this project:** bucket created (`event-photo-hub`, ENAM
-> region, Standard storage class) and Public Development URL enabled
-> (`pub-d8855cfb7a324a58a575892c9d277774.r2.dev`). Still outstanding on
-> your end: the scoped API token (step 2) and the CORS policy (step 4) —
-> both require actions in the Cloudflare dashboard that generate secrets
-> or set access rules, which can't be done through the management
-> connector for security reasons.
+> **Status for this project:** the production bucket is still internally
+> named `event-photo-hub` (ENAM region, Standard storage class). That name is
+> an internal storage identifier and does not need to match the public brand.
+> The current public development host is
+> `pub-d8855cfb7a324a58a575892c9d277774.r2.dev`; no custom domain is attached
+> yet. The R2 CORS policy allows localhost, the legacy Netlify hostname, and
+> `https://shutamzala.netlify.app`.
 
 ## 1. Create the bucket
 
 1. Cloudflare dashboard → R2 → **Create bucket**.
-2. Name it (e.g. `event-photo-hub`). Note this in `R2_BUCKET_NAME`.
+2. Name it (for this deployment, `event-photo-hub`). Note this in
+   `R2_BUCKET_NAME`. Do not rename an existing production bucket without
+   first copying its objects and coordinating the application cutover.
 3. Note your **Account ID** (shown in the R2 overview page, or the right
    sidebar of any Cloudflare dashboard page) → `R2_ACCOUNT_ID`.
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { SavePhotosButton } from "./SavePhotosButton";
 import { GUEST_CANNOT_DOWNLOAD_NOTE } from "@/lib/guest/photoRights";
 
@@ -38,6 +40,21 @@ export function UploadSuccessScreen({
   onRetryFailed,
 }: Props) {
   const allFailed = successCount === 0;
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+
+  async function shareGallery() {
+    const url = `${window.location.origin}${galleryHref}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: eventName, text: `See the photos from ${eventName}`, url });
+        return;
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") return;
+      }
+    }
+    const copied = await copyTextToClipboard(url);
+    setShareNotice(copied ? "Gallery link copied." : "Couldn’t copy the gallery link.");
+  }
 
   if (allFailed) {
     return (
@@ -88,6 +105,17 @@ export function UploadSuccessScreen({
             {galleryCount !== null ? `See all ${galleryCount} photos` : "See the gallery"}
           </a>
         )}
+
+        {galleryAvailable && (
+          <button
+            type="button"
+            onClick={shareGallery}
+            className="tap-target w-full rounded-2xl border border-indigo-200 bg-indigo-50 px-6 py-4 text-base font-semibold text-indigo-800 transition-colors hover:bg-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          >
+            Share the gallery with friends
+          </button>
+        )}
+        {shareNotice && <p className="text-sm font-medium text-indigo-700" role="status">{shareNotice}</p>}
 
         {failedCount > 0 && (
           <button

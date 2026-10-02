@@ -71,8 +71,16 @@ section[id] {
 .light-theme [class*="text-slate-300"] { color: #334155 !important; }
 .light-theme [class*="text-slate-400"] { color: #475569 !important; }
 .light-theme [class*="text-slate-500"] { color: #64748b !important; }
-.light-theme [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #0f172a !important; }
-.light-theme header.sticky { background-color: rgb(255 255 255 / 0.82) !important; border-color: #e2e8f0 !important; }
+  .light-theme [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #0f172a !important; }
+  /* Dark-theme links/buttons kept explicit text-white classes, but their
+     slate backgrounds are remapped to white above. Keep gradient actions
+     white; make everything else readable on the light surface. */
+  .light-theme a[class~="text-white"]:not([class*="bg-gradient"]):not(.brand-gradient),
+  .light-theme button[class~="text-white"]:not([class*="bg-gradient"]):not(.brand-gradient),
+  .light-theme [class*="bg-white"][class~="text-white"] { color: #0f172a !important; }
+  .light-theme .brand-gradient [class~="text-white"],
+  .light-theme [class*="bg-gradient"][class~="text-white"] { color: #ffffff !important; }
+  .light-theme header.sticky { background-color: rgb(255 255 255 / 0.82) !important; border-color: #e2e8f0 !important; }
 .light-theme input:not([type="checkbox"]):not([type="radio"]),
 .light-theme select, .light-theme textarea {
   background-color: #fff !important; border-color: #cbd5e1 !important; color: #0f172a !important;
@@ -80,7 +88,8 @@ section[id] {
 .light-theme input::placeholder, .light-theme textarea::placeholder { color: #94a3b8 !important; }
 .light-theme .brand-text { background-image: linear-gradient(to right,#7c3aed,#4f46e5); }
 .light-theme .surface-grid { opacity: .28; }
-.light-theme :is(article, [class*="rounded-2xl"]) { box-shadow: 0 1px 2px rgb(15 23 42 / .05); }
+  .light-theme :is(article, [class*="rounded-2xl"]) { box-shadow: 0 1px 2px rgb(15 23 42 / .05); }
+  .light-theme :focus-visible { outline: 3px solid #6366f1 !important; outline-offset: 3px; }
 
 @layer components {
   /* The one gradient in the system: violet -> electric indigo. Used by the
