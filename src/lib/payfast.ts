@@ -63,6 +63,15 @@ const PAYFAST_IP_RANGES: readonly [number, number][] = [
   [ipv4ToNumber("102.216.36.0"), ipv4ToNumber("102.216.36.15")],
   [ipv4ToNumber("102.216.36.128"), ipv4ToNumber("102.216.36.143")],
   [ipv4ToNumber("144.126.193.139"), ipv4ToNumber("144.126.193.139")],
+  // AWS addresses announced by PayFast for the post-31 July 2025 migration.
+  ...[
+    "3.163.236.237", "3.163.238.237", "3.163.251.237", "3.163.232.237",
+    "3.163.241.237", "3.163.245.237", "3.163.248.237", "3.163.234.237",
+    "3.163.237.237", "3.163.243.237", "3.163.247.237", "3.163.242.237",
+    "3.163.244.237", "3.163.249.237", "3.163.252.237", "3.163.235.237",
+    "3.163.239.237", "3.163.250.237", "3.163.233.237", "3.163.246.237",
+    "3.163.240.237",
+  ].map((ip): [number, number] => [ipv4ToNumber(ip), ipv4ToNumber(ip)]),
 ];
 
 function ipv4ToNumber(ip: string): number {
