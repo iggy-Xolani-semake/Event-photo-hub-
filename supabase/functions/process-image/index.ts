@@ -29,6 +29,7 @@ const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY")!;
 const R2_BUCKET_NAME = Deno.env.get("R2_BUCKET_NAME")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const PROCESS_IMAGE_WEBHOOK_SECRET = Deno.env.get("PROCESS_IMAGE_WEBHOOK_SECRET");
 
 const GALLERY_MAX_DIMENSION = 1600;
 const THUMB_MAX_DIMENSION = 400;
@@ -48,9 +49,29 @@ interface WebhookPayload {
   record: PhotoRow;
 }
 
+function constantTimeEqual(left: string, right: string): boolean {
+  const leftBytes = new TextEncoder().encode(left);
+  const rightBytes = new TextEncoder().encode(right);
+  if (leftBytes.length !== rightBytes.length) return false;
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index]! ^ rightBytes[index]!;
+  }
+  return difference === 0;
+}
+
 Deno.serve(async (req) => {
   let photo: PhotoRow | undefined;
   try {
+    if (!PROCESS_IMAGE_WEBHOOK_SECRET) {
+      console.error("PROCESS_IMAGE_WEBHOOK_SECRET is not configured");
+      return new Response(JSON.stringify({ error: "Function is not configured" }), { status: 503 });
+    }
+    const suppliedSecret = req.headers.get("x-process-image-secret");
+    if (!suppliedSecret || !constantTimeEqual(suppliedSecret, PROCESS_IMAGE_WEBHOOK_SECRET)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
     const payload = (await req.json()) as WebhookPayload;
     photo = payload.record;
 
