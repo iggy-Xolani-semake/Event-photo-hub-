@@ -9,7 +9,6 @@ interface Props {
   packageName: string | null;
   priceLabel: string | null;
   hasPackage: boolean;
-  isAdmin: boolean;
 }
 
 /**
@@ -25,7 +24,6 @@ export function UnlockDownloadsPanel({
   packageName,
   priceLabel,
   hasPackage,
-  isAdmin,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -108,16 +106,6 @@ export function UnlockDownloadsPanel({
           </button>
         )}
 
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => call(`/api/admin/events/${eventCode}/mark-paid`)}
-            disabled={busy}
-            className="rounded-xl border border-slate-700 bg-slate-800/80 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            Mark as paid (EFT confirmed)
-          </button>
-        )}
       </div>
 
       {!hasPackage && (

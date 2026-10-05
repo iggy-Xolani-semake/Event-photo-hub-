@@ -9,7 +9,6 @@ import { UnlockDownloadsPanel } from "@/components/dashboard/UnlockDownloadsPane
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { findManagedEvent } from "@/lib/auth/eventAccess";
-import { requireUser } from "@/lib/auth/requireUser";
 import { formatEventDate, formatStorageSize } from "@/lib/format";
 import { formatPrice } from "@/lib/packages";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -45,8 +44,6 @@ export default async function ClientEventPage({ params }: PageProps) {
   if (!event) {
     notFound();
   }
-
-  const user = await requireUser();
 
   const admin = createSupabaseAdminClient();
   const { data: pkg } = event.package_id
@@ -136,7 +133,6 @@ export default async function ClientEventPage({ params }: PageProps) {
             packageName={pkg?.name ?? null}
             priceLabel={formatPrice(pkg?.price_cents ?? null, pkg?.currency ?? "ZAR")}
             hasPackage={Boolean(pkg)}
-            isAdmin={user?.isAdmin ?? false}
           />
 
           <Card>
