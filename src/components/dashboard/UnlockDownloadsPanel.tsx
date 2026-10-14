@@ -11,6 +11,16 @@ interface Props {
   hasPackage: boolean;
 }
 
+interface CheckoutResponse {
+  status?: string;
+  unlockedAt?: string;
+  checkoutUrl?: string;
+  fields?: Record<string, string>;
+  signature?: string;
+  message?: string;
+  error?: string;
+}
+
 /**
  * The paywall, from the host's side.
  *
@@ -30,27 +40,57 @@ export function UnlockDownloadsPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function call(url: string, currency?: string) {
+  async function startPayFastCheckout() {
     setBusy(true);
     setError(null);
     setMessage(null);
 
-    const res = await fetch(url, currency ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency }) } : { method: "POST" });
-    const body = await res.json().catch(() => ({}));
-    setBusy(false);
+    try {
+      const res = await fetch(`/api/events/${eventCode}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency: "ZAR" }),
+      });
+      const body = (await res.json().catch(() => ({}))) as CheckoutResponse;
 
-    if (!res.ok) {
-      setError(body.error ?? "Something went wrong.");
-      return;
+      if (!res.ok) {
+        setError(body.error ?? "Something went wrong.");
+        setBusy(false);
+        return;
+      }
+
+      if (body.status === "already_unlocked") {
+        setBusy(false);
+        router.refresh();
+        return;
+      }
+
+      if (!body.checkoutUrl || !body.fields || !body.signature) {
+        setError("Payment checkout is not ready yet. Please try again shortly.");
+        setBusy(false);
+        return;
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = body.checkoutUrl;
+      form.style.display = "none";
+
+      for (const [name, value] of Object.entries({ ...body.fields, signature: body.signature })) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      setMessage(body.message ?? "Redirecting you to PayFast…");
+      form.submit();
+    } catch {
+      setError("We could not start PayFast checkout. Please try again.");
+      setBusy(false);
     }
-
-    if (body.status === "already_unlocked") {
-      router.refresh();
-      return;
-    }
-
-    setMessage(body.message ?? "Payment started.");
-    router.refresh();
   }
 
   if (unlockedAt) {
@@ -68,7 +108,6 @@ export function UnlockDownloadsPanel({
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-800/40 p-5">
       <h2 className="mb-2 font-medium">Unlock original downloads</h2>
-
       <p className="mb-4 text-sm leading-relaxed text-slate-400">
         Your guests can already see and share the gallery — that part is free. Downloading the
         full-resolution originals is what the package pays for.
@@ -82,7 +121,6 @@ export function UnlockDownloadsPanel({
           " This event has no package yet."
         )}
       </p>
-
       {message && (
         <div className="mb-4 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-sm text-slate-300">
           {message}
@@ -93,21 +131,18 @@ export function UnlockDownloadsPanel({
           {error}
         </div>
       )}
-
       <div className="flex flex-wrap gap-2">
         {hasPackage && (
           <button
             type="button"
-            onClick={() => call(`/api/events/${eventCode}/checkout`, window.localStorage.getItem("shutamzala-currency") ?? "ZAR")}
+            onClick={startPayFastCheckout}
             disabled={busy}
             className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {busy ? "Working…" : priceLabel ? `Pay ${priceLabel}` : "Start payment"}
+            {busy ? "Opening PayFast…" : priceLabel ? `Pay ${priceLabel}` : "Pay with PayFast"}
           </button>
         )}
-
       </div>
-
       {!hasPackage && (
         <p className="mt-3 text-xs text-slate-500">
           Events created before packages existed have no tier. Ask us to assign one.

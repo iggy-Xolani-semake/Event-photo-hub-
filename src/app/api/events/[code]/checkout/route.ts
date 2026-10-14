@@ -2,26 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireUser";
 import { findManagedEvent } from "@/lib/auth/eventAccess";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { payFastHost, payFastSignature } from "@/lib/payfast";
 import type { Package } from "@/types/database";
 
 interface RouteContext {
   params: Promise<{ code: string }>;
 }
 
+function appUrl(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+}
+
 /**
- * POST /api/events/{code}/checkout — start paying for an event's originals.
+ * POST /api/events/{code}/checkout — create a pending PayFast payment and
+ * return a server-signed form payload for the host's browser to submit.
  *
- * Creates a PENDING payment record and returns what the client needs to hand
- * to a payment provider. It deliberately does not mark anything as paid:
- * that only happens through mark_event_paid(), which only the service role
- * can call, from a verified provider webhook or a staff confirmation.
- *
- * NO GATEWAY IS WIRED UP YET. Which provider to use (Paystack, Yoco, Stripe,
- * or plain EFT) is a business decision with real consequences for fees and
- * payouts, and each one's signature verification is different — guessing at
- * it would produce a webhook that looks secure and isn't. Until then this
- * returns the pending payment and the host confirms payment by EFT, which
- * staff mark with POST /api/admin/events/{code}/mark-paid.
+ * The browser receives only the fields PayFast needs to begin checkout. The
+ * passphrase remains server-only and is never included in the response.
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
   const user = await requireUser();
@@ -29,16 +26,23 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
 
+  const merchantId = process.env.PAYFAST_MERCHANT_ID;
+  const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
+  const passphrase = process.env.PAYFAST_PASSPHRASE;
+  if (!merchantId || !merchantKey || !passphrase) {
+    console.error("PayFast checkout is not configured");
+    return NextResponse.json({ error: "Payment checkout is not configured yet." }, { status: 503 });
+  }
+
   const body = await request.json().catch(() => ({}));
-  const currency = typeof body.currency === "string" ? body.currency : "ZAR";
-  const convertedPrice = (base: number, code: string) => {
-    const table: Record<number, Record<string, number>> = {
-      5999: { ZAR: 5999, USD: 349, GBP: 279, EUR: 319, NGN: 550000 },
-      14999: { ZAR: 14999, USD: 849, GBP: 699, EUR: 799, NGN: 1380000 },
-    };
-    return base === 0 ? 0 : (table[base]?.[code] ?? (code === "ZAR" ? base : null));
-  };
-  if (!["ZAR", "USD", "GBP", "EUR", "NGN"].includes(currency)) return NextResponse.json({ error: "Unsupported currency." }, { status: 400 });
+  const requestedCurrency = typeof body.currency === "string" ? body.currency.toUpperCase() : "ZAR";
+  if (requestedCurrency !== "ZAR") {
+    return NextResponse.json(
+      { error: "PayFast checkout is currently available in South African rand (ZAR) only." },
+      { status: 400 }
+    );
+  }
+
   const { code } = await params;
   const event = await findManagedEvent(code);
   if (!event) {
@@ -52,8 +56,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   }
 
-  const admin = createSupabaseAdminClient();
-
   if (!event.package_id) {
     return NextResponse.json(
       { error: "This event has no package, so there is nothing to unlock yet." },
@@ -61,6 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     );
   }
 
+  const admin = createSupabaseAdminClient();
   const { data: pkg } = await admin
     .from("packages")
     .select("*")
@@ -71,8 +74,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: "That package no longer exists." }, { status: 400 });
   }
 
-  // A tier with no price is not a free tier. Refusing here is what stops a
-  // half-configured price list from giving originals away.
   if (pkg.price_cents === null || pkg.price_cents <= 0) {
     return NextResponse.json(
       {
@@ -83,40 +84,59 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     );
   }
 
-  const checkoutAmount = convertedPrice(pkg.price_cents, currency);
-  if (checkoutAmount === null) return NextResponse.json({ error: "This package is not configured for that currency." }, { status: 400 });
+  // PayFast settles this integration in ZAR. The amount is stored in cents in
+  // Supabase and sent to PayFast as a two-decimal ZAR string.
+  const amount = (pkg.price_cents / 100).toFixed(2);
+  const baseUrl = appUrl();
+  const fields: Array<[string, string]> = [
+    ["merchant_id", merchantId],
+    ["merchant_key", merchantKey],
+    ["return_url", `${baseUrl}/dashboard/events/${encodeURIComponent(code)}?payment=success`],
+    ["cancel_url", `${baseUrl}/dashboard/events/${encodeURIComponent(code)}?payment=cancelled`],
+    ["notify_url", `${baseUrl}/api/payments/payfast/itn`],
+    ["name_first", user.email.split("@")[0] || "shutaMzala host"],
+    ["email_address", user.email],
+    ["m_payment_id", "pending"],
+    ["amount", amount],
+    ["item_name", pkg.name],
+    ["item_description", `Original downloads for ${event.event_name}`],
+  ];
 
-  // Written with the service role: clients have no INSERT policy on payments,
-  // so "I paid" can never be a request body.
+  // Create the payment before signing so m_payment_id is the immutable
+  // database UUID PayFast will return in its ITN callback.
   const { data: payment, error } = await admin
     .from("payments")
     .insert({
       event_id: event.id,
       package_id: pkg.id,
-      amount_cents: checkoutAmount,
-      currency,
-      provider: null,
+      amount_cents: pkg.price_cents,
+      currency: "ZAR",
+      provider: "payfast",
       status: "pending",
-      metadata: { created_by: user.userId },
+      metadata: { created_by: user.userId, checkout: "payfast" },
     })
     .select("*")
     .single();
 
-  if (error) {
-    console.error("create payment failed:", error.message);
+  if (error || !payment) {
+    console.error("create PayFast payment failed:", error?.message ?? "missing payment row");
     return NextResponse.json({ error: "Could not start the payment." }, { status: 500 });
   }
 
+  const signedFields: Array<[string, string]> = fields.map(([key, value]) =>
+    key === "m_payment_id" ? [key, payment.id] : [key, value]
+  );
+  const signature = payFastSignature(signedFields, passphrase);
+
   return NextResponse.json({
     status: "awaiting_payment",
-    payment,
-    amountCents: checkoutAmount,
-    currency,
+    paymentId: payment.id,
+    amountCents: pkg.price_cents,
+    currency: "ZAR",
     packageName: pkg.name,
-    // Null until a provider is configured — the UI shows EFT instructions
-    // rather than pretending a card form is on its way.
-    checkoutUrl: null,
-    message:
-      "No payment gateway is connected yet. Pay by EFT and we'll unlock your downloads.",
+    checkoutUrl: `https://${payFastHost(process.env.PAYFAST_MODE)}/eng/process`,
+    fields: Object.fromEntries(signedFields),
+    signature,
+    message: "Redirecting you to PayFast to complete payment.",
   });
 }
