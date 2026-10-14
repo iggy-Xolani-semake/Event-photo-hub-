@@ -93,7 +93,7 @@ uploaded original into `gallery` and `thumb` WebP variants.
 
 ```bash
 supabase functions deploy process-image
-supabase secrets set R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... R2_BUCKET_NAME=...
+supabase secrets set R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... R2_BUCKET_NAME=... PROCESS_IMAGE_WEBHOOK_SECRET=...
 ```
 
 Then wire up the trigger: **Dashboard → Database → Webhooks → Create a
@@ -103,6 +103,13 @@ new hook**
 - Events: `Insert`
 - Type: `Supabase Edge Functions`
 - Function: `process-image`
+
+Configure the webhook to send the server-only `x-process-image-secret` header
+with the same high-entropy value as `PROCESS_IMAGE_WEBHOOK_SECRET`. The
+function rejects requests authenticated only with the public anon key. It
+also re-reads the photo row using the service role and derives all R2 paths
+from that canonical row, so a forged webhook payload cannot read or publish
+another photo's object.
 
 Every new photo row now triggers exactly one function invocation — this
 is what lets many concurrent guest uploads scale horizontally instead of

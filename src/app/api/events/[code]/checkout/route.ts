@@ -2,23 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireUser";
 import { findManagedEvent } from "@/lib/auth/eventAccess";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { payFastHost, payFastSignature } from "@/lib/payfast";
-import type { Package } from "@/types/database";
+import {
+  generatePayFastSignature,
+  payFastProcessUrl,
+  requiredPayFastConfig,
+} from "@/lib/payfast";
+import type { Package, Payment } from "@/types/database";
 
 interface RouteContext {
   params: Promise<{ code: string }>;
 }
 
-function appUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
-}
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
 
 /**
- * POST /api/events/{code}/checkout — create a pending PayFast payment and
- * return a server-signed form payload for the host's browser to submit.
+ * POST /api/events/{code}/checkout — create a PayFast hosted checkout.
  *
- * The browser receives only the fields PayFast needs to begin checkout. The
- * passphrase remains server-only and is never included in the response.
+ * The browser receives a PayFast URL and signed form fields, but never gets
+ * the passphrase. The payment stays pending until the public ITN route has
+ * verified PayFast's signature, amount, merchant, and server confirmation.
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
   const user = await requireUser();
@@ -26,20 +28,25 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
 
-  const merchantId = process.env.PAYFAST_MERCHANT_ID;
-  const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
-  const passphrase = process.env.PAYFAST_PASSPHRASE;
-  if (!merchantId || !merchantKey || !passphrase) {
-    console.error("PayFast checkout is not configured");
-    return NextResponse.json({ error: "Payment checkout is not configured yet." }, { status: 503 });
+  if (!APP_URL || !/^https:\/\//i.test(APP_URL)) {
+    console.error("NEXT_PUBLIC_APP_URL must be an absolute HTTPS URL for PayFast");
+    return NextResponse.json({ error: "Payments are not configured yet." }, { status: 503 });
   }
 
-  const body = await request.json().catch(() => ({}));
-  const requestedCurrency = typeof body.currency === "string" ? body.currency.toUpperCase() : "ZAR";
-  if (requestedCurrency !== "ZAR") {
+  let config: ReturnType<typeof requiredPayFastConfig>;
+  try {
+    config = requiredPayFastConfig();
+  } catch (error) {
+    console.error("PayFast configuration is incomplete:", error);
+    return NextResponse.json({ error: "Payments are not configured yet." }, { status: 503 });
+  }
+
+  const body = (await request.json().catch(() => ({}))) as { currency?: unknown };
+  const currency = typeof body.currency === "string" ? body.currency.toUpperCase() : "ZAR";
+  if (currency !== "ZAR") {
     return NextResponse.json(
-      { error: "PayFast checkout is currently available in South African rand (ZAR) only." },
-      { status: 400 }
+      { error: "PayFast checkout is available in ZAR only. Please select ZAR and try again." },
+      { status: 400 },
     );
   }
 
@@ -50,16 +57,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   if (event.download_unlocked_at) {
-    return NextResponse.json({
-      status: "already_unlocked",
-      unlockedAt: event.download_unlocked_at,
-    });
+    return NextResponse.json({ status: "already_unlocked", unlockedAt: event.download_unlocked_at });
   }
 
   if (!event.package_id) {
     return NextResponse.json(
       { error: "This event has no package, so there is nothing to unlock yet." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -73,70 +77,74 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   if (!pkg) {
     return NextResponse.json({ error: "That package no longer exists." }, { status: 400 });
   }
-
   if (pkg.price_cents === null || pkg.price_cents <= 0) {
     return NextResponse.json(
-      {
-        error: `${pkg.name} has no price set yet. Contact us to arrange this event.`,
-        packageCode: pkg.code,
-      },
-      { status: 400 }
+      { error: `${pkg.name} has no price set yet. Contact us to arrange this event.`, packageCode: pkg.code },
+      { status: 400 },
     );
   }
 
-  // PayFast settles this integration in ZAR. The amount is stored in cents in
-  // Supabase and sent to PayFast as a two-decimal ZAR string.
-  const amount = (pkg.price_cents / 100).toFixed(2);
-  const baseUrl = appUrl();
-  const fields: Array<[string, string]> = [
-    ["merchant_id", merchantId],
-    ["merchant_key", merchantKey],
-    ["return_url", `${baseUrl}/dashboard/events/${encodeURIComponent(code)}?payment=success`],
-    ["cancel_url", `${baseUrl}/dashboard/events/${encodeURIComponent(code)}?payment=cancelled`],
-    ["notify_url", `${baseUrl}/api/payments/payfast/itn`],
-    ["name_first", user.email.split("@")[0] || "shutaMzala host"],
-    ["email_address", user.email],
-    ["m_payment_id", "pending"],
-    ["amount", amount],
-    ["item_name", pkg.name],
-    ["item_description", `Original downloads for ${event.event_name}`],
-  ];
-
-  // Create the payment before signing so m_payment_id is the immutable
-  // database UUID PayFast will return in its ITN callback.
-  const { data: payment, error } = await admin
+  // Reuse the newest pending PayFast payment for this event/package. This
+  // avoids creating orphaned pending rows when a customer double-clicks.
+  const { data: pendingRows } = await admin
     .from("payments")
-    .insert({
-      event_id: event.id,
-      package_id: pkg.id,
-      amount_cents: pkg.price_cents,
-      currency: "ZAR",
-      provider: "payfast",
-      status: "pending",
-      metadata: { created_by: user.userId, checkout: "payfast" },
-    })
     .select("*")
-    .single();
+    .eq("event_id", event.id)
+    .eq("package_id", pkg.id)
+    .eq("provider", "payfast")
+    .eq("status", "pending")
+    .eq("currency", "ZAR")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .returns<Payment[]>();
 
-  if (error || !payment) {
-    console.error("create PayFast payment failed:", error?.message ?? "missing payment row");
-    return NextResponse.json({ error: "Could not start the payment." }, { status: 500 });
+  let payment = pendingRows?.[0];
+  if (!payment) {
+    const { data: created, error } = await admin
+      .from("payments")
+      .insert({
+        event_id: event.id,
+        package_id: pkg.id,
+        amount_cents: pkg.price_cents,
+        currency: "ZAR",
+        provider: "payfast",
+        status: "pending",
+        metadata: { created_by: user.userId, gateway: "payfast", mode: config.mode },
+      })
+      .select("*")
+      .single<Payment>();
+
+    if (error || !created) {
+      console.error("create PayFast payment failed:", error?.message);
+      return NextResponse.json({ error: "Could not start the payment." }, { status: 500 });
+    }
+    payment = created;
   }
 
-  const signedFields: Array<[string, string]> = fields.map(([key, value]) =>
-    key === "m_payment_id" ? [key, payment.id] : [key, value]
-  );
-  const signature = payFastSignature(signedFields, passphrase);
+  const fields: [string, string][] = [
+    ["merchant_id", config.merchantId],
+    ["merchant_key", config.merchantKey],
+    ["return_url", `${APP_URL}/dashboard?payment=success&payment_id=${payment.id}`],
+    ["cancel_url", `${APP_URL}/dashboard?payment=cancelled&payment_id=${payment.id}`],
+    ["notify_url", `${APP_URL}/api/payfast/itn`],
+    ["name_first", "Customer"],
+    ["email_address", user.email],
+    ["m_payment_id", payment.id],
+    ["amount", (payment.amount_cents / 100).toFixed(2)],
+    ["item_name", pkg.name.slice(0, 100)],
+    ["item_description", `Original downloads for ${event.event_name}`.slice(0, 255)],
+    ["custom_str1", event.event_code],
+  ];
 
+  const signature = generatePayFastSignature(fields, config.passphrase);
   return NextResponse.json({
-    status: "awaiting_payment",
+    status: "payment_started",
     paymentId: payment.id,
-    amountCents: pkg.price_cents,
-    currency: "ZAR",
+    amountCents: payment.amount_cents,
+    currency: payment.currency,
     packageName: pkg.name,
-    checkoutUrl: `https://${payFastHost(process.env.PAYFAST_MODE)}/eng/process`,
-    fields: Object.fromEntries(signedFields),
-    signature,
-    message: "Redirecting you to PayFast to complete payment.",
+    checkoutUrl: payFastProcessUrl(config.mode),
+    checkoutFields: Object.fromEntries([...fields, ["signature", signature]]),
+    message: "Redirecting to PayFast…",
   });
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireApprovedAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Event, Package, Payment } from "@/types/database";
 
@@ -18,7 +18,7 @@ interface RouteContext {
  * an EFT can never disagree about what "paid" means.
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
-  const admin = await requireAdmin();
+  const admin = await requireApprovedAdmin();
   if (!admin) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }

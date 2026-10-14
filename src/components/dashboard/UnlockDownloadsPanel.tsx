@@ -15,8 +15,7 @@ interface CheckoutResponse {
   status?: string;
   unlockedAt?: string;
   checkoutUrl?: string;
-  fields?: Record<string, string>;
-  signature?: string;
+  checkoutFields?: Record<string, string>;
   message?: string;
   error?: string;
 }
@@ -65,7 +64,7 @@ export function UnlockDownloadsPanel({
         return;
       }
 
-      if (!body.checkoutUrl || !body.fields || !body.signature) {
+      if (!body.checkoutUrl || !body.checkoutFields) {
         setError("Payment checkout is not ready yet. Please try again shortly.");
         setBusy(false);
         return;
@@ -76,7 +75,7 @@ export function UnlockDownloadsPanel({
       form.action = body.checkoutUrl;
       form.style.display = "none";
 
-      for (const [name, value] of Object.entries({ ...body.fields, signature: body.signature })) {
+      for (const [name, value] of Object.entries(body.checkoutFields)) {
         const input = document.createElement("input");
         input.type = "hidden";
         input.name = name;
