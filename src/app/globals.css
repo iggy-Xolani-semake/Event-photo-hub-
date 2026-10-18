@@ -72,6 +72,11 @@ section[id] {
 .light-theme [class*="text-slate-400"] { color: #475569 !important; }
 .light-theme [class*="text-slate-500"] { color: #64748b !important; }
 .light-theme [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #0f172a !important; }
+.light-theme a[class~="text-white"]:not([class*="bg-gradient"]):not(.brand-gradient),
+.light-theme button[class~="text-white"]:not([class*="bg-gradient"]):not(.brand-gradient),
+.light-theme [class*="bg-white"][class~="text-white"] { color: #0f172a !important; }
+.light-theme .brand-gradient [class~="text-white"],
+.light-theme [class*="bg-gradient"][class~="text-white"] { color: #ffffff !important; }
 .light-theme header.sticky { background-color: rgb(255 255 255 / 0.92) !important; border-color: #e9e0d8 !important; box-shadow: 0 8px 28px rgb(70 48 31 / 0.06); }
 .light-theme input:not([type="checkbox"]):not([type="radio"]),
 .light-theme select, .light-theme textarea {
@@ -87,6 +92,7 @@ section[id] {
 .light-theme .hero-photo-panel [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #fff !important; }
 .light-theme .hero-photo-panel .hero-muted { color: rgb(255 255 255 / 0.82) !important; }
 .light-theme .photo-story-panel [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #fff !important; }
+.light-theme :focus-visible { outline: 3px solid #6366f1 !important; outline-offset: 3px; }
 
 @layer components {
   /* The one gradient in the system: violet -> electric indigo. Used by the

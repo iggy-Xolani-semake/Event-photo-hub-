@@ -66,6 +66,6 @@ test("host receives signed PayFast sandbox fields and posts them to the sandbox 
   expect(postedFields[0]?.get("amount")).toBe("50.00");
   expect(postedFields[0]?.get("signature")).toMatch(/^[\da-f]{32}$/i);
   expect(postedFields[0]?.get("notify_url")).toBe(
-    "http://127.0.0.1:3100/api/payments/payfast/itn"
+    "https://shutamzala.example/api/payfast/itn"
   );
 });

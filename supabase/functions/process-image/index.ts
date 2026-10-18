@@ -29,6 +29,7 @@ const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY")!;
 const R2_BUCKET_NAME = Deno.env.get("R2_BUCKET_NAME")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const PROCESS_IMAGE_WEBHOOK_SECRET = Deno.env.get("PROCESS_IMAGE_WEBHOOK_SECRET");
 
 const GALLERY_MAX_DIMENSION = 1600;
 const THUMB_MAX_DIMENSION = 400;
@@ -48,47 +49,99 @@ interface WebhookPayload {
   record: PhotoRow;
 }
 
+function constantTimeEqual(left: string, right: string): boolean {
+  const leftBytes = new TextEncoder().encode(left);
+  const rightBytes = new TextEncoder().encode(right);
+  if (leftBytes.length !== rightBytes.length) return false;
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index]! ^ rightBytes[index]!;
+  }
+  return difference === 0;
+}
+
+function isUuid(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isOriginalPath(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^events\/[A-Z0-9]{6,12}\/original\/[^/]+\.(?:jpg|jpeg|png|heic|heif)$/i.test(value);
+}
+
+function eventCodeFromOriginalPath(path: string): string {
+  const match = path.match(/^events\/([A-Z0-9]{6,12})\/original\//);
+  if (!match?.[1]) throw new Error("Invalid original storage path");
+  return match[1];
+}
+
+function galleryPath(eventCode: string, photoId: string): string {
+  return `events/${eventCode}/gallery/${photoId}.webp`;
+}
+
+function thumbnailPath(eventCode: string, photoId: string): string {
+  return `events/${eventCode}/thumb/${photoId}.webp`;
+}
+
 Deno.serve(async (req) => {
   let photo: PhotoRow | undefined;
   try {
-    const payload = (await req.json()) as WebhookPayload;
-    photo = payload.record;
-
-    if (!photo?.storage_path) {
-      return new Response(JSON.stringify({ error: "No storage_path in payload" }), { status: 400 });
+    if (!PROCESS_IMAGE_WEBHOOK_SECRET) {
+      console.error("PROCESS_IMAGE_WEBHOOK_SECRET is not configured");
+      return new Response(JSON.stringify({ error: "Function is not configured" }), { status: 503 });
+    }
+    const suppliedSecret = req.headers.get("x-process-image-secret");
+    if (!suppliedSecret || !constantTimeEqual(suppliedSecret, PROCESS_IMAGE_WEBHOOK_SECRET)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    // event_code is embedded in the storage path (events/{code}/original/...)
-    // — reuse it rather than a second DB round-trip to look up the event.
-    const eventCodeMatch = photo.storage_path.match(/^events\/([A-Z0-9]+)\//);
-    const eventCode = eventCodeMatch?.[1];
-    if (!eventCode) {
-      throw new Error(`Could not extract event code from path: ${photo.storage_path}`);
+    const payload = (await req.json()) as Partial<WebhookPayload>;
+    if (payload.type !== "INSERT" || payload.table !== "photos" || !payload.record) {
+      return new Response(JSON.stringify({ error: "Invalid webhook payload" }), { status: 400 });
+    }
+    const payloadPhoto = payload.record;
+    if (!isUuid(payloadPhoto.id) || !isOriginalPath(payloadPhoto.storage_path)) {
+      return new Response(JSON.stringify({ error: "Invalid photo record" }), { status: 400 });
     }
 
-    const originalBytes = await downloadFromR2(photo.storage_path);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: canonicalPhoto, error: photoLookupError } = await supabase
+      .from("photos")
+      .select("id, event_id, storage_path, mime_type")
+      .eq("id", payloadPhoto.id)
+      .maybeSingle<PhotoRow>();
+    if (photoLookupError) throw photoLookupError;
+    if (!canonicalPhoto || canonicalPhoto.storage_path !== payloadPhoto.storage_path) {
+      return new Response(JSON.stringify({ error: "Photo record mismatch" }), { status: 409 });
+    }
+    photo = canonicalPhoto;
+
+    // The DB row is authoritative. The payload cannot choose an event,
+    // source object, bucket, or destination object.
+    const eventCode = eventCodeFromOriginalPath(canonicalPhoto.storage_path);
+    const canonicalGalleryPath = galleryPath(eventCode, canonicalPhoto.id);
+    const canonicalThumbnailPath = thumbnailPath(eventCode, canonicalPhoto.id);
+
+    const originalBytes = await downloadFromR2(canonicalPhoto.storage_path);
     const decoded = await decodeImage(originalBytes);
 
     // imagescript's decode() returns Image | GIF frames; guard for the
     // single-frame case we expect from a phone camera photo.
     const image = decoded instanceof Image ? decoded : decoded[0];
 
-    const galleryPath = `events/${eventCode}/gallery/${photo.id}.webp`;
-    const thumbPath = `events/${eventCode}/thumb/${photo.id}.webp`;
-
     const galleryBuffer = await resizeToWebp(image, GALLERY_MAX_DIMENSION, GALLERY_QUALITY);
     const thumbBuffer = await resizeToWebp(image, THUMB_MAX_DIMENSION, THUMB_QUALITY);
 
     await Promise.all([
-      uploadToR2(galleryPath, galleryBuffer, "image/webp"),
-      uploadToR2(thumbPath, thumbBuffer, "image/webp"),
+      uploadToR2(canonicalGalleryPath, galleryBuffer, "image/webp"),
+      uploadToR2(canonicalThumbnailPath, thumbBuffer, "image/webp"),
     ]);
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { error } = await supabase.rpc("mark_photo_processed", {
-      p_photo_id: photo.id,
-      p_gallery_path: galleryPath,
-      p_thumbnail_path: thumbPath,
+      p_photo_id: canonicalPhoto.id,
+      p_gallery_path: canonicalGalleryPath,
+      p_thumbnail_path: canonicalThumbnailPath,
     });
     if (error) throw error;
 

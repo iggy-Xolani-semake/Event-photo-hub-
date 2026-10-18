@@ -35,3 +35,16 @@ export async function requireAdmin(): Promise<{ userId: string; role: string; cu
   if (!curator) return null;
   return { userId: user.id, role, curatorId: curator.id };
 }
+
+/**
+ * Platform-admin-only guard for operations that use the service role to
+ * change payment or cross-tenant state. Curators are intentionally excluded.
+ */
+export async function requireApprovedAdmin(): Promise<{ userId: string; role: "admin"; curatorId: null } | null> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || !isApprovedAdminUser(user)) return null;
+  return { userId: user.id, role: "admin", curatorId: null };
+}

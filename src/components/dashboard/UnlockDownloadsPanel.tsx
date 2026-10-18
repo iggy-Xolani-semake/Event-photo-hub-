@@ -9,7 +9,15 @@ interface Props {
   packageName: string | null;
   priceLabel: string | null;
   hasPackage: boolean;
-  isAdmin: boolean;
+}
+
+interface CheckoutResponse {
+  status?: string;
+  unlockedAt?: string;
+  checkoutUrl?: string;
+  checkoutFields?: Record<string, string>;
+  message?: string;
+  error?: string;
 }
 
 /**
@@ -25,28 +33,43 @@ export function UnlockDownloadsPanel({
   packageName,
   priceLabel,
   hasPackage,
-  isAdmin,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function call(url: string) {
+  async function startPayFastCheckout() {
     setBusy(true);
     setError(null);
     setMessage(null);
 
-    const res = await fetch(url, { method: "POST" });
-    const body = await res.json().catch(() => ({}));
+    try {
+      const res = await fetch(`/api/events/${eventCode}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency: "ZAR" }),
+      });
+      const body = (await res.json().catch(() => ({}))) as CheckoutResponse;
 
-    if (!res.ok) {
-      setBusy(false);
-      setError(body.error ?? "Something went wrong.");
-      return;
-    }
+      if (!res.ok) {
+        setBusy(false);
+        setError(body.error ?? "Something went wrong.");
+        return;
+      }
 
-    if (body.checkoutUrl && body.checkoutFields) {
+      if (body.status === "already_unlocked") {
+        setBusy(false);
+        router.refresh();
+        return;
+      }
+
+      if (!body.checkoutUrl || !body.checkoutFields) {
+        setBusy(false);
+        setError("Payment checkout is not ready yet. Please try again shortly.");
+        return;
+      }
+
       const allowedCheckoutUrls = [
         "https://sandbox.payfast.co.za/eng/process",
         "https://www.payfast.co.za/eng/process",
@@ -60,7 +83,7 @@ export function UnlockDownloadsPanel({
       const form = document.createElement("form");
       form.method = "POST";
       form.action = body.checkoutUrl;
-      form.hidden = true;
+      form.style.display = "none";
 
       for (const [name, value] of Object.entries(body.checkoutFields)) {
         if (typeof value !== "string") continue;
@@ -71,20 +94,13 @@ export function UnlockDownloadsPanel({
         form.append(input);
       }
 
-      document.body.append(form);
+      document.body.appendChild(form);
+      setMessage(body.message ?? "Redirecting you to PayFast…");
       form.submit();
-      return;
+    } catch {
+      setBusy(false);
+      setError("We could not start PayFast checkout. Please try again.");
     }
-
-    setBusy(false);
-
-    if (body.status === "already_unlocked") {
-      router.refresh();
-      return;
-    }
-
-    setMessage(body.message ?? "Payment started.");
-    router.refresh();
   }
 
   if (unlockedAt) {
@@ -102,7 +118,6 @@ export function UnlockDownloadsPanel({
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-800/40 p-5">
       <h2 className="mb-2 font-medium">Unlock original downloads</h2>
-
       <p className="mb-4 text-sm leading-relaxed text-slate-400">
         Your guests can already see and share the gallery — that part is free. Downloading the
         full-resolution originals is what the package pays for.
@@ -116,7 +131,6 @@ export function UnlockDownloadsPanel({
           " This event has no package yet."
         )}
       </p>
-
       {message && (
         <div className="mb-4 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-sm text-slate-300">
           {message}
@@ -127,31 +141,18 @@ export function UnlockDownloadsPanel({
           {error}
         </div>
       )}
-
       <div className="flex flex-wrap gap-2">
         {hasPackage && (
           <button
             type="button"
-            onClick={() => call(`/api/events/${eventCode}/checkout`)}
+            onClick={startPayFastCheckout}
             disabled={busy}
             className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {busy ? "Working…" : priceLabel ? `Pay ${priceLabel}` : "Start payment"}
-          </button>
-        )}
-
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => call(`/api/admin/events/${eventCode}/mark-paid`)}
-            disabled={busy}
-            className="rounded-xl border border-slate-700 bg-slate-800/80 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            Mark as paid (EFT confirmed)
+            {busy ? "Opening PayFast…" : priceLabel ? `Pay ${priceLabel}` : "Pay with PayFast"}
           </button>
         )}
       </div>
-
       {!hasPackage && (
         <p className="mt-3 text-xs text-slate-500">
           Events created before packages existed have no tier. Ask us to assign one.

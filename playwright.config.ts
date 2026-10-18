@@ -38,7 +38,7 @@ export default defineConfig({
         R2_SECRET_ACCESS_KEY: "e2e-secret-key",
         R2_BUCKET_NAME: "event-photo-hub",
         R2_ENDPOINT: `http://127.0.0.1:${backendPort}`,
-        NEXT_PUBLIC_APP_URL: `http://127.0.0.1:${appPort}`,
+        NEXT_PUBLIC_APP_URL: "https://shutamzala.example",
         PAYFAST_MODE: "sandbox",
         PAYFAST_MERCHANT_ID: "10000100",
         PAYFAST_MERCHANT_KEY: "e2e-merchant-key",

@@ -20,7 +20,6 @@ const SLIDESHOW_URL_TTL_SECONDS = 4 * 3600;
 export async function createPresignedUploadUrl(params: {
   key: string;
   contentType: string;
-  contentLength: number;
 }): Promise<{ uploadUrl: string; key: string }> {
   const client = createR2Client();
 
@@ -28,8 +27,6 @@ export async function createPresignedUploadUrl(params: {
     Bucket: R2_BUCKET,
     Key: params.key,
     ContentType: params.contentType,
-    // Lock the PUT to the exact bytes validated by the request-url route.
-    ContentLength: params.contentLength,
   });
 
   const uploadUrl = await getSignedUrl(client, command, {

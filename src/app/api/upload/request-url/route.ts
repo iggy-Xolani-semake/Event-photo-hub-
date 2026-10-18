@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createPresignedUploadUrl } from "@/lib/storage/signUpload";
 import {
   originalPath,
   MIME_TO_EXTENSION,
@@ -113,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error: sessionError } = await admin
       .from("guest_sessions")
-      .select("id, upload_count, guest_photo_limit")
+      .select("id, upload_count")
       .eq("event_id", eventInfo.event_id)
       .eq("session_token", sessionToken)
       .maybeSingle();
@@ -154,10 +153,10 @@ export async function POST(request: NextRequest) {
     const extension = MIME_TO_EXTENSION[mimeType.toLowerCase()] ?? "jpg";
     const key = originalPath(eventCode, photoId, extension);
 
+    const { createPresignedUploadUrl } = await import("@/lib/storage/signUpload");
     const { uploadUrl } = await createPresignedUploadUrl({
       key,
       contentType: mimeType,
-      contentLength: fileSize,
     });
 
     return NextResponse.json({

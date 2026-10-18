@@ -1,29 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { findManagedEvent } from "@/lib/auth/eventAccess";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deleteFromR2 } from "@/lib/storage/r2Client";
 import type { Photo } from "@/types/database";
 
+type PhotoWithEventCode = Pick<
+  Photo,
+  "id" | "event_id" | "storage_path" | "gallery_path" | "thumbnail_path"
+> & { events: { event_code: string } };
+
 /**
- * Uses the SESSION-BOUND server client, not the admin/service-role
- * client — the actual authorization decision is left to RLS
- * (photos_delete_owner in 0002_rls.sql, which allows an admin or the
- * event's own client), matching the same pattern as favourite/settings
- * routes elsewhere in this app. A guest with no session, or an
- * authenticated user who isn't the event's admin/client, gets filtered
- * out by Postgres before this route's R2 cleanup ever runs — so we
- * never risk deleting R2 files for a photo the caller wasn't actually
- * authorized to touch.
+ * Shared-gallery visibility is deliberately not sufficient for deletion.
+ * The initial lookup may be permitted by the shared-gallery SELECT policy,
+ * so the event is resolved again through findManagedEvent(), whose
+ * session-bound query only returns events the caller owns or is an approved
+ * site admin.
  *
- * Order matters: read the photo's storage paths under RLS FIRST (this
- * doubles as the authorization check — if the select returns nothing,
- * the caller isn't allowed to see/delete this photo), delete the R2
- * objects, THEN delete the database row. If the R2 delete fails, we
- * don't delete the DB row either — better to have an accessible photo
- * with orphaned-but-present files than a vanished database row pointing
- * at files that still exist and now can't be found or cleaned up later.
+ * The database row is deleted before R2 cleanup. Postgres and R2 cannot share
+ * a transaction; deleting the row first prevents an unauthorized or failed
+ * database delete from destroying the only metadata reference to the object.
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -31,9 +29,9 @@ export async function DELETE(
 
   const { data: photo, error: fetchError } = await supabase
     .from("photos")
-    .select("*")
+    .select("id, event_id, storage_path, gallery_path, thumbnail_path, events!inner(event_code)")
     .eq("id", id)
-    .maybeSingle<Photo>();
+    .maybeSingle<PhotoWithEventCode>();
 
   if (fetchError) {
     console.error("photo fetch before delete failed:", fetchError);
@@ -41,31 +39,44 @@ export async function DELETE(
   }
 
   if (!photo) {
-    // RLS filtered the row out (not authorized) or it genuinely doesn't
-    // exist — either way, nothing for this caller to delete.
+    return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+  }
+
+  // Shared/public gallery access must not satisfy this check.
+  const managedEvent = await findManagedEvent(photo.events.event_code);
+  if (!managedEvent || managedEvent.id !== photo.event_id) {
+    return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+  }
+
+  // RLS remains the final authorization backstop. Selecting the deleted row
+  // proves that a row owned by this caller was actually removed.
+  const { data: deletedPhoto, error: deleteError } = await supabase
+    .from("photos")
+    .delete()
+    .eq("id", photo.id)
+    .eq("event_id", managedEvent.id)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (deleteError) {
+    console.error("photo row delete failed:", deleteError);
+    return NextResponse.json({ error: "Could not delete the photo." }, { status: 500 });
+  }
+  if (!deletedPhoto) {
     return NextResponse.json({ error: "Photo not found." }, { status: 404 });
   }
 
   const keysToDelete = [photo.storage_path, photo.gallery_path, photo.thumbnail_path].filter(
     (key): key is string => Boolean(key)
   );
-
   try {
     await deleteFromR2(keysToDelete);
   } catch (err) {
-    console.error("R2 delete failed:", err);
+    // The row is intentionally already gone. Return an explicit cleanup
+    // error so monitoring/retry tooling can identify an orphaned R2 object.
+    console.error("R2 cleanup failed after photo row delete:", err);
     return NextResponse.json(
-      { error: "Could not delete the photo's files. Please try again." },
-      { status: 500 }
-    );
-  }
-
-  const { error: deleteError } = await supabase.from("photos").delete().eq("id", id);
-
-  if (deleteError) {
-    console.error("photo row delete failed after R2 cleanup:", deleteError);
-    return NextResponse.json(
-      { error: "Files were removed but the gallery entry could not be updated. Please refresh." },
+      { error: "The photo was removed, but its files need cleanup. Please contact support." },
       { status: 500 }
     );
   }

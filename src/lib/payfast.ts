@@ -1,144 +1,107 @@
 import "server-only";
-import { createHash, timingSafeEqual } from "node:crypto";
-import type { NextRequest } from "next/server";
 
-export type PayFastMode = "sandbox" | "live";
+import { createHash } from "crypto";
 
-interface PayFastSettings {
-  mode: PayFastMode;
-  merchantId: string;
-  merchantKey: string;
-  passphrase: string;
-  processUrl: string;
-  validationUrl: string;
+const SANDBOX_HOST = "sandbox.payfast.co.za";
+const LIVE_HOST = "www.payfast.co.za";
+
+/** PayFast's custom-payment signature uses PHP urlencode semantics. */
+function payFastEncode(value: string): string {
+  return encodeURIComponent(value.trim()).replace(/%20/g, "+");
 }
 
-const PAYFAST_IP_RANGES = [
-  { address: "197.97.145.144", prefix: 28 },
-  { address: "41.74.179.192", prefix: 27 },
-  { address: "102.216.36.0", prefix: 28 },
-  { address: "102.216.36.128", prefix: 28 },
-  { address: "144.126.193.139", prefix: 32 },
-];
-
-export function getPayFastSettings(): PayFastSettings | null {
-  const mode = process.env.PAYFAST_MODE;
-  const merchantId = process.env.PAYFAST_MERCHANT_ID;
-  const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
-
-  if (
-    (mode !== "sandbox" && mode !== "live") ||
-    !merchantId ||
-    !/^\d{8}$/.test(merchantId) ||
-    !merchantKey
-  ) {
-    return null;
-  }
-
-  const host = mode === "sandbox" ? "sandbox.payfast.co.za" : "www.payfast.co.za";
-
-  return {
-    mode,
-    merchantId,
-    merchantKey,
-    passphrase: process.env.PAYFAST_PASSPHRASE ?? "",
-    processUrl: `https://${host}/eng/process`,
-    validationUrl: `https://${host}/eng/query/validate`,
-  };
-}
-
-export function encodePayFastValue(value: string): string {
-  return encodeURIComponent(value.trim())
-    .replace(/%20/g, "+")
-    .replace(/[!'()*~]/g, (character) =>
-      `%${character.charCodeAt(0).toString(16).toUpperCase()}`
-    )
-    .replace(/%[\da-f]{2}/gi, (escape) => escape.toUpperCase());
-}
-
-export function createPayFastParameterString(
+/**
+ * Generate the custom-payment MD5 signature.
+ *
+ * PayFast custom payments are signed in the exact field order submitted,
+ * unlike the separate PayFast API signature which sorts fields alphabetically.
+ */
+export function generatePayFastSignature(
   entries: readonly (readonly [string, string])[],
-  options: { passphrase?: string; includeEmptyValues?: boolean } = {}
+  passphrase?: string,
 ): string {
   const parts = entries
-    .filter(
-      ([name, value]) =>
-        name !== "signature" && (options.includeEmptyValues || value.trim() !== "")
-    )
-    .map(([name, value]) => `${name}=${encodePayFastValue(value)}`);
+    .filter(([, value]) => value !== "")
+    .map(([key, value]) => `${key}=${payFastEncode(value)}`);
 
-  if (options.passphrase) {
-    parts.push(`passphrase=${encodePayFastValue(options.passphrase)}`);
+  if (passphrase?.trim()) {
+    parts.push(`passphrase=${payFastEncode(passphrase)}`);
   }
 
-  return parts.join("&");
+  return createHash("md5").update(parts.join("&"), "utf8").digest("hex");
 }
 
-export function createPayFastSignature(
-  entries: readonly (readonly [string, string])[],
-  passphrase: string
-): string {
-  return createHash("md5")
-    .update(createPayFastParameterString(entries, { passphrase }))
-    .digest("hex");
+export function payFastHost(mode: string | undefined): string {
+  return mode === "live" ? LIVE_HOST : SANDBOX_HOST;
 }
 
-export function verifyPayFastSignature(
-  entries: readonly (readonly [string, string])[],
-  signature: string,
-  passphrase: string
-): boolean {
-  if (!/^[\da-f]{32}$/i.test(signature)) return false;
+export function payFastProcessUrl(mode: string | undefined): string {
+  return `https://${payFastHost(mode)}/eng/process`;
+}
 
-  const expected = Buffer.from(
-    createHash("md5")
-      .update(
-        createPayFastParameterString(entries, {
-          passphrase,
-          includeEmptyValues: true,
-        })
-      )
-      .digest("hex"),
-    "hex"
+export function payFastValidateUrl(mode: string | undefined): string {
+  return `https://${payFastHost(mode)}/eng/query/validate`;
+}
+
+export function parseZarCents(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return null;
+  const amount = Number(text);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return Math.round(amount * 100);
+}
+
+/**
+ * PayFast publishes these notification ranges. Netlify normally forwards the
+ * origin through x-forwarded-for; when an IP is available, reject unexpected
+ * sources before doing the stronger PayFast server confirmation.
+ */
+const PAYFAST_IP_RANGES: readonly [number, number][] = [
+  [ipv4ToNumber("197.97.145.144"), ipv4ToNumber("197.97.145.159")],
+  [ipv4ToNumber("41.74.179.192"), ipv4ToNumber("41.74.179.223")],
+  [ipv4ToNumber("102.216.36.0"), ipv4ToNumber("102.216.36.15")],
+  [ipv4ToNumber("102.216.36.128"), ipv4ToNumber("102.216.36.143")],
+  [ipv4ToNumber("144.126.193.139"), ipv4ToNumber("144.126.193.139")],
+  // AWS addresses announced by PayFast for the post-31 July 2025 migration.
+  ...[
+    "3.163.236.237", "3.163.238.237", "3.163.251.237", "3.163.232.237",
+    "3.163.241.237", "3.163.245.237", "3.163.248.237", "3.163.234.237",
+    "3.163.237.237", "3.163.243.237", "3.163.247.237", "3.163.242.237",
+    "3.163.244.237", "3.163.249.237", "3.163.252.237", "3.163.235.237",
+    "3.163.239.237", "3.163.250.237", "3.163.233.237", "3.163.246.237",
+    "3.163.240.237",
+  ].map((ip): [number, number] => [ipv4ToNumber(ip), ipv4ToNumber(ip)]),
+];
+
+function ipv4ToNumber(ip: string): number {
+  return ip.split(".").reduce((result, octet) => result * 256 + Number(octet), 0);
+}
+
+export function isPayFastIp(ip: string | null): boolean {
+  if (!ip || ip.includes(":")) return false;
+  const value = ipv4ToNumber(ip.trim());
+  return Number.isInteger(value) && PAYFAST_IP_RANGES.some(([start, end]) => value >= start && value <= end);
+}
+
+export function forwardedClientIp(headers: Headers): string | null {
+  return (
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headers.get("x-real-ip")?.trim() ??
+    null
   );
-  const received = Buffer.from(signature, "hex");
-
-  return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-function ipv4ToInteger(value: string): number | null {
-  const normalized = value.trim().replace(/^::ffff:/i, "");
-  const octets = normalized.split(".");
-  if (octets.length !== 4) return null;
-
-  let address = 0;
-  for (const octet of octets) {
-    if (!/^\d{1,3}$/.test(octet)) return null;
-    const number = Number(octet);
-    if (number > 255) return null;
-    address = (address * 256 + number) >>> 0;
+export function requiredPayFastConfig() {
+  const merchantId = process.env.PAYFAST_MERCHANT_ID?.trim();
+  const merchantKey = process.env.PAYFAST_MERCHANT_KEY?.trim();
+  if (!merchantId || !merchantKey) {
+    throw new Error("PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY are required");
   }
-  return address;
-}
-
-function isWithinRange(address: number, network: number, prefix: number): boolean {
-  const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
-  return (address & mask) === (network & mask);
-}
-
-export function isPayFastSource(request: NextRequest): boolean {
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const sourceIp =
-    request.headers.get("x-nf-client-connection-ip") ??
-    request.headers.get("x-real-ip") ??
-    forwardedFor?.split(",").at(-1)?.trim();
-  if (!sourceIp) return false;
-
-  const address = ipv4ToInteger(sourceIp);
-  if (address === null) return false;
-
-  return PAYFAST_IP_RANGES.some(({ address: networkAddress, prefix }) => {
-    const network = ipv4ToInteger(networkAddress);
-    return network !== null && isWithinRange(address, network, prefix);
-  });
+  return {
+    merchantId,
+    merchantKey,
+    passphrase: process.env.PAYFAST_PASSPHRASE?.trim() || undefined,
+    mode: process.env.PAYFAST_MODE?.trim() || "sandbox",
+  };
 }

@@ -30,6 +30,16 @@ export function PhotoPreviewGrid({
   const errorCount = items.filter((i) => i.status === "error").length;
   const allDone = items.length > 0 && successCount + errorCount === items.length;
   const atLimit = items.length >= maxFilesPerUpload;
+  const overallProgress = items.length
+    ? Math.round(items.reduce((sum, item) => sum + (item.status === "success" ? 100 : item.status === "error" ? 0 : item.progress), 0) / items.length)
+    : 0;
+  const progressLabel = isUploading
+    ? items.some((item) => item.status === "compressing")
+      ? "Optimising your photos…"
+      : `Uploading ${successCount + 1} of ${items.length} photos…`
+    : allDone
+      ? `${successCount} of ${items.length} photos ready`
+      : "Ready to share";
 
   return (
     <div className="flex flex-col px-4 py-6">
@@ -37,10 +47,22 @@ export function PhotoPreviewGrid({
         {/* FROG #8 — the limit is visible as a counter, never a surprise. */}
         <div className="mb-4 flex items-baseline justify-between">
           <p className="text-sm text-slate-400">
-            <span className="text-base font-semibold text-white">{items.length}</span> /{" "}
+            <span className="text-base font-semibold text-slate-900">{items.length}</span> /{" "}
             {maxFilesPerUpload} photos
           </p>
           {atLimit && <p className="text-xs text-slate-500">That&apos;s the most at once</p>}
+        </div>
+
+        <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3" aria-live="polite">
+          <div className="flex items-center justify-between gap-3 text-xs font-medium text-slate-600">
+            <span>{progressLabel}</span>
+            {(isUploading || allDone) && <span className="tabular-nums">{overallProgress}%</span>}
+          </div>
+          {(isUploading || allDone) && (
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={overallProgress}>
+              <div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-300" style={{ width: `${overallProgress}%` }} />
+            </div>
+          )}
         </div>
 
         <div className="mb-6 grid grid-cols-3 gap-2">
