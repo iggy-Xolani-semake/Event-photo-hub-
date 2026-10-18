@@ -1,8 +1,8 @@
-import { ArrowRight, Check } from "lucide-react";
+import Image from "next/image";
+import { ArrowDown, ArrowRight, Check } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { DemoCta } from "./DemoCta";
-import { HeroShowcase } from "./HeroShowcase";
 
 const ASSURANCES = [
   "Free to create your event",
@@ -17,15 +17,26 @@ const ASSURANCES = [
  */
 export function Hero() {
   return (
-    <section className="relative overflow-hidden pb-16 pt-14 lg:pb-24 lg:pt-20">
-      <div className="surface-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+    <section className="hero-photo-panel relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden bg-slate-950">
+      <Image
+        src="/images/demo/gallery-03.webp"
+        alt="Graduates celebrating with family and friends"
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 -z-20 object-cover object-center"
+      />
       <div
-        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100/60 via-slate-50 to-slate-50"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/15"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/65 via-transparent to-slate-950/20"
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+      <div className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="flex max-w-3xl flex-col items-start text-left">
           <span className="animate-slide-up" style={{ animationFillMode: "both" }}>
             <Badge tone="info" dot pulse>
               Mobile-first event photo sharing
@@ -33,19 +44,19 @@ export function Hero() {
           </span>
 
           <h1
-            className="mt-6 animate-slide-up text-4xl font-bold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-6xl"
+            className="mt-6 animate-slide-up text-4xl font-bold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-7xl"
             style={{ animationDelay: "70ms", animationFillMode: "both" }}
           >
-            Collect <span className="brand-text">Every Guest Photo</span> from Your Event — Without
-            the Hassle
+            Every captured moment deserves to be{" "}
+            <span className="brand-text">remembered — and shared.</span>
           </h1>
 
           <p
-            className="mt-6 max-w-2xl animate-slide-up text-base leading-relaxed text-slate-400 md:text-lg"
+            className="hero-muted mt-6 max-w-2xl animate-slide-up text-base leading-relaxed md:text-lg"
             style={{ animationDelay: "140ms", animationFillMode: "both" }}
           >
-            No app downloads. No account sign-ups for guests. Just one simple QR code to capture
-            every unedited, full-resolution memory.
+            Collect every guest photo in one beautiful gallery. No app downloads, no guest
+            sign-ups — just one QR code and all the moments you might otherwise miss.
           </p>
 
           <div
@@ -64,7 +75,7 @@ export function Hero() {
             style={{ animationDelay: "280ms", animationFillMode: "both" }}
           >
             {ASSURANCES.map((item) => (
-              <li key={item} className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+              <li key={item} className="hero-muted flex items-center gap-1.5 text-xs font-medium">
                 <Check className="h-3.5 w-3.5 text-emerald-400" strokeWidth={3} />
                 {item}
               </li>
@@ -72,9 +83,13 @@ export function Hero() {
           </ul>
         </div>
 
-        <div className="mt-14 lg:mt-20">
-          <HeroShowcase />
-        </div>
+        <a
+          href="#event-story"
+          className="hero-muted mt-12 inline-flex items-center gap-2 text-sm font-medium transition hover:text-white"
+        >
+          See how every moment comes together
+          <ArrowDown className="h-4 w-4" aria-hidden="true" />
+        </a>
       </div>
     </section>
   );

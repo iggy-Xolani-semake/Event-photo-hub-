@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const r2PublicHost = process.env.NEXT_PUBLIC_R2_PUBLIC_HOST;
 
@@ -26,4 +27,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  telemetry: false,
+});

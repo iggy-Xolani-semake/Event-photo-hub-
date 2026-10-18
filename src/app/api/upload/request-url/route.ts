@@ -8,10 +8,11 @@ import {
   mimeTypeFromFilename,
 } from "@/lib/storage/paths";
 import { validateFile } from "@/lib/validation/fileValidation";
-import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName } from "@/lib/eventCode";
 import { randomUUID } from "crypto";
 import type { EventForUpload } from "@/types/database";
 import { checkDistributedRateLimit } from "@/lib/rateLimit";
+import { guestUploadRequestSchema } from "@/lib/validation/apiSchemas";
 
 /**
  * STEP 1 of the guest upload flow.
@@ -32,20 +33,23 @@ import { checkDistributedRateLimit } from "@/lib/rateLimit";
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { eventCode, fileName, fileSize, mimeType: rawMimeType } = body as {
-      eventCode?: string;
-      fileName?: string;
-      fileSize?: number;
-      mimeType?: string;
-      uploaderIdentifier?: string;
-    };
-
-    if (!eventCode || typeof eventCode !== "string" || !isValidEventCodeFormat(eventCode)) {
-      return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
     }
-    const mimeType = (rawMimeType || mimeTypeFromFilename(fileName ?? "") || "").toLowerCase();
-    if (!fileName || !fileSize || !mimeType) {
+    const parsed = guestUploadRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid upload details." },
+        { status: 400 }
+      );
+    }
+
+    const { eventCode, fileName, fileSize, mimeType: rawMimeType } = parsed.data;
+    const mimeType = (rawMimeType || mimeTypeFromFilename(fileName) || "").toLowerCase();
+    if (!mimeType) {
       return NextResponse.json({ error: "Missing file metadata." }, { status: 400 });
     }
 

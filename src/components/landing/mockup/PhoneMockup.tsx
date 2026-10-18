@@ -201,7 +201,7 @@ function PickPhase({ onAdvance }: { onAdvance: () => void }) {
 
       <div className="border-t border-slate-800 px-4 pb-6 pt-3">
         <p className="mb-2 text-[9px] text-slate-500">
-          {SELECTED_TILES} selected · originals kept, WebP preview generated
+          {SELECTED_TILES} selected · originals stay private
         </p>
         <PhoneButton onClick={onAdvance} icon={<ImagePlus className="h-3.5 w-3.5" />}>
           Upload {SELECTED_TILES} photos
@@ -211,7 +211,7 @@ function PickPhase({ onAdvance }: { onAdvance: () => void }) {
   );
 }
 
-/** Phase 3 — the upload itself: signed direct-to-R2, with live progress. */
+/** Phase 3 — photos are added to the gallery while their originals stay private. */
 function UploadPhase({ progress, completed }: { progress: number; completed: number }) {
   const clamped = Math.max(0, Math.min(100, Math.round(progress)));
   const perFile = 100 / SELECTED_TILES;
@@ -219,9 +219,9 @@ function UploadPhase({ progress, completed }: { progress: number; completed: num
   return (
     <div className="flex h-full flex-col bg-slate-900 px-4">
       <div className="pt-6">
-        <p className="text-[13px] font-extrabold tracking-tight text-white">Uploading your photos</p>
-        <p className="mt-1 text-[9px] text-slate-500">
-          Direct to Cloudflare R2 · nothing passes through our servers
+        <p className="text-[13px] font-extrabold tracking-tight text-white">Sharing photos safely</p>
+        <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
+          Your originals stay private until the host shares the gallery.
         </p>
       </div>
 
@@ -251,9 +251,7 @@ function UploadPhase({ progress, completed }: { progress: number; completed: num
                   <p className="truncate text-[9px] font-semibold text-slate-300">
                     IMG_{2041 + index}.HEIC
                   </p>
-                  <span className="text-[8px] font-bold tabular-nums text-slate-500">
-                    {complete ? "100%" : `${Math.round(tileProgress)}%`}
-                  </span>
+                  {complete && <Check className="h-3 w-3 text-emerald-400" strokeWidth={3} />}
                 </div>
                 <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-slate-700">
                   <div
@@ -262,7 +260,7 @@ function UploadPhase({ progress, completed }: { progress: number; completed: num
                   />
                 </div>
                 <p className="mt-1 text-[8px] text-slate-500">
-                  {complete ? "Preview ready · original stored" : "Compressing WebP preview…"}
+                  {complete ? "Original kept private" : "Adding to your event gallery"}
                 </p>
               </div>
               {complete && (
@@ -277,8 +275,8 @@ function UploadPhase({ progress, completed }: { progress: number; completed: num
 
       <div className="mt-auto pb-6">
         <div className="mb-2 flex items-center justify-between text-[9px] font-semibold text-slate-500">
-          <span>{clamped}% complete</span>
-          <span className="tabular-nums">1.4s left</span>
+          <span>{completed} of {SELECTED_TILES} photos added</span>
+          <span>Private originals</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-700">
           <div

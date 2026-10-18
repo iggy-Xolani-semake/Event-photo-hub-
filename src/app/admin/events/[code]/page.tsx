@@ -128,7 +128,7 @@ export default async function EventManagementPage({ params }: PageProps) {
         <div className="md:col-span-2 space-y-6">
           <section className="bg-slate-800/40 border border-slate-800 rounded-xl p-5">
             <h2 className="font-medium mb-3">Quick actions</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className={`grid grid-cols-1 gap-3 ${isAdmin ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
               <Link
                 href={galleryUrl}
                 target="_blank"
@@ -138,6 +138,14 @@ export default async function EventManagementPage({ params }: PageProps) {
               </Link>
               <CopyLinkButton url={guestUrl} label="Copy Guest Link" />
               <CopyLinkButton url={galleryUrl} label="Copy Memories Link" />
+              {isAdmin && (
+                <Link
+                  href={`/admin/events/${event.event_code}/slideshow`}
+                  className="text-center text-sm bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg px-4 py-3 font-semibold text-white"
+                >
+                  Start promotional slideshow
+                </Link>
+              )}
             </div>
           </section>
 

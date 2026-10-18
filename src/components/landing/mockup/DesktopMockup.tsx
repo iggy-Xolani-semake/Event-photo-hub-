@@ -149,7 +149,7 @@ export function DesktopMockup({
               <span className="block text-[9px] font-bold text-white">
                 +{addedThisCycle} photo{addedThisCycle === 1 ? "" : "s"} just added
               </span>
-              <span className="block text-[8px] text-slate-500">Guest device · seconds ago</span>
+              <span className="block text-[8px] text-slate-500">A guest just shared these</span>
             </span>
           </div>
         )}

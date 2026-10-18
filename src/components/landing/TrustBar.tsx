@@ -1,4 +1,4 @@
-import { ShieldCheck, SmartphoneNfc, Zap } from "lucide-react";
+import { ShieldCheck, SmartphoneNfc, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/Card";
 import { Reveal } from "./Reveal";
@@ -18,16 +18,16 @@ const METRICS: Metric[] = [
     detail: "Guests upload straight from their mobile browser.",
   },
   {
-    icon: <Zap className="h-4 w-4" strokeWidth={2.3} />,
-    value: "< 5s",
-    label: "Upload Time",
-    detail: "Signed transfers go directly to Cloudflare R2.",
+    icon: <Users className="h-4 w-4" strokeWidth={2.3} />,
+    value: "Everyone",
+    label: "Can add their photos",
+    detail: "One event link or QR code is all guests need.",
   },
   {
     icon: <ShieldCheck className="h-4 w-4" strokeWidth={2.3} />,
-    value: "100%",
-    label: "Privacy-Controlled",
-    detail: "You set the visibility and the expiry date.",
+    value: "Private",
+    label: "Photos stay protected",
+    detail: "You decide who can see the gallery.",
   },
 ];
 

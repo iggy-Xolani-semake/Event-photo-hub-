@@ -22,7 +22,7 @@ html, body {
   overflow-x: clip;
   overscroll-behavior-y: none;
   touch-action: manipulation;
-  background: #f8fafc;
+  background: #fbf8f4;
 }
 
 body {
@@ -56,31 +56,37 @@ section[id] {
   scroll-margin-top: 88px;
 }
 
-/* Shared light appearance for every route. These utility-level overrides keep
-   the existing component layouts intact while replacing the former dark palette. */
+/* Warm, paper-like surfaces keep the interface bright without feeling clinical. */
 .light-theme { color-scheme: light; }
-.light-theme [class*="bg-canvas"] { background-color: #f8fafc !important; }
-.light-theme [class*="bg-slate-950"] { background-color: #f8fafc !important; }
+.light-theme [class*="bg-canvas"] { background-color: #fbf8f4 !important; }
+.light-theme[class*="bg-canvas"] { background-color: #fbf8f4 !important; }
+.light-theme [class*="bg-slate-950"] { background-color: #fbf8f4 !important; }
 .light-theme [class*="bg-slate-900"] { background-color: #ffffff !important; }
-.light-theme [class*="bg-slate-800"] { background-color: #f1f5f9 !important; }
-.light-theme [class*="bg-slate-700"] { background-color: #e2e8f0 !important; }
+.light-theme [class*="bg-slate-800"] { background-color: #f5f0eb !important; }
+.light-theme [class*="bg-slate-700"] { background-color: #ece5de !important; }
 .light-theme [class*="border-slate-800"],
-.light-theme [class*="border-slate-700"] { border-color: #e2e8f0 !important; }
+.light-theme [class*="border-slate-700"] { border-color: #e9e0d8 !important; }
 .light-theme [class*="text-slate-100"],
 .light-theme [class*="text-slate-200"] { color: #0f172a !important; }
 .light-theme [class*="text-slate-300"] { color: #334155 !important; }
 .light-theme [class*="text-slate-400"] { color: #475569 !important; }
 .light-theme [class*="text-slate-500"] { color: #64748b !important; }
 .light-theme [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #0f172a !important; }
-.light-theme header.sticky { background-color: rgb(255 255 255 / 0.82) !important; border-color: #e2e8f0 !important; }
+.light-theme header.sticky { background-color: rgb(255 255 255 / 0.92) !important; border-color: #e9e0d8 !important; box-shadow: 0 8px 28px rgb(70 48 31 / 0.06); }
 .light-theme input:not([type="checkbox"]):not([type="radio"]),
 .light-theme select, .light-theme textarea {
-  background-color: #fff !important; border-color: #cbd5e1 !important; color: #0f172a !important;
+  background-color: #fff !important; border-color: #d9cec4 !important; color: #0f172a !important;
 }
 .light-theme input::placeholder, .light-theme textarea::placeholder { color: #94a3b8 !important; }
 .light-theme .brand-text { background-image: linear-gradient(to right,#7c3aed,#4f46e5); }
 .light-theme .surface-grid { opacity: .28; }
-.light-theme :is(article, [class*="rounded-2xl"]) { box-shadow: 0 1px 2px rgb(15 23 42 / .05); }
+.light-theme :is(article, [class*="rounded-2xl"]) { box-shadow: 0 1px 2px rgb(70 48 31 / .04), 0 12px 32px -28px rgb(70 48 31 / .24); }
+.light-theme a:hover { text-decoration-color: currentColor; }
+.light-theme .auth-photo-panel[class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient),
+.light-theme .auth-photo-panel [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #fff !important; }
+.light-theme .hero-photo-panel [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #fff !important; }
+.light-theme .hero-photo-panel .hero-muted { color: rgb(255 255 255 / 0.82) !important; }
+.light-theme .photo-story-panel [class~="text-white"]:not(button):not(a):not([class*="bg-gradient"]):not(.brand-gradient) { color: #fff !important; }
 
 @layer components {
   /* The one gradient in the system: violet -> electric indigo. Used by the

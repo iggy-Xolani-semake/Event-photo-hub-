@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { guestSessionCookieName, isValidEventCodeFormat } from "@/lib/eventCode";
+import { guestSessionCookieName } from "@/lib/eventCode";
 import { errorCodeToMessage } from "@/lib/validation/fileValidation";
 import { deleteFromR2, getR2ObjectMetadata } from "@/lib/storage/r2Client";
 import { MIME_TO_EXTENSION, originalPath } from "@/lib/storage/paths";
+import { guestUploadConfirmationSchema } from "@/lib/validation/apiSchemas";
 
 /**
  * STEP 2 of the guest upload flow — called after the browser has
@@ -26,9 +27,21 @@ import { MIME_TO_EXTENSION, originalPath } from "@/lib/storage/paths";
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
+    const parsed = guestUploadConfirmationSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid upload details." },
+        { status: 400 }
+      );
+    }
     const {
-      eventCode: rawEventCode,
+      eventCode,
       photoId: requestedPhotoId,
       storagePath,
       originalFilename,
@@ -36,26 +49,9 @@ export async function POST(request: NextRequest) {
       mimeType,
       width,
       height,
-    } =
-      body as {
-        eventCode?: string;
-        photoId?: string;
-        storagePath?: string;
-        originalFilename?: string;
-        fileSize?: number;
-        mimeType?: string;
-        width?: number;
-        height?: number;
-      };
+    } = parsed.data;
 
-    if (!rawEventCode || !isValidEventCodeFormat(rawEventCode.toUpperCase())) {
-      return NextResponse.json({ error: "Invalid event code." }, { status: 400 });
-    }
-    const eventCode = rawEventCode.toUpperCase();
-    if (!requestedPhotoId || !storagePath || !fileSize || !mimeType) {
-      return NextResponse.json({ error: "Missing upload details." }, { status: 400 });
-    }
-    if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > 15 * 1024 * 1024) {
+    if (fileSize > 15 * 1024 * 1024) {
       return NextResponse.json({ error: "Each photo must be 15 MB or smaller." }, { status: 413 });
     }
     // The session token is HttpOnly and event-scoped. Never accept it from the
@@ -65,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Your upload session expired. Please reload and try again." }, { status: 400 });
     }
 
-    const extension = MIME_TO_EXTENSION[mimeType.toLowerCase()];
+    const extension = MIME_TO_EXTENSION[mimeType];
     if (!extension || storagePath !== originalPath(eventCode, requestedPhotoId, extension)) {
       return NextResponse.json({ error: "Invalid upload details." }, { status: 400 });
     }
@@ -83,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     if (
       objectMetadata.contentLength !== fileSize ||
-      objectMetadata.contentType !== mimeType.toLowerCase()
+      objectMetadata.contentType !== mimeType
     ) {
       await deleteFromR2([storagePath]).catch((err) =>
         console.error("invalid upload cleanup failed:", err)

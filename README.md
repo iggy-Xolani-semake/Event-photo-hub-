@@ -20,7 +20,9 @@ retry), signed-upload security architecture, event-scoped storage,
 automatic gallery/thumbnail generation, public event gallery with
 lightbox + favourites + ZIP downloads, full admin dashboard (create
 event, QR code + printable poster, close/reopen, settings, per-event
-stats).
+stats). The two allowlisted site owners can also run a fullscreen
+promotional slideshow for an event, using private original images (with
+favourites as a curated option).
 
 ### V2 Sprint 1 — guest journey redesign
 
@@ -197,6 +199,27 @@ npm run typecheck   # tsc --noEmit
 npm run lint
 npm run build        # production build
 ```
+
+### End-to-end tests
+
+Install the Playwright browser once, then run the local browser tests:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+The suite starts the app with local mock Supabase/R2 services and uses fake
+PayFast sandbox values. It exercises the guest upload flow and hosted checkout
+form without contacting real services or charging a payment method. Use
+`npm run test:e2e:ui` to run the suite in Playwright's interactive UI.
+
+### Error monitoring
+
+Sentry is optional. Set `NEXT_PUBLIC_SENTRY_DSN` in the deployment environment
+to enable browser, Node.js, and Edge error reporting; leave it unset to disable
+Sentry. Session replay is not enabled, and captured error events remove user
+objects, request headers/cookies/bodies, and request paths before sending.
 
 ### Landing page photography
 
@@ -549,6 +572,7 @@ src/
     e/[code]/              guest upload page (public)
     gallery/[code]/        event gallery (public/shared) or gated (private)
     admin/                 site-host console (admin required)
+      events/[code]/slideshow/ owner-only original-photo slideshow
     dashboard/             client self-service area (owner-scoped)
     signup/, login/        client account pages
     api/
@@ -561,7 +585,7 @@ src/
   components/
     guest/                  guest upload UI + state machine
     gallery/                masonry grid, lightbox, toolbar
-    admin/                  QR code, poster, settings form, status controls
+    admin/                  QR code, poster, settings, status controls, slideshow
   lib/
     supabase/               browser / server / admin client factories
     storage/                R2 client, path helpers, presigned URLs

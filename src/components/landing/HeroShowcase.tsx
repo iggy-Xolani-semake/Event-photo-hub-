@@ -18,10 +18,17 @@ const PHASE_DWELL: Record<DemoPhase, number> = {
 };
 
 const PHASE_CAPTION: Record<DemoPhase, string> = {
-  scan: "Guest points their camera at the printed QR poster",
-  pick: "Picks photos straight from the camera roll — no sign-up",
-  upload: "Uploads go direct to Cloudflare R2 as WebP previews",
-  done: "The host gallery fills up live, originals ready to unlock",
+  scan: "Scan the event QR code to start adding photos",
+  pick: "Choose photos from your phone — no app or account needed",
+  upload: "Your photos stay protected, and every guest can add theirs",
+  done: "Everyone's photos come together in the host's gallery",
+};
+
+const PHASE_LABELS: Record<DemoPhase, string> = {
+  scan: "Scan",
+  pick: "Choose",
+  upload: "Share",
+  done: "Gallery",
 };
 
 const BASE_PHOTOS = 21;
@@ -238,23 +245,29 @@ function DemoControls({
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/60 px-2.5 py-1.5 shadow-xl backdrop-blur-md">
-          {PHASES.map((step, index) => (
-            <button
-              key={step}
+          <div
+            className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-900/60 p-1 shadow-xl backdrop-blur-md"
+            role="group"
+            aria-label="Guest demo steps"
+          >
+            {PHASES.map((step, index) => (
+              <button
+                key={step}
               type="button"
               onClick={() => onJumpTo(index)}
               aria-label={`Show demo step ${index + 1}: ${PHASE_CAPTION[step]}`}
               aria-current={index === phaseIndex ? "step" : undefined}
               className={clsx(
-                "h-2 rounded-full transition-all duration-300",
+                "rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition-colors duration-300 sm:px-3",
                 index === phaseIndex
-                  ? "w-6 bg-gradient-to-r from-indigo-500 to-violet-500"
-                  : "w-2 bg-slate-700 hover:bg-slate-600"
+                  ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-400/30"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
               )}
-            />
-          ))}
-        </div>
+              >
+                {PHASE_LABELS[step]}
+              </button>
+            ))}
+          </div>
       </div>
 
       <p
@@ -264,7 +277,7 @@ function DemoControls({
         <ScanLine className="mt-[1px] h-3.5 w-3.5 shrink-0 text-violet-500" strokeWidth={2.5} />
         <span>
           <span className="font-semibold text-slate-200">
-            Step {phaseIndex + 1} of {PHASES.length}.
+            {PHASE_LABELS[phase]} ·
           </span>{" "}
           {PHASE_CAPTION[phase]}
         </span>

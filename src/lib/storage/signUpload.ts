@@ -5,6 +5,7 @@ import { createR2Client, R2_BUCKET } from "./r2Client";
 
 const UPLOAD_URL_TTL_SECONDS = 120; // short-lived: enough for one mobile upload, not reusable later
 const DOWNLOAD_URL_TTL_SECONDS = 3600; // 1 hour, for client "download original" links
+const SLIDESHOW_URL_TTL_SECONDS = 4 * 3600;
 
 /**
  * Generates a presigned PUT URL scoped to exactly one object key, one
@@ -42,4 +43,14 @@ export async function createPresignedDownloadUrl(key: string): Promise<string> {
   const client = createR2Client();
   const command = new GetObjectCommand({ Bucket: R2_BUCKET, Key: key });
   return getSignedUrl(client, command, { expiresIn: DOWNLOAD_URL_TTL_SECONDS });
+}
+
+export async function createPresignedSlideshowUrl(key: string): Promise<string> {
+  const client = createR2Client();
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+    ResponseContentDisposition: "inline",
+  });
+  return getSignedUrl(client, command, { expiresIn: SLIDESHOW_URL_TTL_SECONDS });
 }

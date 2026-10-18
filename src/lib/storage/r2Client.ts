@@ -21,7 +21,8 @@ export function createR2Client() {
 
   return new S3Client({
     region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    endpoint:
+      process.env.R2_ENDPOINT ?? `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
   });
 }

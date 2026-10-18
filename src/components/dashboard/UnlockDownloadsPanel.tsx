@@ -32,19 +32,51 @@ export function UnlockDownloadsPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function call(url: string, currency?: string) {
+  async function call(url: string) {
     setBusy(true);
     setError(null);
     setMessage(null);
 
-    const res = await fetch(url, currency ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency }) } : { method: "POST" });
+    const res = await fetch(url, { method: "POST" });
     const body = await res.json().catch(() => ({}));
-    setBusy(false);
 
     if (!res.ok) {
+      setBusy(false);
       setError(body.error ?? "Something went wrong.");
       return;
     }
+
+    if (body.checkoutUrl && body.checkoutFields) {
+      const allowedCheckoutUrls = [
+        "https://sandbox.payfast.co.za/eng/process",
+        "https://www.payfast.co.za/eng/process",
+      ];
+      if (!allowedCheckoutUrls.includes(body.checkoutUrl)) {
+        setBusy(false);
+        setError("PayFast returned an invalid checkout URL.");
+        return;
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = body.checkoutUrl;
+      form.hidden = true;
+
+      for (const [name, value] of Object.entries(body.checkoutFields)) {
+        if (typeof value !== "string") continue;
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.append(input);
+      }
+
+      document.body.append(form);
+      form.submit();
+      return;
+    }
+
+    setBusy(false);
 
     if (body.status === "already_unlocked") {
       router.refresh();
@@ -100,7 +132,7 @@ export function UnlockDownloadsPanel({
         {hasPackage && (
           <button
             type="button"
-            onClick={() => call(`/api/events/${eventCode}/checkout`, window.localStorage.getItem("shutamzala-currency") ?? "ZAR")}
+            onClick={() => call(`/api/events/${eventCode}/checkout`)}
             disabled={busy}
             className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
