@@ -135,7 +135,7 @@ export default async function GuestEventPage({ params, searchParams }: PageProps
       sharedCount={sharedCount}
       galleryAvailable={galleryAvailable}
       maxFileSizeBytes={eventInfo.max_file_size_bytes ?? 15 * 1024 * 1024}
-      maxFilesPerUpload={eventInfo.max_files_per_upload ?? 10}
+      maxFilesPerUpload={eventInfo.max_files_per_upload ?? 30}
       brandCompanyName={eventInfo.brand_company_name}
       teasers={teasers}
       cameFromGallery={add === "1"}

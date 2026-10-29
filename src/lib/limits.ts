@@ -52,8 +52,8 @@ export const EVENT_LIMIT_CAPS: Record<LimitKey, LimitRule> = {
   maxFilesPerUpload: {
     label: "Photos a guest can add at once",
     min: 1,
-    max: 10,
-    fallback: 10,
+    max: 30,
+    fallback: 30,
   },
 };
 

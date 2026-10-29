@@ -37,7 +37,11 @@ export function CreateEventForm() {
       .then((res) => (res.ok ? res.json() : { packages: [] }))
       .then((body) => {
         if (cancelled) return;
-        setPackages(body.packages ?? []);
+        const nextPackages = body.packages ?? [];
+        setPackages(nextPackages);
+        setPackageCode(
+          nextPackages.find((pkg: Package) => pkg.code === "free")?.code ?? nextPackages[0]?.code ?? ""
+        );
       })
       .catch(() => setPackages([]));
     return () => {
@@ -130,11 +134,11 @@ export function CreateEventForm() {
         <label className="block">
           <span className="block text-sm text-slate-400 mb-1.5">Package</span>
           <select
+            required
             value={packageCode}
             onChange={(e) => setPackageCode(e.target.value)}
             className={inputClass}
           >
-            <option value="">No package — configure limits yourself</option>
             {packages.map((pkg) => (
               <option key={pkg.code} value={pkg.code}>
                 {pkg.name} · up to {pkg.photo_limit} photos
@@ -147,7 +151,7 @@ export function CreateEventForm() {
           <span className="block text-xs text-slate-600 mt-1.5">
             {selectedPackage
               ? `The package is the ceiling for the limits below. Downloads unlock once it is paid for.`
-              : `Without a package, limits are capped by the app maximums (${limitHint("uploadLimit")} photos).`}
+              : "Choose a package to load its event limits."}
           </span>
         </label>
       )}

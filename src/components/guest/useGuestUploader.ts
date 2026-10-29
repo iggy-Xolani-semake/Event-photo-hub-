@@ -43,7 +43,7 @@ function safeRandomId(): string {
  * guest_sessions and is incremented inside the same transaction that inserts
  * the photo, under a row lock.
  *
- * The promise is memoised per event so a batch of ten photos asks once.
+ * The promise is memoised per event so a batch of up to thirty photos asks once.
  */
 const guestSessionPromises = new Map<string, Promise<void>>();
 

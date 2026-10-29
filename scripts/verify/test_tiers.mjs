@@ -339,7 +339,7 @@ check("a Party Pack event is provisioned at its own allowance", partyAllowance =
 
 // ---------------------------------------------------------------------------
 console.log("\n--- an event cannot hold a limit above its package ---");
-// NEWFREE is on Free: 100 photos, 15 MB, 10 guest photos, 10 per batch.
+// NEWFREE is on Free: 100 photos, 15 MB, 10 guest photos, 30 per batch.
 const over = await errorOf(`update public.events set upload_limit = 101 where event_code = 'NEWFREE'`);
 check("raising the photo limit past the package is refused", /PACKAGE_PHOTO_LIMIT_EXCEEDED/.test(over ?? ""), over ?? "accepted");
 
@@ -364,7 +364,7 @@ check("pointing an event at a package that does not exist is refused", /PACKAGE_
 const absurd = await errorOf(`update public.events set upload_limit = 100000 where event_code = 'NEWFREE'`);
 check("the app-wide ceiling still rejects an absurd photo count", /UPLOAD_LIMIT_OUT_OF_RANGE/.test(absurd ?? ""), absurd ?? "accepted");
 
-const absurdBatch = await errorOf(`update public.events set max_files_per_upload = 11 where event_code = 'NEWFREE'`);
+const absurdBatch = await errorOf(`update public.events set max_files_per_upload = 31 where event_code = 'NEWFREE'`);
 check("the app-wide per-upload ceiling still holds", /FILES_PER_UPLOAD_OUT_OF_RANGE/.test(absurdBatch ?? ""), absurdBatch ?? "accepted");
 
 const absurdGuest = await errorOf(`update public.events set guest_photo_limit = 51 where event_code = 'NEWFREE'`);
@@ -383,7 +383,7 @@ check(
   untouched.upload_limit === 100 &&
     untouched.max_file_size_bytes === 15728640 &&
     untouched.guest_photo_limit === 10 &&
-    untouched.max_files_per_upload === 10,
+    untouched.max_files_per_upload === 30,
   JSON.stringify(untouched)
 );
 

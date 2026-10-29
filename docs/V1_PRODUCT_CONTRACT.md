@@ -21,7 +21,7 @@ V1 still uses the event link as the guest capability. A future invitation upgrad
 
 - Maximum 500 photos per event.
 - Maximum 15 MB per photo.
-- Maximum 10 photos in one guest upload batch.
+- Maximum 30 photos in one guest upload batch.
 - Existing per-guest quota remains a separate abuse-control limit.
 
 ## Expiry and retention
